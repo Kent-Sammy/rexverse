@@ -1,0 +1,128 @@
+// Fictional companies. Prices are simulated and do not represent any real security.
+// drift and vol are per in-game day.
+export const STOCK_DEFS = [
+  {
+    symbol: 'JLT',
+    name: 'Jollof Tech',
+    sector: 'Technology',
+    basePrice: 120,
+    drift: 0.004,
+    vol: 0.055,
+    blurb: 'Fast-growing app maker. Big upside, big swings.',
+    risk: 'High',
+  },
+  {
+    symbol: 'EKB',
+    name: 'Eko Bank Holdings',
+    sector: 'Banking',
+    basePrice: 45,
+    drift: 0.002,
+    vol: 0.022,
+    blurb: 'Large, established bank. Steadier price, slower growth.',
+    risk: 'Low',
+  },
+  {
+    symbol: 'SAG',
+    name: 'Sahel Agro',
+    sector: 'Agriculture',
+    basePrice: 30,
+    drift: 0.003,
+    vol: 0.032,
+    blurb: 'Grows and processes grains. Affected by weather and harvests.',
+    risk: 'Medium',
+  },
+  {
+    symbol: 'NGP',
+    name: 'NaijaGrid Power',
+    sector: 'Energy',
+    basePrice: 75,
+    drift: 0.0025,
+    vol: 0.04,
+    blurb: 'Builds solar mini-grids. Sensitive to policy news.',
+    risk: 'Medium',
+  },
+  {
+    symbol: 'LBF',
+    name: 'Lagos Bites Foods',
+    sector: 'Consumer goods',
+    basePrice: 18,
+    drift: 0.0015,
+    vol: 0.018,
+    blurb: 'Snacks and drinks everyone buys. Defensive and steady.',
+    risk: 'Low',
+  },
+  {
+    symbol: 'OKL',
+    name: 'Okada Logistics',
+    sector: 'Transport',
+    basePrice: 9.5,
+    drift: 0.001,
+    vol: 0.07,
+    blurb: 'Young delivery start-up. Cheap shares, very risky.',
+    risk: 'Very high',
+  },
+];
+
+// Sector news that can hit at the end of a day.
+export const MARKET_NEWS = [
+  {
+    sector: 'Technology',
+    shock: 0.09,
+    headline: 'Jollof Tech signs a major telecoms partnership',
+    lesson: 'Good news about one company can lift its price quickly — but it can fall just as fast.',
+  },
+  {
+    sector: 'Technology',
+    shock: -0.1,
+    headline: 'Jollof Tech app suffers a two-day outage',
+    lesson: 'Single-company risk: one bad week can hit a stock hard. Spreading your money lowers that risk.',
+  },
+  {
+    sector: 'Banking',
+    shock: 0.04,
+    headline: 'Eko Bank reports higher annual profit',
+    lesson: 'Steady profits tend to support a share price over time.',
+  },
+  {
+    sector: 'Agriculture',
+    shock: -0.07,
+    headline: 'Late rains delay the Sahel harvest',
+    lesson: 'Some sectors depend on things nobody controls, like the weather.',
+  },
+  {
+    sector: 'Agriculture',
+    shock: 0.06,
+    headline: 'Sahel Agro wins a large export order',
+    lesson: 'New customers mean more revenue, which investors like.',
+  },
+  {
+    sector: 'Energy',
+    shock: 0.07,
+    headline: 'Government announces support for solar projects',
+    lesson: 'Policy changes can help or hurt whole sectors at once.',
+  },
+  {
+    sector: 'Energy',
+    shock: -0.06,
+    headline: 'Equipment import costs rise for NaijaGrid',
+    lesson: 'Higher costs squeeze profit, and prices often react.',
+  },
+  {
+    sector: 'Consumer goods',
+    shock: 0.03,
+    headline: 'Lagos Bites launches a new zobo drink',
+    lesson: 'Defensive companies usually move less — even on good news.',
+  },
+  {
+    sector: 'Transport',
+    shock: 0.15,
+    headline: 'Okada Logistics raises fresh funding',
+    lesson: 'Risky start-ups can jump on news. Treat big jumps with caution, not excitement.',
+  },
+  {
+    sector: 'Transport',
+    shock: -0.16,
+    headline: 'Okada Logistics loses its biggest client',
+    lesson: 'High-risk stocks can drop sharply. Only invest money you can afford to see fall.',
+  },
+];
