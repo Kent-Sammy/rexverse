@@ -1,0 +1,23 @@
+{
+  "name": "rexplay-prototype",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Clickable RexPlay prototype built from the Rex Africa V2 Figma design",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "assets": "node scripts/download-assets.mjs"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.1.14",
+    "@vitejs/plugin-react": "^4.3.4",
+    "tailwindcss": "^4.1.14",
+    "vite": "^5.4.21"
+  }
+}
