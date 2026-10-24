@@ -90,7 +90,7 @@ export function GameCard({ from, to = '#f3f5ff', art, live, title, body, points,
   return (
     <button
       onClick={onClick}
-      className="bg-white flex-[1_0_0] h-[232px] min-w-px overflow-clip relative rounded-[10px] cursor-pointer text-left active:scale-[.98] transition-transform"
+      className="bg-white w-[179px] shrink-0 h-[232px] overflow-clip relative rounded-[10px] cursor-pointer text-left active:scale-[.98] transition-transform"
     >
       <div
         className="-translate-x-1/2 absolute h-[117px] left-[calc(50%+0.5px)] overflow-clip rounded-[6px] top-[9px] w-[156px]"

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import StatusBar from './StatusBar.jsx';
 import { BackButton, Icon } from './parts.jsx';
+import { formatDate, formatPoints, useStore } from '../store.jsx';
 
 // Figma: "rex play" › Rexplay — Rewards History (24454:41759)
 export const FIGMA_ASSETS = 'https://www.figma.com/api/mcp/asset/c967710b-e384-446e-a3b7-dfec4338ebb2';
@@ -48,13 +49,10 @@ const ICONS = {
   ),
 };
 
-const ITEMS = [
-  { kind: 'Cash', title: 'Cash Reward', detail: <><span className="font-bold">₦</span>2000 to bank account</> },
-  { kind: 'Data', title: 'Data Bundle', detail: '1GB data' },
-  { kind: 'Airtime', title: 'Airtime', detail: <><span className="font-bold">₦</span>2000 airtime</> },
-];
+const TITLES = { Cash: 'Cash Reward', Data: 'Data Bundle', Airtime: 'Airtime' };
+const KIND = { cash: 'Cash', data: 'Data', airtime: 'Airtime' };
 
-function HistoryItem({ kind, title, detail }) {
+function HistoryItem({ kind, title, detail, points, at }) {
   return (
     <div className="bg-white h-[80.333px] overflow-clip relative rounded-[11px] shrink-0 w-full">
       <div className="-translate-x-1/2 -translate-y-1/2 absolute flex items-center justify-between left-[calc(50%+0.5px)] top-[calc(50%-0.17px)] w-[324px]">
@@ -65,12 +63,12 @@ function HistoryItem({ kind, title, detail }) {
               <p className="font-inter font-semibold leading-[normal] text-[#130f26] text-[11px] whitespace-nowrap">{title}</p>
               <p className="font-inter font-medium leading-[1.5] min-w-full text-[#6d7d9c] text-[10px] tracking-[-0.2px] w-min">{detail}</p>
             </div>
-            <p className="font-inter font-medium leading-[1.5] text-[#6d7d9c] text-[10px] tracking-[-0.2px] w-full">Sep 5, 2026 . 10:24 AM</p>
+            <p className="font-inter font-medium leading-[1.5] text-[#6d7d9c] text-[10px] tracking-[-0.2px] w-full">{formatDate(at)}</p>
           </div>
         </div>
         <div className="flex flex-col gap-[7px] items-start justify-center relative shrink-0">
           <p className="font-inter font-semibold leading-[1.5] min-w-full text-[12px] text-[red] text-right tracking-[-0.24px] w-min whitespace-nowrap">
-            -2000 pts
+            -{formatPoints(points)} pts
           </p>
           <div className="flex h-[20px] items-center justify-center px-[10px] relative rounded-[20px] shrink-0 bg-[#f1f9f1]">
             <p className="font-inter font-medium leading-[1.5] text-[#008f18] text-[10px] tracking-[-0.2px] whitespace-nowrap">Successful</p>
@@ -81,9 +79,12 @@ function HistoryItem({ kind, title, detail }) {
   );
 }
 
-export default function RewardsHistory({ back }) {
+export default function RewardsHistory({ back, go }) {
+  const { redemptions } = useStore();
   const [tab, setTab] = useState('All');
-  const items = ITEMS.filter((i) => tab === 'All' || i.kind === tab);
+  const items = redemptions
+    .map((r) => ({ ...r, kind: KIND[r.kind], title: TITLES[KIND[r.kind]] }))
+    .filter((i) => tab === 'All' || i.kind === tab);
   return (
     <div className="overflow-clip relative size-full bg-[#f1f5ff]">
       <StatusBar />
@@ -109,10 +110,19 @@ export default function RewardsHistory({ back }) {
         ))}
       </div>
 
-      <div className="absolute flex flex-col gap-[7px] items-start left-[20px] top-[195px] w-[363px]">
+      <div className="absolute flex flex-col gap-[7px] items-start left-[20px] top-[195px] bottom-0 overflow-y-auto pb-[24px] w-[363px] [scrollbar-width:none]">
         {items.map((it) => (
-          <HistoryItem key={it.kind} {...it} />
+          <HistoryItem key={it.reference} {...it} />
         ))}
+        {items.length === 0 && (
+          <div className="bg-white rounded-[11px] w-full p-[24px] flex flex-col items-center gap-[10px] text-center">
+            <p className="font-inter font-semibold text-[13px] text-[#130f26]">No redemptions yet</p>
+            <p className="font-inter font-medium text-[11px] text-[#6d7d9c]">Turn your RexPlay points into airtime, data or cash.</p>
+            <button onClick={() => go('redeem')} className="bg-[#002766] text-white rounded-[8px] px-[16px] py-[9px] font-inter font-semibold text-[11px] cursor-pointer">
+              Redeem Points
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

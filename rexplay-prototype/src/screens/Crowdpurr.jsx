@@ -1,10 +1,8 @@
-import { useEffect, useState } from 'react';
-import StatusBar from './StatusBar.jsx';
 import { Fill, Icon } from './parts.jsx';
 import { asset as a } from '../asset.js';
 
-// Figma: "rex play" › Crowdpurr page (24452:39477) and End game (24453:39833).
-// The design leaves the game area empty — it is where the live Crowdpurr game shows.
+// Pieces from the Figma "Crowdpurr page" (24452:39477) and "End game" (24453:39833) frames,
+// used by the game screen (Game.jsx).
 export const FIGMA_ASSETS = [
   'https://www.figma.com/api/mcp/asset/37c95de4-493c-489c-b9d4-e417f7389304',
   'https://www.figma.com/api/mcp/asset/db3c9ab1-a1d2-4a02-9b81-64169c00fbd2',
@@ -84,32 +82,5 @@ export function EndGameSheet({ onCancel, onExit }) {
         </div>
       </div>
     </>
-  );
-}
-
-// The live game itself runs on Crowdpurr, so the prototype "ends" the game after a few
-// seconds (or on a tap in the game area) and shows the results screen.
-const GAME_LENGTH_MS = 6000;
-
-export default function Crowdpurr({ go, exitTo }) {
-  const [confirm, setConfirm] = useState(false);
-  useEffect(() => {
-    if (confirm) return undefined;
-    const t = setTimeout(() => go('results', { replace: true }), GAME_LENGTH_MS);
-    return () => clearTimeout(t);
-  }, [confirm, go]);
-  return (
-    <div className="bg-[#01296a] overflow-clip relative size-full">
-      <DarkBackdrop />
-      <StatusBar {...DARK_STATUS} />
-      <p className="absolute font-inter font-bold leading-[1.3] left-[22px] text-[#f1f5ff] text-[20px] top-[69px] whitespace-nowrap">Crowdpurr</p>
-      <button
-        aria-label="Finish game"
-        onClick={() => go('results', { replace: true })}
-        className="absolute left-0 right-0 top-[110px] bottom-0 cursor-default"
-      />
-      <CloseButton onClick={() => setConfirm(true)} />
-      {confirm && <EndGameSheet onCancel={() => setConfirm(false)} onExit={exitTo} />}
-    </div>
   );
 }

@@ -2,28 +2,14 @@ import { useState } from 'react';
 import StatusBar from './StatusBar.jsx';
 import { BackButton, CoinPill, Icon } from './parts.jsx';
 import { asset as a } from '../asset.js';
+import { gameById, leaderboard, GAMES } from '../games.jsx';
+import { useStore } from '../store.jsx';
 
 // Figma: "rex play" › Rexplay (24453:39999) — Leaderboard.
 export const FIGMA_ASSETS = 'https://www.figma.com/api/mcp/asset/78ba60de-822e-4764-9c38-43e6cf418a02';
 
 export const LIGHT_ON_BLUE_STATUS = { color: '#f1f5ff', files: { location: '0c7fa.svg', wifi: '4c360.svg', battery: 'f9b68.svg' } };
 
-// [rank, name, points, avatar file, avatar is a photo (rounded cover) or a pre-cropped circle]
-const PLAYERS = [
-  [1, 'Amaka k.', 100, '8d91b.png', true],
-  [2, 'James Smith', 95, '86cb5.png', true],
-  [3, 'Emily Johnson', 92, '884ed.png', true],
-  [4, 'Michael Brown', 90, '00f0f.png', true],
-  [5, 'Jessica Davis', 88, 'c84e9.png'],
-  [6, 'David Wilson', 85, '2b017.png'],
-  [7, 'Sarah Miller (You)', 83, 'c7b7f.png'],
-  [8, 'Christopher Garcia', 80, '04de9.png'],
-  [9, 'Ashley Martinez', 78, 'bd58d.png'],
-  [10, 'Daniel Hernandez', 75, '0438a.png'],
-  [11, 'Nancy Lopez', 73, 'a1456.svg'],
-  [12, 'Matthew Perez', 70, 'a1456.svg'],
-  [13, 'Sophia Thompson', 68, 'a1456.svg'],
-];
 
 // Medal art for the top three, positioned as in Figma.
 const MEDALS = {
@@ -57,9 +43,8 @@ function Avatar({ file, photo }) {
   );
 }
 
-function Row({ rank, name, points, file, photo, last }) {
+function Row({ rank, name, points, file, photo, last, you }) {
   const medal = MEDALS[rank];
-  const you = name.includes('(You)');
   const rankWidth = rank >= 11 ? 'w-[30px]' : 'w-[46px]';
   return (
     <div
@@ -92,11 +77,16 @@ function Row({ rank, name, points, file, photo, last }) {
   );
 }
 
-export default function Leaderboard({ go, back, coins }) {
+export default function Leaderboard({ go, back, coins, param }) {
+  const { plays } = useStore();
+  const game = gameById(param) || GAMES[0];
+  // Your best result in this game (0 if you haven't played it yet).
+  const best = plays.filter((p) => p.gameId === game.id).reduce((m, p) => Math.max(m, p.points), 0);
+  const board = leaderboard(game, best).rows;
   const [tab, setTab] = useState('All Players');
-  const rows = PLAYERS.filter(([rank]) => tab === 'All Players' || rank <= 10);
-  const top = rows.filter(([rank]) => rank <= 3);
-  const rest = rows.filter(([rank]) => rank > 3);
+  const rows = board.filter((r) => tab === 'All Players' || r.rank <= 10);
+  const top = rows.filter((r) => r.rank <= 3);
+  const rest = rows.filter((r) => r.rank > 3);
 
   return (
     <div className="overflow-clip relative size-full bg-[#063179]">
@@ -109,7 +99,7 @@ export default function Leaderboard({ go, back, coins }) {
 
       <div className="-translate-x-1/2 absolute flex flex-col gap-px items-start justify-center left-[calc(50%+0.5px)] top-[89px] w-[359px]">
         <p className="font-inter font-bold leading-[1.3] text-[#f1f5ff] text-[20px] whitespace-nowrap">Leaderboard</p>
-        <p className="font-inter font-medium leading-[normal] text-[#8f9bb3] text-[12px] w-[216px]">Play at your own pace</p>
+        <p className="font-inter font-medium leading-[normal] text-[#8f9bb3] text-[12px] w-[260px]">{game.title}</p>
         <CoinPill coins={coins} onClick={() => go('rewards')} className="shadow-none min-w-[66px]" />
       </div>
       <BackButton onClick={back} file="e15be.svg" />
@@ -140,21 +130,13 @@ export default function Leaderboard({ go, back, coins }) {
             </div>
           </div>
           <div className="flex flex-col gap-[7px] items-start relative shrink-0 w-full">
-            {top.map(([rank, name, points, file, photo]) => (
-              <Row key={rank} rank={rank} name={name} points={points} file={file} photo={photo} />
+            {top.map((r) => (
+              <Row key={r.name} {...r} />
             ))}
           </div>
           <div className="flex flex-col gap-[15px] items-start relative shrink-0 w-full">
-            {rest.map(([rank, name, points, file, photo], i) => (
-              <Row
-                key={rank}
-                rank={rank}
-                name={name}
-                points={points}
-                file={file}
-                photo={photo}
-                last={rank === 6 || i === rest.length - 1}
-              />
+            {rest.map((r, i) => (
+              <Row key={r.name} {...r} last={i === rest.length - 1 || rest[i + 1].you || r.you} />
             ))}
           </div>
         </div>

@@ -54,8 +54,8 @@ export default function Redeem({ go, back, coins }) {
         <Option
           row="justify-between left-[20px] top-[16px] w-[324px]"
           title="Cash Reward"
-          body="Convert points to cash in your Rex wallet"
-          onClick={() => go('redeem-cash')}
+          body="Convert points to cash in your Rex wallet or bank"
+          onClick={() => go('redeem/cash')}
           icon={
             <div className="bg-[rgba(255,152,0,0.08)] overflow-clip relative rounded-[9.882px] shrink-0 size-[42px]">
               <div className="-translate-x-1/2 -translate-y-1/2 absolute left-[calc(50%+0.5px)] size-[21px] top-1/2">
@@ -68,7 +68,7 @@ export default function Redeem({ go, back, coins }) {
           row="justify-between left-[18px] top-[18.67px] w-[323px]"
           title="Airtime"
           body="Get airtime for your number"
-          onClick={() => go('redeem-airtime')}
+          onClick={() => go('redeem/airtime')}
           icon={
             <div className="bg-[rgba(0,188,212,0.08)] overflow-clip relative rounded-[8.647px] shrink-0 size-[42px]">
               <div className="-translate-x-1/2 -translate-y-1/2 absolute left-[calc(50%+0.62px)] size-[21px] top-[calc(50%+0.62px)]">
@@ -87,7 +87,7 @@ export default function Redeem({ go, back, coins }) {
           title="Data Bundle"
           body="Get a data bundle for your number"
           textWidth={167}
-          onClick={() => go('redeem-data')}
+          onClick={() => go('redeem/data')}
           icon={
             <div className="bg-[rgba(51,94,247,0.08)] overflow-clip relative rounded-[9.059px] shrink-0 size-[44px]">
               <div className="-translate-x-1/2 -translate-y-1/2 absolute left-[calc(50%+0.65px)] size-[22px] top-[calc(50%+0.65px)]">

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import StatusBar from './StatusBar.jsx';
-import { BackButton, Fill, GameCard, Icon, SectionHeader, SeeAll, TitleBlock } from './parts.jsx';
+import { BackButton, Fill, GameCard, Icon, SectionHeader, TitleBlock } from './parts.jsx';
+import { ART, GAMES, maxPoints } from '../games.jsx';
 
 // Figma: "rex play" › Rexplay (24450:38752)
 export const FIGMA_ASSETS = 'https://www.figma.com/api/mcp/asset/d9fcfd67-56bb-4742-9d5e-168656cdf0a2';
@@ -56,29 +57,44 @@ export function FilterTabs({ value, onChange }) {
   );
 }
 
-// Card artwork, positioned exactly as in Figma.
-export const ART = {
-  trophy: (
-    <div className="-translate-x-1/2 -translate-y-1/2 absolute h-[76px] left-[calc(50%-3.5px)] top-[calc(50%+14.5px)] w-[83px]">
-      <Fill src="35672.png" cover />
+const matches = (g, tab) =>
+  tab === 'All' ||
+  (tab === 'Live Now' && g.live) ||
+  (tab === 'Polls' && g.kind === 'poll') ||
+  (tab === 'Trivia' && g.tags.includes('trivia')) ||
+  (tab === 'Products' && g.tags.includes('products'));
+
+// Cards sit two per row at their Figma width; a lone card stays on the left.
+function CardRows({ games, go }) {
+  const rows = [];
+  for (let i = 0; i < games.length; i += 2) rows.push(games.slice(i, i + 2));
+  return rows.map((row) => (
+    <div key={row[0].id} className="flex gap-[5px] items-center justify-start relative shrink-0 w-full">
+      {row.map((g, i) => (
+        <GameCard
+          key={g.id}
+          live={g.live}
+          from={g.from}
+          to={g.to}
+          art={ART[g.art]}
+          title={g.title}
+          body={g.body}
+          points={maxPoints(g)}
+          nudge={i === 1 ? '1px' : '0.5px'}
+          onClick={() => go(`game/${g.id}`)}
+        />
+      ))}
     </div>
-  ),
-  phone: (
-    <div className="-translate-x-1/2 absolute h-[77.679px] left-1/2 top-[34.32px] w-[85px]">
-      <Fill src="659ef.png" cover />
-    </div>
-  ),
-  budget: (
-    <div className="absolute h-[86px] left-[28px] top-[25px] w-[95px]">
-      <Fill src="635e3.png" cover />
-    </div>
-  ),
-};
+  ));
+}
 
 export default function RexPlayHome({ go, back, coins }) {
   const [tab, setTab] = useState('All');
-  const showLive = tab === 'All' || tab === 'Live Now' || tab === 'Polls' || tab === 'Trivia';
-  const showTrivia = tab !== 'Live Now' && tab !== 'Polls';
+  const shown = GAMES.filter((g) => matches(g, tab));
+  const live = shown.filter((g) => g.live);
+  const trivia = shown.filter((g) => !g.live && g.kind === 'quiz');
+  const polls = shown.filter((g) => !g.live && g.kind === 'poll');
+  const liveCount = GAMES.filter((g) => g.live).length;
 
   return (
     <div className="overflow-clip relative size-full bg-[#f1f5ff]">
@@ -86,79 +102,47 @@ export default function RexPlayHome({ go, back, coins }) {
       <TitleBlock title="RexPlay" subtitle="Play at your own pace" coins={coins} onCoins={() => go('rewards')} />
       <BackButton onClick={back} />
 
-      <div className="-translate-x-1/2 absolute flex flex-col gap-[14px] items-start left-[calc(50%+0.5px)] top-[145px] w-[363px]">
-        <div className="flex flex-col gap-[9px] items-start relative shrink-0 w-full">
-          <HeroBanner />
-          <FilterTabs value={tab} onChange={setTab} />
-        </div>
-
-        {showLive && (
-          <div className="flex flex-col gap-[9px] items-center relative shrink-0 w-full">
-            <SectionHeader
-              title="Live Now"
-              width={66}
-              right={
-                <div className="flex gap-[5px] items-center relative shrink-0">
-                  <div className="relative shrink-0 size-[6px] animate-pulse">
-                    <Icon src="64f7e.svg" />
-                  </div>
-                  <p className="font-inter font-semibold leading-[normal] text-[#556276] text-[10px] whitespace-nowrap">2 live experiences</p>
-                </div>
-              }
-            />
-            <div className="flex gap-[5px] items-center relative shrink-0 w-full">
-              {tab !== 'Polls' && (
-                <GameCard
-                  live
-                  from="#9dff89"
-                  art={ART.trophy}
-                  title="Naira Savings Trivia"
-                  body="Test your knowledge about savings and investing in Nigeria."
-                  points={500}
-                  onClick={() => go('crowdpurr')}
-                />
-              )}
-              {tab !== 'Trivia' && (
-                <GameCard
-                  live
-                  from="#d4baff"
-                  art={ART.phone}
-                  title="RexPay Product Poll"
-                  body="Help us improve by sharing your opinion."
-                  points={300}
-                  nudge="1px"
-                  onClick={() => go('crowdpurr')}
-                />
-              )}
-            </div>
-          </div>
-        )}
-
-        {showTrivia && (
+      <div className="absolute left-0 right-0 top-[145px] bottom-0 overflow-y-auto overscroll-contain [scrollbar-width:none]">
+        <div className="mx-auto translate-x-[0.5px] flex flex-col gap-[14px] items-start pb-[32px] w-[363px]">
           <div className="flex flex-col gap-[9px] items-start relative shrink-0 w-full">
-            <SectionHeader title="Rex Play Trivia" width={104} right={<SeeAll onClick={() => go('trivia-list')} />} />
-            <div className="flex gap-[5px] items-center relative shrink-0 w-full">
-              <GameCard
-                from="#ffcf62"
-                to="#f8ebce"
-                art={ART.budget}
-                title="Budgeting Challenge"
-                body="See how well you can build a monthly budget."
-                points={500}
-                onClick={() => go('crowdpurr')}
-              />
-              <GameCard
-                from="#88ebff"
-                art={ART.trophy}
-                title="Rex Product Quiz"
-                body="Learn about Rex Products and earn rewards."
-                points={300}
-                nudge="1px"
-                onClick={() => go('crowdpurr')}
-              />
-            </div>
+            <HeroBanner />
+            <FilterTabs value={tab} onChange={setTab} />
           </div>
-        )}
+
+          {live.length > 0 && (
+            <div className="flex flex-col gap-[9px] items-start relative shrink-0 w-full">
+              <SectionHeader
+                title="Live Now"
+                width={66}
+                right={
+                  <div className="flex gap-[5px] items-center relative shrink-0">
+                    <div className="relative shrink-0 size-[6px] animate-pulse">
+                      <Icon src="64f7e.svg" />
+                    </div>
+                    <p className="font-inter font-semibold leading-[normal] text-[#556276] text-[10px] whitespace-nowrap">
+                      {liveCount} live experiences
+                    </p>
+                  </div>
+                }
+              />
+              <CardRows games={live} go={go} />
+            </div>
+          )}
+
+          {trivia.length > 0 && (
+            <div className="flex flex-col gap-[9px] items-start relative shrink-0 w-full">
+              <SectionHeader title="Rex Play Trivia" width={104} />
+              <CardRows games={trivia} go={go} />
+            </div>
+          )}
+
+          {polls.length > 0 && (
+            <div className="flex flex-col gap-[9px] items-start relative shrink-0 w-full">
+              <SectionHeader title="Quick Polls" width={104} />
+              <CardRows games={polls} go={go} />
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

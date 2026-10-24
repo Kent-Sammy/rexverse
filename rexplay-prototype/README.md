@@ -19,23 +19,27 @@ Run `npm run assets` and commit `public/assets/` first, so the images ship with 
 ## The flow
 
 1. **Dashboard** opens with the RexPlay promo pop-up. "RexPlay... Let’s Play" (or the green RexPlay banner) opens RexPlay.
-2. **RexPlay** — filter tabs work; any game card opens the live game.
-3. **Crowdpurr** (live game) — the game itself runs on Crowdpurr, so the prototype ends it after 6 seconds, or on a tap.
+2. **RexPlay** lists the games; the filter tabs work and a lone card stays at normal width on the left.
+3. **Games** (`src/games.jsx`) — real, playable financial-literacy games:
+   - Naira Savings Trivia, Fixed Deposit Challenge, Budgeting Challenge, Money Smart Quiz — 10 timed questions,
+     50 points per correct answer, a short money tip after every answer.
+   - Saving Habits Poll — 5 questions, 20 points per answer, shows how other players answered.
    ✕ shows the "End game?" sheet.
-4. **Results** → **Leaderboard** (All Players / Top 10).
-5. Coin counter → **Your RexPlay Rewards** → **Redeem Rewards** → **Redeem Airtime**
-   (pick an amount or type one, enter a phone number, Redeem Now) → **Airtime Sent!** → **Rewards History**.
+4. **Results** → **Leaderboard** — your real score, rank and points.
+5. Coin counter → **Your RexPlay Rewards** (real stats and recent games) → **Redeem Rewards** →
+   **Airtime**, **Data** or **Cash** (Rex wallet or bank account) → success receipt → **Rewards History**.
+   Points are deducted; rewards you can’t afford yet are greyed out.
 
+Points, games played and redemptions are kept for the browser session (a refresh keeps them; a new tab starts fresh).
 The phone back gesture and browser back button work on every screen.
 
-## Not built yet
+## Editing the games
 
-Five frames in the section were not loaded because the Figma Starter plan's monthly MCP limit was reached:
-`24454:42186`, `24454:42268`, `24454:42437`, `24454:41867`, `24454:42060` (likely the Cash and Data redeem
-screens), plus the second Dashboard (`24454:42709`). Tapping Cash Reward or Data Bundle does nothing for now.
+Questions, answers and the tip shown after each answer live in `src/games.jsx`. Add a game by adding an entry to `GAMES`.
 
 ## Code
 
-- `src/screens/` — one file per Figma screen; each notes the Figma node it came from.
+- `src/screens/` — one file per screen; screens from Figma note the Figma node they came from.
+- `src/store.jsx` — points balance, games played and redemptions.
 - `src/Phone.jsx` — scales the 402×874 design to the device.
-- `scripts/download-assets.mjs` — fetches every image the screens reference into `public/assets/`.
+- `scripts/download-assets.mjs` — fetches every Figma image the screens reference into `public/assets/`.
