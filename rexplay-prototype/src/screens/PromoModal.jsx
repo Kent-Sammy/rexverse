@@ -34,7 +34,7 @@ export default function PromoModal({ variant = 'trophy', onClose, onPlay }) {
     <>
       <div
         onClick={onClose}
-        className="-translate-x-1/2 -translate-y-1/2 absolute bg-[rgba(10,13,31,0.75)] h-[919px] left-[calc(50%+0.5px)] top-[calc(50%+0.5px)] w-[453px] z-20 animate-[fade_.2s_ease-out]"
+        className="absolute bg-[rgba(10,13,31,0.75)] inset-0 z-20 animate-[fade_.2s_ease-out]"
       />
       <div className="-translate-x-1/2 -translate-y-1/2 absolute flex flex-col gap-[16px] items-end justify-center left-[calc(50%+0.5px)] top-[calc(50%+0.5px)] w-[305px] z-30 animate-[pop_.25s_ease-out]">
         <button

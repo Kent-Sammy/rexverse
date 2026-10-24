@@ -24,3 +24,7 @@ button { font: inherit; }
 @keyframes sheet { from { transform: translate(-50%, 100%); } to { transform: translate(-50%, 0); } }
 @keyframes pop-in { 0% { transform: scale(.6); opacity: 0; } 70% { transform: scale(1.08); } 100% { transform: scale(1); opacity: 1; } }
 @keyframes sheet-up { from { transform: translateY(100%); } to { transform: none; } }
+
+@media (max-width: 639px) {
+  body { background: #f1f5ff; overscroll-behavior-y: auto; }
+}

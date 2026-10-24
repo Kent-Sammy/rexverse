@@ -48,7 +48,7 @@ export default function GameResults({ go, back }) {
       <StatusBar {...DARK_STATUS} />
       <TopGlow />
 
-      <div className="absolute bg-white h-[588px] left-0 overflow-clip rounded-[23px] top-[286px] w-[402px]">
+      <div className="absolute bg-white bottom-0 left-0 overflow-clip rounded-t-[23px] top-[286px] w-[402px]">
         {/* Score */}
         <div className="-translate-x-1/2 absolute bg-[#f4ecff] flex flex-col gap-[16px] items-center left-[calc(50%+0.5px)] overflow-clip px-[23px] py-[20px] rounded-[11px] top-[29px] w-[357px]">
           <div className="flex flex-col gap-[7px] items-start leading-[normal] text-center w-[98px]">
@@ -103,7 +103,7 @@ export default function GameResults({ go, back }) {
           </div>
         </div>
 
-        <div className="absolute flex flex-col gap-[7px] items-center left-[23px] top-[450px] w-[351px]">
+        <div className="absolute flex flex-col gap-[7px] items-center left-[23px] bottom-[24px] w-[351px]">
           <PrimaryButton onClick={() => go(`leaderboard/${game.id}`)}>View Leaderboard</PrimaryButton>
           <PrimaryButton light onClick={() => go('rexplay', { replace: true })}>
             Back to RexPlay

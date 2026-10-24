@@ -230,7 +230,7 @@ function CashDestination({ top, dest, setDest, bank, setBank, account, setAccoun
 function SuccessSheet({ title, message, rows, onHome, onHistory }) {
   return (
     <>
-      <div className="-translate-x-1/2 -translate-y-1/2 absolute bg-[rgba(10,13,31,0.75)] h-[919px] left-[calc(50%+0.5px)] top-[calc(50%+0.5px)] w-[453px] z-20 animate-[fade_.2s_ease-out]" />
+      <div className="absolute bg-[rgba(10,13,31,0.75)] inset-0 z-20 animate-[fade_.2s_ease-out]" />
       <div
         className="absolute bg-white bottom-0 left-0 overflow-clip rounded-tl-[30px] rounded-tr-[30px] w-[402px] z-30 animate-[sheet-up_.3s_ease-out]"
         style={{ height: 594 + Math.max(0, rows.length - 4) * 32 }}
@@ -395,12 +395,12 @@ export default function RedeemForm({ go, back, coins, param }) {
       )}
 
       {(error || short > 0) && (
-        <p className="absolute left-[24px] right-[24px] top-[744px] text-center font-inter font-medium text-[12px] text-[#c62b3b] animate-[fade_.2s_ease-out]">
+        <p className="absolute left-[24px] right-[24px] bottom-[113px] text-center font-inter font-medium text-[12px] text-[#c62b3b] animate-[fade_.2s_ease-out]">
           {short > 0 ? `You need ${formatPoints(short)} more points for this reward.` : error}
         </p>
       )}
 
-      <div className="-translate-x-1/2 absolute left-[calc(50%+0.5px)] top-[771px] w-[351px]">
+      <div className="-translate-x-1/2 absolute left-[calc(50%+0.5px)] bottom-[47px] w-[351px]">
         <PrimaryButton onClick={submit}>{buttonLabel}</PrimaryButton>
       </div>
 

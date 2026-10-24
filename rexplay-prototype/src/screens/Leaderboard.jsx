@@ -104,7 +104,7 @@ export default function Leaderboard({ go, back, coins, param }) {
       </div>
       <BackButton onClick={back} file="e15be.svg" />
 
-      <div className="-translate-x-1/2 absolute bg-white h-[727px] left-1/2 overflow-clip rounded-[23px] top-[164px] w-[402px]">
+      <div className="-translate-x-1/2 absolute bg-white bottom-0 left-1/2 overflow-clip rounded-t-[23px] top-[164px] w-[402px]">
         <div className="-translate-x-1/2 absolute flex gap-[6px] items-center left-[calc(50%+0.5px)] top-[15px] w-[363px]">
           {['All Players', 'Top 10'].map((t) => (
             <button
@@ -117,7 +117,7 @@ export default function Leaderboard({ go, back, coins, param }) {
           ))}
         </div>
 
-        <div className="-translate-x-1/2 absolute flex flex-col gap-[7px] h-[643px] items-start left-[calc(50%+0.5px)] overflow-y-auto overscroll-contain top-[63px] w-[363px] pb-[24px] [scrollbar-width:none]">
+        <div className="-translate-x-1/2 absolute flex flex-col gap-[7px] bottom-0 items-start left-[calc(50%+0.5px)] overflow-y-auto overscroll-contain top-[63px] w-[363px] pb-[24px] [scrollbar-width:none]">
           <div className="bg-[#f1f5ff] flex gap-[12px] items-center relative rounded-[10px] shrink-0 w-full">
             <div className="flex flex-col items-center justify-center p-[10px] relative shrink-0">
               <p className="font-inter font-semibold leading-[normal] text-[#002766] text-[12px] w-full">#</p>
