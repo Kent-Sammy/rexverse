@@ -19,7 +19,7 @@ export function BackButton({ onClick, file = '3a6d0.svg' }) {
       <button
         onClick={onClick}
         aria-label="Back"
-        className="-translate-y-1/2 absolute flex flex-col items-start justify-center left-0 top-1/2 cursor-pointer p-[8px] -m-[8px]"
+        className="-translate-y-1/2 absolute flex flex-col items-start justify-center left-[-8px] top-1/2 cursor-pointer p-[8px]"
       >
         <div className="relative shrink-0 size-[24px]">
           <Icon src={file} />
