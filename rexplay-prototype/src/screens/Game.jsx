@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useCompact } from '../Phone.jsx';
 import StatusBar from './StatusBar.jsx';
 import { CloseButton, DARK_STATUS, DarkBackdrop, EndGameSheet } from './Crowdpurr.jsx';
 import { PrimaryButton, Rays } from './GameResults.jsx';
@@ -38,45 +39,57 @@ function Intro({ game, onStart }) {
         'Earn 50 points for every correct answer',
         'Learn a money tip after every question',
       ];
+  const compact = useCompact();
   return (
     <>
       <Rays />
-      <div className="-translate-x-1/2 absolute left-1/2 top-[112px] size-[150px] animate-[pop-in_.5s_ease-out]">
-        <Fill src={HERO_ART[game.art]} />
-      </div>
-      {game.live && (
-        <div className="-translate-x-1/2 absolute left-1/2 top-[268px] flex items-center gap-[8px]">
-          <div className="bg-[#e44555] rounded-[12px] h-[20px] px-[9px] flex items-center gap-[4px]">
-            <div className="size-[6px] rounded-full bg-white animate-pulse" />
-            <p className="font-inter font-semibold text-[10px] text-white">Live Now</p>
+      {/* Fills the screen under the title: artwork shrinks to fit, the "How to play" sheet
+          and its Start button stay on screen at any phone height. */}
+      <div className="absolute inset-x-0 top-[104px] bottom-0 flex flex-col">
+        <div className={`flex-1 min-h-0 flex flex-col items-center ${compact ? 'gap-[6px] pb-[14px]' : 'gap-[8px] pb-[22px]'}`}>
+          <div className="flex-1 min-h-[56px] max-h-[150px] w-[150px] relative animate-[pop-in_.5s_ease-out]">
+            <Fill src={HERO_ART[game.art]} />
           </div>
-          <p className="font-inter font-semibold text-[12px] text-[#d7e4ff]">{PLAYERS} playing</p>
-        </div>
-      )}
-      <div className="-translate-x-1/2 absolute left-1/2 top-[296px] w-[340px] flex flex-col items-center gap-[8px] text-center">
-        <p className="font-inter font-bold text-[22px] leading-[1.2] tracking-[-0.44px] text-white">{game.title}</p>
-        <p className="font-inter font-medium text-[14px] leading-[1.4] text-[#d7e4ff]">{game.body}</p>
-      </div>
-      <div className="-translate-x-1/2 absolute left-1/2 top-[384px] flex gap-[8px]">
-        <Chip>{game.questions.length} questions</Chip>
-        <Chip>{game.seconds}s each</Chip>
-        <Chip>Up to {maxPoints(game)} pts</Chip>
-      </div>
-
-      <div className="absolute bg-white bottom-0 h-[436px] left-0 rounded-tl-[23px] rounded-tr-[23px] w-[402px]">
-        <p className="absolute left-[24px] top-[28px] font-inter font-bold text-[16px] text-[#130f26]">How to play</p>
-        <div className="absolute left-[24px] top-[64px] w-[354px] flex flex-col gap-[12px]">
-          {steps.map((s, i) => (
-            <div key={s} className="bg-[#f1f5ff] rounded-[11px] flex items-center gap-[12px] p-[14px]">
-              <div className="size-[28px] shrink-0 rounded-full bg-[#002766] text-white font-inter font-bold text-[13px] flex items-center justify-center">
-                {i + 1}
+          {game.live && (
+            <div className="flex items-center gap-[8px] shrink-0">
+              <div className="bg-[#e44555] rounded-[12px] h-[20px] px-[9px] flex items-center gap-[4px]">
+                <div className="size-[6px] rounded-full bg-white animate-pulse" />
+                <p className="font-inter font-semibold text-[10px] text-white">Live Now</p>
               </div>
-              <p className="font-inter font-medium text-[13px] leading-[1.4] text-[#2e3d60]">{s}</p>
+              <p className="font-inter font-semibold text-[12px] text-[#d7e4ff]">{PLAYERS} playing</p>
             </div>
-          ))}
+          )}
+          <div className="w-[340px] flex flex-col items-center gap-[6px] text-center shrink-0">
+            <p className="font-inter font-bold text-[22px] leading-[1.2] tracking-[-0.44px] text-white">{game.title}</p>
+            <p className="font-inter font-medium text-[14px] leading-[1.4] text-[#d7e4ff]">{game.body}</p>
+          </div>
+          <div className="flex gap-[8px] shrink-0 mt-[4px]">
+            <Chip>{game.questions.length} questions</Chip>
+            <Chip>{game.seconds}s each</Chip>
+            <Chip>Up to {maxPoints(game)} pts</Chip>
+          </div>
         </div>
-        <div className="absolute left-[25px] bottom-[50px] w-[351px]">
-          <PrimaryButton onClick={onStart}>{poll ? 'Start Poll' : 'Start Game'}</PrimaryButton>
+
+        <div
+          className={`bg-white shrink-0 rounded-tl-[23px] rounded-tr-[23px] w-[402px] px-[24px] flex flex-col ${
+            compact ? 'pt-[20px] pb-[18px] gap-[12px]' : 'pt-[28px] pb-[50px] gap-[16px]'
+          }`}
+          style={{ minHeight: compact ? undefined : 436 }}
+        >
+          <p className="font-inter font-bold text-[16px] text-[#130f26]">How to play</p>
+          <div className={`flex flex-col ${compact ? 'gap-[8px]' : 'gap-[12px]'}`}>
+            {steps.map((st, i) => (
+              <div key={st} className={`bg-[#f1f5ff] rounded-[11px] flex items-center gap-[12px] ${compact ? 'px-[14px] py-[10px]' : 'p-[14px]'}`}>
+                <div className="size-[28px] shrink-0 rounded-full bg-[#002766] text-white font-inter font-bold text-[13px] flex items-center justify-center">
+                  {i + 1}
+                </div>
+                <p className="font-inter font-medium text-[13px] leading-[1.4] text-[#2e3d60]">{st}</p>
+              </div>
+            ))}
+          </div>
+          <div className="mt-auto pt-[8px] -mx-[-1px]">
+            <PrimaryButton onClick={onStart}>{poll ? 'Start Poll' : 'Start Game'}</PrimaryButton>
+          </div>
         </div>
       </div>
     </>
@@ -148,6 +161,14 @@ function Question({ game, index, points, onAnswer, onNext }) {
   };
 
   const answered = choice !== null;
+  const compact = useCompact();
+  const scroller = useRef(null);
+  const tip = useRef(null);
+  useEffect(() => {
+    if (answered && tip.current && scroller.current) {
+      scroller.current.scrollTo({ top: scroller.current.scrollHeight, behavior: 'smooth' });
+    }
+  }, [answered]);
   const correct = !poll && choice === item.answer;
   const seconds = Math.ceil(left / 1000);
   const last = index === game.questions.length - 1;
@@ -194,38 +215,38 @@ function Question({ game, index, points, onAnswer, onNext }) {
         <p className={`font-inter font-bold text-[13px] w-[30px] text-right ${seconds <= 5 && !answered ? 'text-[#ff8f8f]' : 'text-white'}`}>{seconds}s</p>
       </div>
 
-      {/* Question */}
-      <div className="absolute left-[22px] w-[358px] top-[204px] flex flex-col items-start gap-[10px]">
-        <div className="bg-[rgba(255,255,255,0.12)] rounded-[20px] px-[10px] py-[4px] font-inter font-bold text-[10px] tracking-[0.4px] text-[#d7e4ff]">
-          {game.topic}
+      {/* Question on top; answers panel below with the Next button pinned at its bottom.
+          On short phones the answers scroll inside the panel. */}
+      <div className="absolute inset-x-0 top-[196px] bottom-0 flex flex-col">
+        <div className={`flex-[1_0_auto] px-[22px] pt-[8px] flex flex-col items-start gap-[10px] ${compact ? 'pb-[16px]' : 'pb-[22px]'}`}>
+          <div className="bg-[rgba(255,255,255,0.12)] rounded-[20px] px-[10px] py-[4px] font-inter font-bold text-[10px] tracking-[0.4px] text-[#d7e4ff]">
+            {game.topic}
+          </div>
+          <p key={index} className={`font-inter font-bold leading-[1.28] tracking-[-0.3px] text-white animate-[slide-in_.25s_ease-out] ${compact ? 'text-[19px]' : 'text-[21px]'}`}>
+            {item.question}
+          </p>
         </div>
-        <p key={index} className="font-inter font-bold text-[21px] leading-[1.28] tracking-[-0.3px] text-white animate-[slide-in_.25s_ease-out]">
-          {item.question}
-        </p>
-      </div>
 
-      {/* Answers */}
-      <div className="absolute bg-white bottom-0 h-[494px] left-0 rounded-tl-[23px] rounded-tr-[23px] w-[402px]">
-        <div className="absolute left-[24px] top-[24px] w-[354px] flex flex-col gap-[10px]">
-          {item.options.map((o, i) => (
-            <Option key={`${index}-${i}`} letter={LETTERS[i]} text={o} state={stateFor(i)} pct={poll ? item.results[i] : 0} onClick={() => pick(i)} />
-          ))}
-          {answered && (
-            <div className="mt-[4px] bg-[#eff2fe] rounded-[11px] p-[14px] flex flex-col gap-[4px] animate-[fade_.25s_ease-out]">
-              <p className={`font-inter font-bold text-[13px] ${poll || correct ? 'text-[#147f00]' : 'text-[#c62b3b]'}`}>
-                {poll ? 'Thanks for sharing! +20 points' : correct ? 'Correct! +50 points' : choice === -1 ? 'Time’s up!' : 'Not quite'}
-              </p>
-              <p className="font-inter font-medium text-[12px] leading-[1.45] text-[#4f5a6e]">
-                {poll ? 'The bars show how other RexPlay players answered.' : item.explain}
-              </p>
-            </div>
-          )}
-        </div>
-        {answered && (
-          <div className="absolute left-[25px] bottom-[34px] w-[351px] animate-[fade_.25s_ease-out]">
+        <div className="flex-[0_1_494px] min-h-0 bg-white rounded-tl-[23px] rounded-tr-[23px] w-[402px] flex flex-col">
+          <div ref={scroller} className="flex-1 min-h-0 overflow-y-auto overscroll-contain [scrollbar-width:none] px-[24px] pt-[20px] pb-[4px] flex flex-col gap-[10px]">
+            {item.options.map((o, i) => (
+              <Option key={`${index}-${i}`} letter={LETTERS[i]} text={o} state={stateFor(i)} pct={poll ? item.results[i] : 0} onClick={() => pick(i)} />
+            ))}
+            {answered && (
+              <div ref={tip} className="mt-[4px] bg-[#eff2fe] rounded-[11px] p-[14px] flex flex-col gap-[4px] animate-[fade_.25s_ease-out] shrink-0">
+                <p className={`font-inter font-bold text-[13px] ${poll || correct ? 'text-[#147f00]' : 'text-[#c62b3b]'}`}>
+                  {poll ? 'Thanks for sharing! +20 points' : correct ? 'Correct! +50 points' : choice === -1 ? 'Time’s up!' : 'Not quite'}
+                </p>
+                <p className="font-inter font-medium text-[12px] leading-[1.45] text-[#4f5a6e]">
+                  {poll ? 'The bars show how other RexPlay players answered.' : item.explain}
+                </p>
+              </div>
+            )}
+          </div>
+          <div className={`shrink-0 px-[25px] pt-[12px] ${compact ? 'pb-[18px]' : 'pb-[34px]'} ${answered ? 'animate-[fade_.25s_ease-out]' : 'invisible'}`}>
             <PrimaryButton onClick={onNext}>{last ? 'See Results' : 'Next Question'}</PrimaryButton>
           </div>
-        )}
+        </div>
       </div>
     </>
   );

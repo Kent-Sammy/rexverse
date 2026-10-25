@@ -54,7 +54,7 @@ export default function Redeem({ go, back, coins }) {
         <Option
           row="justify-between left-[20px] top-[16px] w-[324px]"
           title="Cash Reward"
-          body="Convert points to cash in your Rex wallet or bank"
+          body="Convert points to cash in your Rex account"
           onClick={() => go('redeem/cash')}
           icon={
             <div className="bg-[rgba(255,152,0,0.08)] overflow-clip relative rounded-[9.882px] shrink-0 size-[42px]">

@@ -116,8 +116,9 @@ export default function Dashboard({ go, coins = 0 }) {
     <div className="overflow-clip relative size-full bg-[#f1f5ff]">
       <StatusBar />
 
-      {/* Main column */}
-      <div className="-translate-x-1/2 -translate-y-1/2 absolute flex flex-col gap-[10px] items-start left-1/2 top-[calc(50%+32px)] w-[362px]">
+      {/* Main column — starts under the RexPlay banner and scrolls above the tab bar */}
+      <div className="absolute inset-x-0 top-[82px] bottom-[74px] overflow-y-auto overscroll-contain [scrollbar-width:none]">
+      <div className="mx-auto flex flex-col gap-[10px] items-start pb-[16px] w-[362px]">
         {/* Search, coins, notifications, avatar */}
         <div className="flex gap-[4px] items-start relative shrink-0 w-full">
           <button className="bg-white block cursor-pointer h-[40px] overflow-clip relative rounded-[40px] shrink-0 w-[212px]">
@@ -348,6 +349,7 @@ export default function Dashboard({ go, coins = 0 }) {
             </div>
           </div>
         </div>
+      </div>
       </div>
 
       <BottomTabs />

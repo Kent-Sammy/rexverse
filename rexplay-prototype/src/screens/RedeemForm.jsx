@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useCompact, useScreenHeight } from '../Phone.jsx';
 import StatusBar from './StatusBar.jsx';
 import { BackButton, TitleBlock } from './parts.jsx';
 import { PrimaryButton } from './GameResults.jsx';
@@ -39,13 +40,13 @@ const NETWORKS = {
 };
 const detectNetwork = (phone) => Object.keys(NETWORKS).find((n) => NETWORKS[n].prefixes.includes(phone.slice(0, 4)));
 
-const BANKS = ['Access Bank', 'First Bank', 'GTBank', 'Kuda', 'Moniepoint', 'OPay', 'UBA', 'Zenith Bank'];
-const WALLET = { name: 'Ololade Mr. Money', number: '11028281921' };
+// Points can only be cashed out to the user's own Rex account.
+const REX_ACCOUNT = { name: 'Ololade Mr. Money', number: '11028281921' };
 
-function BalanceCard({ coins }) {
+function BalanceCard({ coins, height = 85 }) {
   return (
     <div className="-translate-x-1/2 absolute flex flex-col items-start left-[calc(50%+0.5px)] top-[145px] w-[363px]">
-      <div className="bg-gradient-to-r from-[#002766] to-[#004ecc] h-[85px] overflow-clip relative rounded-[8px] shrink-0 w-full">
+      <div className="bg-gradient-to-r from-[#002766] to-[#004ecc] overflow-clip relative rounded-[8px] shrink-0 w-full" style={{ height }}>
         <div className="-translate-y-1/2 absolute flex flex-col gap-[7px] items-start justify-center left-[16px] top-1/2 w-[179px]">
           <p className="font-inter font-medium h-[16px] leading-[1.5] overflow-hidden text-[#f1f5ff] text-[12px] tracking-[-0.24px] w-full whitespace-nowrap">
             Your Balance
@@ -156,88 +157,39 @@ function PhoneField({ top, phone, setPhone, network, setNetwork }) {
   );
 }
 
-function CashDestination({ top, dest, setDest, bank, setBank, account, setAccount }) {
-  const [banksOpen, setBanksOpen] = useState(false);
-  const [resolved, setResolved] = useState(false);
-  useEffect(() => {
-    setResolved(false);
-    if (account.length !== 10 || !bank) return undefined;
-    const t = setTimeout(() => setResolved(true), 600);
-    return () => clearTimeout(t);
-  }, [account, bank]);
-
-  const Choice = ({ id, title, sub }) => (
-    <button
-      onClick={() => setDest(id)}
-      className={`flex-1 rounded-[11px] border border-solid px-[14px] py-[10px] text-left cursor-pointer ${dest === id ? 'bg-[#e4ecff] border-[#5395ff]' : 'bg-white border-transparent'}`}
-    >
-      <p className="font-inter font-semibold text-[13px] text-[#130f26]">{title}</p>
-      <p className={`font-inter font-medium text-[10px] ${dest === id ? 'text-[#2c6ef2]' : 'text-[#6d7d9c]'}`}>{sub}</p>
-    </button>
-  );
-
+function RexAccountCard({ top }) {
+  const tight = useScreenHeight() < 700;
   return (
-    <div className="absolute left-[20px] w-[360px] flex flex-col gap-[6px]" style={{ top }}>
-      <div className="flex gap-[6px]">
-        <Choice id="wallet" title="Rex Wallet" sub={`${WALLET.number} · Instant`} />
-        <Choice id="bank" title="Bank Account" sub="Any Nigerian bank" />
-      </div>
-      {dest === 'bank' && (
-        <>
-          <div className="relative">
-            <button
-              onClick={() => setBanksOpen(!banksOpen)}
-              className="w-full bg-white h-[42px] rounded-[11px] px-[16px] flex items-center justify-between cursor-pointer"
-            >
-              <span className={`font-inter font-semibold text-[14px] ${bank ? 'text-[#130f26]' : 'text-[#6d7d9c]'}`}>{bank || 'Select Bank'}</span>
-              <span className="relative size-[16px]">
-                <img alt="" className="absolute block inset-0 max-w-none size-full" src={a('5d5f2.svg')} />
-              </span>
-            </button>
-            {banksOpen && (
-              <div className="absolute z-10 left-0 right-0 bottom-[46px] max-h-[220px] overflow-y-auto bg-white rounded-[11px] shadow-[0_8px_30px_rgba(0,39,102,0.18)] p-[6px] animate-[fade_.15s_ease-out]">
-                {BANKS.map((b) => (
-                  <button
-                    key={b}
-                    onClick={() => {
-                      setBank(b);
-                      setBanksOpen(false);
-                    }}
-                    className={`w-full text-left px-[12px] py-[10px] rounded-[8px] font-inter font-semibold text-[13px] text-[#130f26] cursor-pointer ${b === bank ? 'bg-[#f1f5ff]' : ''}`}
-                  >
-                    {b}
-                  </button>
-                ))}
-              </div>
-            )}
+    <div className="absolute left-[20px] w-[360px] flex flex-col gap-[8px]" style={{ top }}>
+      <div className="bg-[#e4ecff] border border-solid border-[#5395ff] rounded-[11px] flex items-center gap-[12px] px-[14px] py-[12px]">
+        <div className="bg-[#002766] rounded-full size-[34px] shrink-0 flex items-center justify-center">
+          <div className="relative h-[11px] w-[14px]">
+            <img alt="" className="absolute block inset-0 max-w-none size-full" src={a('85975.svg')} />
           </div>
-          <input
-            inputMode="numeric"
-            value={account}
-            onChange={(e) => setAccount(e.target.value.replace(/\D/g, '').slice(0, 10))}
-            placeholder="10-digit Account Number"
-            className="w-full bg-white h-[42px] rounded-[11px] px-[16px] outline-none font-inter font-semibold text-[14px] tracking-[-0.28px] text-[#130f26] placeholder:text-[#6d7d9c]"
-          />
-          {resolved && (
-            <p className="font-inter font-semibold text-[12px] text-[#147f00] pl-[4px] animate-[fade_.2s_ease-out]">✓ OLOLADE MR. MONEY</p>
-          )}
-        </>
-      )}
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="font-inter font-semibold text-[13px] text-[#130f26]">{REX_ACCOUNT.name}</p>
+          <p className="font-inter font-medium text-[11px] text-[#2c6ef2]">Rex Account · {REX_ACCOUNT.number}</p>
+        </div>
+        <div className="size-[20px] shrink-0 rounded-full bg-[#2c6ef2] text-white text-[11px] font-bold flex items-center justify-center">✓</div>
+      </div>
+      {!tight && <p className="font-inter font-medium text-[11px] text-[#6d7d9c] pl-[4px]">Cash rewards are paid instantly into your Rex account.</p>}
     </div>
   );
 }
 
 function SuccessSheet({ title, message, rows, onHome, onHistory }) {
+  const compact = useCompact();
   return (
     <>
       <div className="absolute bg-[rgba(10,13,31,0.75)] inset-0 z-20 animate-[fade_.2s_ease-out]" />
       <div
-        className="absolute bg-white bottom-0 left-0 overflow-clip rounded-tl-[30px] rounded-tr-[30px] w-[402px] z-30 animate-[sheet-up_.3s_ease-out]"
-        style={{ height: 594 + Math.max(0, rows.length - 4) * 32 }}
+        className="absolute bg-white bottom-0 left-0 overflow-clip rounded-tl-[30px] rounded-tr-[30px] w-[402px] z-30 animate-[sheet-up_.3s_ease-out] flex flex-col max-h-[calc(100%-40px)]"
+        style={{ height: compact ? undefined : 594 + Math.max(0, rows.length - 4) * 32 }}
       >
-        <div className="-translate-x-1/2 absolute flex flex-col gap-[26px] items-center left-[calc(50%+0.5px)] top-[37px] w-[335px]">
+        <div className={`flex-1 min-h-0 overflow-y-auto [scrollbar-width:none] flex flex-col items-center px-[33.5px] ${compact ? 'pt-[22px] gap-[16px]' : 'pt-[37px] gap-[26px]'}`}>
           <div className="flex flex-col gap-[13px] items-center relative shrink-0 w-[297px]">
-            <div className="h-[125px] relative shrink-0 w-[134px] animate-[pop-in_.5s_ease-out]">
+            <div className={`relative shrink-0 animate-[pop-in_.5s_ease-out] ${compact ? 'h-[84px] w-[90px]' : 'h-[125px] w-[134px]'}`}>
               <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <img alt="" className="absolute h-[126.48%] left-[-6.27%] max-w-none top-[-10.28%] w-[118.08%]" src={a('40be3.png')} />
               </div>
@@ -247,8 +199,8 @@ function SuccessSheet({ title, message, rows, onHome, onHistory }) {
               <p className="font-inter font-medium leading-[20px] text-[#8491ab] text-[14px] text-center w-[297px]">{message}</p>
             </div>
           </div>
-          <div className="bg-[#f1f5ff] flex flex-col items-start p-[20px] relative rounded-[10px] shrink-0 w-full">
-            <div className="flex flex-col font-inter font-medium gap-[14px] items-start text-[12px] w-full">
+          <div className={`bg-[#f1f5ff] flex flex-col items-start relative rounded-[10px] shrink-0 w-full ${compact ? 'p-[16px]' : 'p-[20px]'}`}>
+            <div className={`flex flex-col font-inter font-medium items-start text-[12px] w-full ${compact ? 'gap-[10px]' : 'gap-[14px]'}`}>
               {rows.map(([k, v]) => (
                 <div key={k} className="flex items-center justify-between relative shrink-0 w-full whitespace-nowrap gap-[12px]">
                   <p className="leading-[1.2] text-[#6e768b]">{k}</p>
@@ -258,7 +210,7 @@ function SuccessSheet({ title, message, rows, onHome, onHistory }) {
             </div>
           </div>
         </div>
-        <div className="-translate-x-1/2 absolute flex flex-col gap-[7px] items-center left-[calc(50%+0.5px)] bottom-[28px] w-[335px]">
+        <div className={`shrink-0 flex flex-col gap-[7px] items-center px-[33.5px] pt-[14px] ${compact ? 'pb-[16px]' : 'pb-[28px]'}`}>
           <PrimaryButton onClick={onHome}>Back to My RexPlay</PrimaryButton>
           <PrimaryButton light onClick={onHistory}>
             View My Rewards History
@@ -288,9 +240,6 @@ export default function RedeemForm({ go, back, coins, param }) {
   const [custom, setCustom] = useState('');
   const [phone, setPhone] = useState('');
   const [network, setNetwork] = useState('MTN');
-  const [dest, setDest] = useState('wallet');
-  const [bank, setBank] = useState('');
-  const [account, setAccount] = useState('');
   const [error, setError] = useState('');
   const [receipt, setReceipt] = useState(null);
 
@@ -301,7 +250,6 @@ export default function RedeemForm({ go, back, coins, param }) {
     if (!pts) return setError('Choose an amount to redeem.');
     if (short > 0) return go('rexplay');
     if (kind !== 'cash' && phone.length !== 11) return setError('Enter a valid 11-digit phone number.');
-    if (kind === 'cash' && dest === 'bank' && (!bank || account.length !== 10)) return setError('Select your bank and enter a 10-digit account number.');
     setError('');
 
     const ref = reference();
@@ -318,12 +266,11 @@ export default function RedeemForm({ go, back, coins, param }) {
       message = `You’ve successfully redeemed ${formatPoints(pts)}pts for ${size} data, valid for ${validity}`;
       rows = [['Phone Number', `${phone} · ${network}`], ['Bundle', `${size} · ${validity}`], ['Points Used', `-${formatPoints(pts)} pts`]];
     } else {
-      const to = dest === 'wallet' ? 'Rex wallet' : 'bank account';
-      detail = `${naira(pts)} to ${to}`;
-      message = <>You’ve successfully redeemed {formatPoints(pts)}pts for <b>₦</b>{formatPoints(pts)} cash to your {to}</>;
+      detail = `${naira(pts)} to Rex account`;
+      message = <>You’ve successfully redeemed {formatPoints(pts)}pts for <b>₦</b>{formatPoints(pts)} cash to your Rex account</>;
       rows = [
-        ['Sent To', dest === 'wallet' ? `Rex Wallet · ${WALLET.number}` : `${bank} · ${account}`],
-        ['Account Name', WALLET.name],
+        ['Sent To', `Rex Account · ${REX_ACCOUNT.number}`],
+        ['Account Name', REX_ACCOUNT.name],
         ['Points Used', `-${formatPoints(pts)} pts`],
       ];
     }
@@ -333,19 +280,28 @@ export default function RedeemForm({ go, back, coins, param }) {
     return undefined;
   };
 
-  const below = 470; // first row under the amount grid
+  const compact = useCompact();
+  // Vertical positions: Figma values, tightened on short phones so everything fits.
+  const L = compact
+    ? { card: 72, label: 238, rows: [258, 334], tile: 70, below: 414, label2: 476, field: 494, content: 590 }
+    : { card: 85, label: 252.5, rows: [275, 366], tile: 84, below: 470, label2: 546.5, field: 569, content: 630 };
+  const below = L.below; // first row under the amount grid
+  const buttonBottom = compact ? 18 : 47;
+  const footer = buttonBottom + 80; // pinned area: error line above the button
   const buttonLabel = !pts ? 'Redeem Now' : short > 0 ? 'Play Games to Earn More Points' : `Redeem Now (${formatPoints(pts)}pts)`;
 
   return (
     <div className="overflow-clip relative size-full bg-[#f1f5ff]">
+      <div className="absolute inset-x-0 top-0 overflow-y-auto overscroll-contain [scrollbar-width:none]" style={{ bottom: footer }}>
+      <div className="relative w-full" style={{ height: L.content }}>
       <StatusBar />
       <TitleBlock title={cfg.title} subtitle="Convert your points to airtime, data, or cash" subtitleWidth={259} />
       <BackButton onClick={back} />
-      <BalanceCard coins={coins} />
+      <BalanceCard coins={coins} height={L.card} />
 
-      <Label top={252.5}>{kind === 'data' ? 'Select Bundle' : 'Select Amount'}</Label>
+      <Label top={L.label}>{kind === 'data' ? 'Select Bundle' : 'Select Amount'}</Label>
       {[POINTS.slice(0, 3), POINTS.slice(3)].map((row, i) => (
-        <div key={i} className="-translate-x-1/2 absolute flex gap-[6px] h-[84px] items-center left-[calc(50%+0.5px)] w-[363px]" style={{ top: i === 0 ? 275 : 366 }}>
+        <div key={i} className="-translate-x-1/2 absolute flex gap-[6px] items-center left-[calc(50%+0.5px)] w-[363px]" style={{ top: L.rows[i], height: L.tile }}>
           {row.map((p) => (
             <AmountTile
               key={p}
@@ -384,23 +340,26 @@ export default function RedeemForm({ go, back, coins, param }) {
 
       {kind === 'cash' ? (
         <>
-          <Label top={538}>Send To</Label>
-          <CashDestination top={556} dest={dest} setDest={setDest} bank={bank} setBank={setBank} account={account} setAccount={setAccount} />
+          <Label top={L.label2}>Send To</Label>
+          <RexAccountCard top={L.field} />
         </>
       ) : (
         <>
-          <Label top={cfg.custom ? 546.5 : below + 12}>Phone Number</Label>
-          <PhoneField top={cfg.custom ? 569 : below + 35} phone={phone} setPhone={setPhone} network={network} setNetwork={setNetwork} />
+          <Label top={cfg.custom ? L.label2 : below + 12}>Phone Number</Label>
+          <PhoneField top={cfg.custom ? L.field : below + 35} phone={phone} setPhone={setPhone} network={network} setNetwork={setNetwork} />
         </>
       )}
 
+      </div>
+      </div>
+
       {(error || short > 0) && (
-        <p className="absolute left-[24px] right-[24px] bottom-[113px] text-center font-inter font-medium text-[12px] text-[#c62b3b] animate-[fade_.2s_ease-out]">
+        <p className="absolute left-[24px] right-[24px] text-center font-inter font-medium text-[12px] text-[#c62b3b] animate-[fade_.2s_ease-out]" style={{ bottom: buttonBottom + 62 }}>
           {short > 0 ? `You need ${formatPoints(short)} more points for this reward.` : error}
         </p>
       )}
 
-      <div className="-translate-x-1/2 absolute left-[calc(50%+0.5px)] bottom-[47px] w-[351px]">
+      <div className="-translate-x-1/2 absolute left-[calc(50%+0.5px)] w-[351px]" style={{ bottom: buttonBottom }}>
         <PrimaryButton onClick={submit}>{buttonLabel}</PrimaryButton>
       </div>
 

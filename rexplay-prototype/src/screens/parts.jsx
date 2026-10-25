@@ -133,18 +133,3 @@ export function SectionHeader({ title, width, right }) {
     </div>
   );
 }
-
-export function SeeAll({ onClick }) {
-  return (
-    <button onClick={onClick} className="flex gap-[2px] items-center relative shrink-0 cursor-pointer">
-      <p className="font-inter font-semibold leading-[normal] text-[#556276] text-[10px] whitespace-nowrap">See All</p>
-      <div className="flex items-center justify-center relative shrink-0 size-[12px]">
-        <div className="-rotate-90 flex-none">
-          <div className="relative size-[12px]">
-            <Icon src="16397.svg" />
-          </div>
-        </div>
-      </div>
-    </button>
-  );
-}

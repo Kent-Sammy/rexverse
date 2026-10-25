@@ -27,7 +27,7 @@ Run `npm run assets` and commit `public/assets/` first, so the images ship with 
    ✕ shows the "End game?" sheet.
 4. **Results** → **Leaderboard** — your real score, rank and points.
 5. Coin counter → **Your RexPlay Rewards** (real stats and recent games) → **Redeem Rewards** →
-   **Airtime**, **Data** or **Cash** (Rex wallet or bank account) → success receipt → **Rewards History**.
+   **Airtime**, **Data** or **Cash** (paid into your Rex account only) → success receipt → **Rewards History**.
    Points are deducted; rewards you can’t afford yet are greyed out.
 
 Points, games played and redemptions are kept for the browser session (a refresh keeps them; a new tab starts fresh).

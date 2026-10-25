@@ -26,5 +26,5 @@ button { font: inherit; }
 @keyframes sheet-up { from { transform: translateY(100%); } to { transform: none; } }
 
 @media (max-width: 639px) {
-  body { background: #f1f5ff; overscroll-behavior-y: auto; }
+  body { background: #f1f5ff; overflow: hidden; }
 }
