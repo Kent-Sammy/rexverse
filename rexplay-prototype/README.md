@@ -25,7 +25,7 @@ Run `npm run assets` and commit `public/assets/` first, so the images ship with 
      50 points per correct answer, a short money tip after every answer.
    - Saving Habits Poll — 5 questions, 20 points per answer, shows how other players answered.
    ✕ shows the "End game?" sheet.
-4. **Results** → **Leaderboard** — your real score, rank and points.
+4. **Results** → **Leaderboard** — your real score, rank and points. A score of 5/10 or better (or finishing a poll) gets a confetti celebration.
 5. Coin counter → **Your RexPlay Rewards** (real stats and recent games) → **Redeem Rewards** →
    **Airtime**, **Data** or **Cash** (paid into your Rex account only) → success receipt → **Rewards History**.
    Points are deducted; rewards you can’t afford yet are greyed out.

@@ -1,10 +1,15 @@
+import { useState } from 'react';
 import StatusBar from './StatusBar.jsx';
 import { DARK_STATUS } from './Crowdpurr.jsx';
 import { Fill, Icon } from './parts.jsx';
 import { asset as a } from '../asset.js';
 import { useStore } from '../store.jsx';
-import { useCompact } from '../Phone.jsx';
+import { useCompact, useScreenHeight } from '../Phone.jsx';
+import Confetti from './Confetti.jsx';
 import { gameById, PLAYERS } from '../games.jsx';
+
+// Games already celebrated, so returning from the leaderboard doesn't replay the confetti.
+const celebrated = new Set();
 
 // Figma: "rex play" › Rexplay (24452:39633) — results after a game ends.
 export const FIGMA_ASSETS = 'https://www.figma.com/api/mcp/asset/11214079-bf8c-4ed2-951c-8b4c9c5a5ae5';
@@ -44,8 +49,17 @@ export default function GameResults({ go, back }) {
   const game = gameById(last.gameId);
   const poll = game.kind === 'poll';
   const compact = useCompact();
+  const height = useScreenHeight();
+  // A successful quiz is at least half right; finishing a poll always counts.
+  const success = plays.length > 0 && (poll || last.score * 2 >= last.total);
+  const [celebrate] = useState(() => {
+    if (!success || celebrated.has(last.at)) return false;
+    celebrated.add(last.at);
+    return true;
+  });
   return (
     <div className="bg-[#032c70] overflow-clip relative size-full">
+      {celebrate && <Confetti height={height} />}
       <Rays />
       <StatusBar {...DARK_STATUS} />
       <TopGlow />
