@@ -134,3 +134,41 @@ export function SectionHeader({ title, width, right }) {
     </div>
   );
 }
+
+// Inline text link with a chevron, as in the Figma "See More ›" (navy) and
+// "Start Goal ›" (accent blue) links on the Dashboard.
+export function TextLink({ children, onClick, accent, className = '' }) {
+  const Tag = onClick ? 'button' : 'span'; // a span when it sits inside a tappable card
+  return (
+    <Tag onClick={onClick} className={`inline-flex items-center gap-[2px] cursor-pointer shrink-0 ${className}`}>
+      <span
+        className={`font-inter text-[10px] leading-[1.5] tracking-[-0.2px] whitespace-nowrap ${accent ? 'font-bold text-[#323dff]' : 'font-semibold text-[#002766]'}`}
+      >
+        {children}
+      </span>
+      <span className="flex items-center justify-center relative shrink-0 size-[12px]">
+        <span className="-rotate-90 flex-none">
+          <span className="block relative size-[12px]">
+            <span className="absolute inset-[35.42%_20.83%]">
+              <span className={`absolute ${accent ? 'inset-[-14.29%_-7.14%]' : 'inset-[-21.43%_-10.71%]'}`}>
+                <img alt="" className="block max-w-none size-full" src={a(accent ? 'd61b8.svg' : '4735d.svg')} />
+              </span>
+            </span>
+          </span>
+        </span>
+      </span>
+    </Tag>
+  );
+}
+
+// Small white button used on blue cards in Figma ("Explore Offers", "Redeem Rewards").
+export function SmallButton({ children, onClick, dark }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`${dark ? 'bg-[#002766] text-white' : 'bg-white text-[#002766]'} flex h-[26px] items-center justify-center px-[12px] rounded-[6px] shrink-0 cursor-pointer active:scale-95 transition-transform`}
+    >
+      <span className="font-inter font-semibold leading-[normal] text-[10px] whitespace-nowrap">{children}</span>
+    </button>
+  );
+}

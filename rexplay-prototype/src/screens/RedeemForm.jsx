@@ -220,22 +220,20 @@ function ConfirmSheet({ rows, processing, onConfirm, onCancel }) {
         <p className="font-inter font-medium text-[13px] leading-[1.5] text-[#8491ab] text-center">Please check the details. Redemptions can’t be reversed once sent.</p>
         <Rows rows={rows} compact={compact} />
       </div>
-      <div className={`shrink-0 flex flex-col gap-[7px] px-[33.5px] pt-[16px] ${compact ? 'pb-[16px]' : 'pb-[28px]'}`}>
-        <PrimaryButton onClick={processing ? undefined : onConfirm}>
+      <div className={`shrink-0 flex gap-[7px] px-[25.5px] pt-[16px] ${compact ? 'pb-[16px]' : 'pb-[28px]'}`}>
+        <PrimaryButton light className={`flex-1 ${processing ? 'opacity-50' : ''}`} onClick={processing ? undefined : onCancel}>
+          Cancel
+        </PrimaryButton>
+        <PrimaryButton className="flex-1" onClick={processing ? undefined : onConfirm}>
           {processing ? (
             <span className="inline-flex items-center gap-[8px]">
               <span className="size-[14px] rounded-full border-2 border-white/40 border-t-white animate-spin" />
               Processing…
             </span>
           ) : (
-            'Confirm Redemption'
+            'Confirm'
           )}
         </PrimaryButton>
-        {!processing && (
-          <PrimaryButton light onClick={onCancel}>
-            Cancel
-          </PrimaryButton>
-        )}
       </div>
     </Sheet>
   );

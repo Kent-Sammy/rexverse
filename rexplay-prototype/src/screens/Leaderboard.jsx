@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import StatusBar from './StatusBar.jsx';
-import { BackButton, CoinPill, Icon } from './parts.jsx';
+import { BackButton, CoinPill, Icon, TextLink } from './parts.jsx';
 import { asset as a } from '../asset.js';
 import { gameById, leaderboard, GAMES } from '../games.jsx';
 import { bestRun, useStore } from '../store.jsx';
@@ -151,12 +151,12 @@ export default function Leaderboard({ go, back, coins, param }) {
             </>
           )}
           {!best && (
-            <button
-              onClick={() => go(`game/${game.id}`)}
-              className="w-full bg-[#f1f5ff] rounded-[10px] p-[14px] text-center cursor-pointer font-inter font-semibold text-[12px] text-[#002766]"
-            >
-              You’re not on this board yet — play {game.title} to get a rank
-            </button>
+            <div className="w-full flex items-center justify-between px-[4px] py-[6px]">
+              <p className="font-inter font-medium text-[11px] text-[#6d7d9c]">You’re not on this board yet.</p>
+              <TextLink accent onClick={() => go(`game/${game.id}`)}>
+                Play to get ranked
+              </TextLink>
+            </div>
           )}
         </div>
       </div>

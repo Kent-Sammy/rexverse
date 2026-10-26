@@ -75,27 +75,26 @@ function Intro({ game, perAnswer, playedToday, onStart, onLeave }) {
 
         <div
           className={`bg-white shrink-0 rounded-tl-[23px] rounded-tr-[23px] w-[402px] px-[24px] flex flex-col ${
-            compact ? 'pt-[20px] pb-[18px] gap-[12px]' : 'pt-[28px] pb-[50px] gap-[16px]'
+            compact ? 'pt-[20px] pb-[18px] gap-[12px]' : 'pt-[24px] pb-[34px] gap-[14px]'
           }`}
-          style={{ minHeight: compact ? undefined : 436 }}
         >
           {playedToday ? (
             <div className="flex-1 flex flex-col items-center justify-center text-center gap-[8px] py-[12px]">
-              <p className="font-inter font-bold text-[16px] text-[#130f26]">You’ve played today’s challenge</p>
-              <p className="font-inter font-medium text-[13px] leading-[1.45] text-[#6d7d9c] w-[300px]">
+              <p className="font-inter font-bold text-[14px] text-[#130f26]">You’ve played today’s challenge</p>
+              <p className="font-inter font-medium text-[12px] leading-[1.45] text-[#6d7d9c] w-[300px]">
                 A new Daily Challenge unlocks at midnight. Try a 10-question challenge in the meantime.
               </p>
             </div>
           ) : (
             <>
-              <p className="font-inter font-bold text-[16px] text-[#130f26]">How to play</p>
-              <div className={`flex flex-col ${compact ? 'gap-[8px]' : 'gap-[12px]'}`}>
+              <p className="font-inter font-bold text-[14px] text-[#130f26]">How to play</p>
+              <div className="bg-[#f1f5ff] rounded-[11px] flex flex-col gap-[10px] p-[14px]">
                 {steps.map((st, i) => (
-                  <div key={st} className={`bg-[#f1f5ff] rounded-[11px] flex items-center gap-[12px] ${compact ? 'px-[14px] py-[10px]' : 'p-[14px]'}`}>
-                    <div className="size-[28px] shrink-0 rounded-full bg-[#002766] text-white font-inter font-bold text-[13px] flex items-center justify-center">
+                  <div key={st} className="flex items-center gap-[10px]">
+                    <div className="size-[20px] shrink-0 rounded-full bg-[#002766] text-white font-inter font-semibold text-[10px] flex items-center justify-center">
                       {i + 1}
                     </div>
-                    <p className="font-inter font-medium text-[13px] leading-[1.4] text-[#2e3d60]">{st}</p>
+                    <p className="font-inter font-medium text-[12px] leading-[1.4] text-[#2e3d60]">{st}</p>
                   </div>
                 ))}
               </div>
@@ -134,7 +133,7 @@ function Option({ letter, text, state, pct, onClick }) {
     <button
       onClick={onClick}
       disabled={state !== 'idle'}
-      className={`relative overflow-hidden w-full min-h-[54px] rounded-[12px] border-[1.5px] border-solid ${styles} flex items-center gap-[12px] px-[12px] py-[10px] text-left cursor-pointer disabled:cursor-default transition-all active:scale-[.98]`}
+      className={`relative overflow-hidden w-full min-h-[50px] rounded-[11px] border-[1.5px] border-solid ${styles} flex items-center gap-[12px] px-[12px] py-[9px] text-left cursor-pointer disabled:cursor-default transition-all active:scale-[.98]`}
     >
       {showPct && (
         <div
@@ -142,10 +141,10 @@ function Option({ letter, text, state, pct, onClick }) {
           style={{ width: `${pct}%` }}
         />
       )}
-      <div className={`relative size-[28px] shrink-0 rounded-full ${circle} font-inter font-bold text-[13px] flex items-center justify-center`}>
+      <div className={`relative size-[26px] shrink-0 rounded-full ${circle} font-inter font-bold text-[12px] flex items-center justify-center`}>
         {state === 'correct' ? '✓' : state === 'wrong' ? '✕' : letter}
       </div>
-      <p className="relative flex-1 font-inter font-semibold text-[14px] leading-[1.3] text-[#130f26]">{text}</p>
+      <p className="relative flex-1 font-inter font-semibold text-[13px] leading-[1.3] text-[#130f26]">{text}</p>
       {showPct && <p className="relative font-inter font-bold text-[13px] text-[#002766]">{pct}%</p>}
     </button>
   );

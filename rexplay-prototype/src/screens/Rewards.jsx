@@ -1,5 +1,5 @@
 import StatusBar from './StatusBar.jsx';
-import { BackButton, Fill, Icon, TitleBlock } from './parts.jsx';
+import { BackButton, Fill, Icon, TextLink, TitleBlock } from './parts.jsx';
 import { asset as a } from '../asset.js';
 import { gameById, HERO_ART } from '../games.jsx';
 import { formatDate, formatPoints, useStore } from '../store.jsx';
@@ -119,24 +119,24 @@ export function VaultCard({ onOpen }) {
     REXVAULT.cashRedemptionVaultOnly && 'Redeem RexPoints as cash into your Rex account',
   ].filter(Boolean);
   return (
-    <div className={`w-full rounded-[10px] p-[14px] flex gap-[12px] items-start ${vault ? 'bg-[#e6f9e8]' : 'bg-white'}`}>
-      <div className="size-[38px] shrink-0 rounded-[10px] bg-[#ebfafc] relative">
-        <div className="absolute inset-[7px]">
+    <div className={`w-full rounded-[8px] p-[12px] flex gap-[12px] items-start ${vault ? 'bg-[#e6f9e8]' : 'bg-white'}`}>
+      <div className="size-[42px] shrink-0 rounded-[9.882px] bg-[#ebfafc] relative">
+        <div className="absolute inset-[10px]">
           <Icon src="89d81.svg" />
         </div>
       </div>
       <div className="flex-1 min-w-0 flex flex-col gap-[4px]">
-        <p className="font-inter font-bold text-[13px] text-[#130f26]">{vault ? 'RexVault Boost is active' : 'Unlock RexVault Boost'}</p>
+        <p className="font-inter font-semibold text-[12px] text-[#130f26] tracking-[-0.06px]">{vault ? 'RexVault Boost is active' : 'Unlock RexVault Boost'}</p>
         {perks.map((p) => (
-          <p key={p} className="font-inter font-medium text-[11px] leading-[1.4] text-[#4f5a6e]">
+          <p key={p} className="font-inter font-medium text-[10px] leading-[1.5] tracking-[-0.2px] text-[#6d7d9c]">
             {vault ? '✓ ' : '• '}
             {p}
           </p>
         ))}
         {!vault ? (
-          <button onClick={onOpen} className="self-start mt-[6px] bg-[#002766] text-white rounded-[6px] px-[12px] py-[6px] font-inter font-semibold text-[10px] cursor-pointer">
+          <TextLink accent onClick={onOpen} className="self-start mt-[4px]">
             Save in RexVault to unlock
-          </button>
+          </TextLink>
         ) : (
           DEMO.tools && <button onClick={() => setVault(false)} className="self-start mt-[2px] font-inter font-medium text-[10px] text-[#6d7d9c] underline cursor-pointer">
             Demo: switch to a regular customer
@@ -163,7 +163,8 @@ export function VaultSheet({ onClose }) {
           RexVault customers earn {REXVAULT.pointsMultiplier}× {REWARDS.pointsName}, a higher daily limit
           {REXVAULT.cashRedemptionVaultOnly ? ' and can redeem for cash' : ''}. Keep an active RexVault savings plan to qualify.
         </p>
-        <div className="flex flex-col gap-[7px] mt-[6px]">
+        <div className="flex gap-[7px] mt-[6px]">
+          <PrimaryButtonLite onClick={onClose}>Maybe later</PrimaryButtonLite>
           <PrimaryButtonLite
             dark
             onClick={() => {
@@ -171,9 +172,8 @@ export function VaultSheet({ onClose }) {
               onClose();
             }}
           >
-            Start saving in RexVault
+            Start saving
           </PrimaryButtonLite>
-          <PrimaryButtonLite onClick={onClose}>Maybe later</PrimaryButtonLite>
         </div>
         <p className="font-inter font-medium text-[10px] text-[#a0a3bd] text-center">Prototype: tapping “Start saving” marks you as a RexVault customer.</p>
       </div>
@@ -185,7 +185,7 @@ function PrimaryButtonLite({ dark, children, onClick }) {
   return (
     <button
       onClick={onClick}
-      className={`${dark ? 'bg-[#002766] text-white' : 'bg-[#d1e3ff] text-[#001f52]'} w-full rounded-[12px] py-[16px] font-inter font-semibold text-[14px] cursor-pointer active:scale-[.98] transition-transform`}
+      className={`${dark ? 'bg-[#002766] text-white' : 'bg-[#d1e3ff] text-[#001f52]'} flex-1 rounded-[12px] py-[18px] font-inter font-semibold leading-[1.2] text-[14px] cursor-pointer active:scale-[.98] transition-transform`}
     >
       {children}
     </button>
@@ -229,14 +229,14 @@ export default function Rewards({ go, back, coins }) {
           </div>
 
           {/* Today's earning limit */}
-          <div className="bg-white rounded-[10px] p-[14px] flex flex-col gap-[8px]">
+          <div className="bg-white rounded-[8px] p-[12px] flex flex-col gap-[8px]">
             <div className="flex justify-between items-baseline">
-              <p className="font-inter font-bold text-[13px] text-[#130f26]">Earned today</p>
-              <p className="font-inter font-semibold text-[12px] text-[#002766]">
+              <p className="font-inter font-semibold text-[12px] text-[#130f26] tracking-[-0.06px]">Earned today</p>
+              <p className="font-inter font-semibold text-[10px] text-[#002766]">
                 {formatPoints(earnedToday)} / {formatPoints(dailyCap)} {P}
               </p>
             </div>
-            <div className="h-[8px] rounded-full bg-[#eff2fe] overflow-hidden">
+            <div className="h-[6px] rounded-full bg-[#eff2fe] overflow-hidden">
               <div className="h-full rounded-full bg-[#2c6ef2] transition-[width] duration-500" style={{ width: `${Math.min(100, (earnedToday / dailyCap) * 100)}%` }} />
             </div>
             <p className="font-inter font-medium text-[10px] text-[#6d7d9c]">
@@ -284,11 +284,11 @@ export default function Rewards({ go, back, coins }) {
           <div className="flex flex-col gap-[5px] w-full">
             {plays.length === 0 ? (
               <div className="bg-white rounded-[10px] w-full p-[20px] flex flex-col items-center gap-[10px] text-center">
-                <p className="font-inter font-semibold text-[12px] text-[#130f26]">No games yet</p>
-                <p className="font-inter font-medium text-[11px] text-[#6d7d9c]">Play a RexPlay game to start earning {P}.</p>
-                <button onClick={() => go('rexplay')} className="bg-[#002766] text-white rounded-[8px] px-[16px] py-[9px] font-inter font-semibold text-[11px] cursor-pointer">
-                  Play Now
-                </button>
+                <p className="font-inter font-semibold text-[11px] text-[#130f26]">No games yet</p>
+                <p className="font-inter font-medium text-[10px] text-[#6d7d9c]">Play a RexPlay game to start earning {P}.</p>
+                <TextLink accent onClick={() => go('rexplay')}>
+                  Play now
+                </TextLink>
               </div>
             ) : (
               plays.map((p) => <RecentGame key={p.at} game={gameById(p.gameId)} play={p} />)

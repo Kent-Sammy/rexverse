@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import StatusBar from './StatusBar.jsx';
-import { BackButton, Icon } from './parts.jsx';
+import { BackButton, Icon, TextLink } from './parts.jsx';
 import { formatDate, formatPoints, useStore } from '../store.jsx';
 
 // Figma: "rex play" › Rexplay — Rewards History (24454:41759)
@@ -127,9 +127,9 @@ export default function RewardsHistory({ back, go }) {
           <div className="bg-white rounded-[11px] w-full p-[24px] flex flex-col items-center gap-[10px] text-center">
             <p className="font-inter font-semibold text-[13px] text-[#130f26]">No redemptions yet</p>
             <p className="font-inter font-medium text-[11px] text-[#6d7d9c]">Turn your RexPoints into airtime, data or cash.</p>
-            <button onClick={() => go('redeem')} className="bg-[#002766] text-white rounded-[8px] px-[16px] py-[9px] font-inter font-semibold text-[11px] cursor-pointer">
-              Redeem Points
-            </button>
+            <TextLink accent onClick={() => go('redeem')}>
+              Redeem RexPoints
+            </TextLink>
           </div>
         )}
       </div>

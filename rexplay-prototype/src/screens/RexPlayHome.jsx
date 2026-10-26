@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import StatusBar from './StatusBar.jsx';
-import { BackButton, Fill, GameCard, Icon, SectionHeader, TitleBlock } from './parts.jsx';
+import { BackButton, Fill, GameCard, Icon, SectionHeader, TextLink, TitleBlock } from './parts.jsx';
 import { ART, CATEGORIES, GAMES, dailyChallenge, maxPoints } from '../games.jsx';
 import { FEATURES, REWARDS } from '../config.js';
 import { useStore } from '../store.jsx';
@@ -83,34 +83,43 @@ function CardRows({ games, go }) {
   ));
 }
 
-// Today's 5-question Daily Challenge.
+// Today's 5-question Daily Challenge — styled like the Dashboard's "Suggested Savings Plan" card.
 function DailyCard({ go }) {
   const { plays } = useStore();
   const daily = dailyChallenge();
   const done = plays.find((p) => p.gameId === daily.id);
   return (
-    <button
-      onClick={() => go(`game/${daily.id}`)}
-      className="relative w-full h-[96px] shrink-0 overflow-hidden rounded-[10px] bg-gradient-to-r from-[#ffcb05] to-[#ffe08a] text-left cursor-pointer active:scale-[.99] transition-transform"
-    >
-      <div className="absolute right-[-6px] top-[2px] size-[96px]">
-        <Fill src="2bdd4.png" />
+    <div className="bg-white flex flex-col gap-[10px] items-start overflow-clip p-[10px] relative rounded-[8px] shrink-0 w-full">
+      <div className="flex items-center justify-between w-full">
+        <p className="font-inter font-semibold leading-[normal] text-[#130f26] text-[12px] tracking-[-0.06px]">Daily Challenge</p>
+        <p className="font-inter font-semibold leading-[normal] text-[#556276] text-[10px]">New every day</p>
       </div>
-      <div className="absolute left-[16px] top-1/2 -translate-y-1/2 w-[250px] flex flex-col gap-[4px]">
-        <div className="flex items-center gap-[6px]">
-          <p className="font-inter font-bold text-[15px] text-[#002766]">Daily Challenge</p>
-          <span className="bg-[#002766] text-white rounded-[10px] px-[7px] py-[1px] font-inter font-semibold text-[9px]">NEW EVERY DAY</span>
+      <button
+        onClick={() => go(`game/${daily.id}`)}
+        className="border border-[#f4f4f4] border-solid flex items-center overflow-clip p-[10px] relative rounded-[11px] w-full text-left cursor-pointer"
+      >
+        <div className="flex flex-col gap-[7px] items-start w-[230px]">
+          <div className="flex flex-col gap-[3px] items-start w-full">
+            <p className="font-inter font-semibold leading-[normal] text-[#130f26] text-[11px]">
+              {done ? `Done for today · ${done.score}/${done.total}` : `${daily.questions.length} quick questions, one from every category`}
+            </p>
+            <p className="font-inter font-medium leading-[1.5] text-[#6d7d9c] text-[10px] tracking-[-0.2px]">
+              {done
+                ? `You earned ${done.points} ${REWARDS.pointsName}. A new challenge unlocks at midnight.`
+                : `${daily.seconds} seconds each · up to ${maxPoints(daily)} ${REWARDS.pointsName}`}
+            </p>
+          </div>
+          {!done && (
+            <span className="inline-flex items-center">
+              <TextLink accent>Play now</TextLink>
+            </span>
+          )}
         </div>
-        <p className="font-inter font-medium text-[11px] leading-[1.4] text-[#3d3a1a]">
-          {done
-            ? `Done for today: ${done.score}/${done.total}, +${done.points} ${REWARDS.pointsName}. Come back tomorrow!`
-            : `${daily.questions.length} quick questions · ${daily.seconds}s each · up to ${maxPoints(daily)} ${REWARDS.pointsName}`}
-        </p>
-        {!done && (
-          <span className="mt-[2px] self-start bg-[#002766] text-white rounded-[6px] px-[12px] py-[5px] font-inter font-semibold text-[10px]">Play now</span>
-        )}
-      </div>
-    </button>
+        <div className="absolute right-[14px] top-1/2 -translate-y-1/2 size-[64px]">
+          <Fill src="2bdd4.png" />
+        </div>
+      </button>
+    </div>
   );
 }
 

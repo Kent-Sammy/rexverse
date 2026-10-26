@@ -50,7 +50,7 @@ export default function Redeem({ go, back, coins }) {
   return (
     <div className="overflow-clip relative size-full bg-[#f1f5ff]">
       <StatusBar />
-      <TitleBlock title="Redeem Rewards" subtitle={`Convert your ${REWARDS.pointsName} to airtime, data or cash`} subtitleWidth={259} coins={coins} />
+      <TitleBlock title="Redeem Rewards" subtitle={`Turn ${REWARDS.pointsName} into airtime, data or cash`} subtitleWidth={259} coins={coins} />
       <BackButton onClick={back} />
 
       <div className="-translate-x-1/2 absolute flex flex-col items-start left-[calc(50%+0.5px)] top-[145px] w-[363px]">
@@ -62,7 +62,7 @@ export default function Redeem({ go, back, coins }) {
         <Option
           row="justify-between left-[20px] top-[16px] w-[324px]"
           title="Cash Reward"
-          badge={REXVAULT.enabled && REXVAULT.cashRedemptionVaultOnly ? (vault ? 'RexVault' : '🔒 RexVault') : null}
+          badge={REXVAULT.enabled && REXVAULT.cashRedemptionVaultOnly ? (vault ? 'RexVault' : 'RexVault only') : null}
           body={cashLocked ? 'For RexVault customers — paid into your Rex account' : 'Paid instantly into your Rex account'}
           onClick={() => go('redeem/cash')}
           icon={
@@ -122,10 +122,10 @@ export default function Redeem({ go, back, coins }) {
           }
         />
         )}
-        <div className="w-full bg-white rounded-[11px] p-[14px] flex flex-col gap-[7px] mt-[4px] shrink-0">
+        <div className="w-full bg-white rounded-[8px] p-[12px] flex flex-col gap-[7px] mt-[4px] shrink-0">
           <div className="flex justify-between items-baseline">
-            <p className="font-inter font-semibold text-[11px] text-[#130f26]">Today’s RexPlay rewards pool</p>
-            <p className="font-inter font-semibold text-[11px] text-[#002766]">
+            <p className="font-inter font-semibold text-[11px] text-[#130f26]">Today’s rewards pool</p>
+            <p className="font-inter font-semibold text-[10px] text-[#002766]">
               ₦{formatPoints(poolRemaining)} left of ₦{formatPoints(REWARDS.dailyBudgetNaira)}
             </p>
           </div>
