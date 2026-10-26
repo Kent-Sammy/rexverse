@@ -5,11 +5,13 @@ import { CloseButton, DARK_STATUS, DarkBackdrop, EndGameSheet } from './Crowdpur
 import { PrimaryButton, Rays } from './GameResults.jsx';
 import { Coin } from './Rewards.jsx';
 import { Fill } from './parts.jsx';
-import { HERO_ART, gameById, leaderboard, maxPoints, PLAYERS } from '../games.jsx';
-import { useStore } from '../store.jsx';
+import { HERO_ART, gameById, leaderboard, PLAYERS, pointsPerAnswer } from '../games.jsx';
+import { FEATURES, REWARDS } from '../config.js';
+import { bestRun, useStore } from '../store.jsx';
 
 // The playable RexPlay game, styled like the dark Crowdpurr/results screens in Figma.
 const LETTERS = ['A', 'B', 'C', 'D'];
+const PTS = REWARDS.pointsName;
 
 function Header({ title, onClose }) {
   return (
@@ -30,27 +32,26 @@ function Chip({ children }) {
   );
 }
 
-function Intro({ game, onStart }) {
-  const poll = game.kind === 'poll';
-  const steps = poll
-    ? [`Answer ${game.questions.length} quick questions`, 'Earn 20 points for every answer', 'See how other players answered']
-    : [
-        `Answer ${game.questions.length} questions — ${game.seconds} seconds each`,
-        'Earn 50 points for every correct answer',
-        'Learn a money tip after every question',
-      ];
+function Intro({ game, perAnswer, playedToday, onStart, onLeave }) {
   const compact = useCompact();
+  const poll = game.kind === 'poll';
+  const n = game.questions.length;
+  const steps = poll
+    ? [`Answer ${n} quick questions`, `Earn ${perAnswer} ${PTS} for every answer`, 'See how other players answered']
+    : [
+        `Answer ${n} questions — ${game.seconds} seconds each`,
+        `Earn ${perAnswer} ${PTS} for every correct answer`,
+        'Climb the leaderboard: most correct answers wins, fastest breaks a tie',
+      ];
   return (
     <>
       <Rays />
-      {/* Fills the screen under the title: artwork shrinks to fit, the "How to play" sheet
-          and its Start button stay on screen at any phone height. */}
       <div className="absolute inset-x-0 top-[104px] bottom-0 flex flex-col">
         <div className={`flex-1 min-h-0 flex flex-col items-center ${compact ? 'gap-[6px] pb-[14px]' : 'gap-[8px] pb-[22px]'}`}>
           <div className="flex-1 min-h-[56px] max-h-[150px] w-[150px] relative animate-[pop-in_.5s_ease-out]">
             <Fill src={HERO_ART[game.art]} />
           </div>
-          {game.live && (
+          {FEATURES.liveGames && game.live && (
             <div className="flex items-center gap-[8px] shrink-0">
               <div className="bg-[#e44555] rounded-[12px] h-[20px] px-[9px] flex items-center gap-[4px]">
                 <div className="size-[6px] rounded-full bg-white animate-pulse" />
@@ -64,9 +65,11 @@ function Intro({ game, onStart }) {
             <p className="font-inter font-medium text-[14px] leading-[1.4] text-[#d7e4ff]">{game.body}</p>
           </div>
           <div className="flex gap-[8px] shrink-0 mt-[4px]">
-            <Chip>{game.questions.length} questions</Chip>
+            <Chip>{n} questions</Chip>
             <Chip>{game.seconds}s each</Chip>
-            <Chip>Up to {maxPoints(game)} pts</Chip>
+            <Chip>
+              Up to {n * perAnswer} {PTS}
+            </Chip>
           </div>
         </div>
 
@@ -76,19 +79,34 @@ function Intro({ game, onStart }) {
           }`}
           style={{ minHeight: compact ? undefined : 436 }}
         >
-          <p className="font-inter font-bold text-[16px] text-[#130f26]">How to play</p>
-          <div className={`flex flex-col ${compact ? 'gap-[8px]' : 'gap-[12px]'}`}>
-            {steps.map((st, i) => (
-              <div key={st} className={`bg-[#f1f5ff] rounded-[11px] flex items-center gap-[12px] ${compact ? 'px-[14px] py-[10px]' : 'p-[14px]'}`}>
-                <div className="size-[28px] shrink-0 rounded-full bg-[#002766] text-white font-inter font-bold text-[13px] flex items-center justify-center">
-                  {i + 1}
-                </div>
-                <p className="font-inter font-medium text-[13px] leading-[1.4] text-[#2e3d60]">{st}</p>
+          {playedToday ? (
+            <div className="flex-1 flex flex-col items-center justify-center text-center gap-[8px] py-[12px]">
+              <p className="font-inter font-bold text-[16px] text-[#130f26]">You’ve played today’s challenge</p>
+              <p className="font-inter font-medium text-[13px] leading-[1.45] text-[#6d7d9c] w-[300px]">
+                A new Daily Challenge unlocks at midnight. Try a 10-question challenge in the meantime.
+              </p>
+            </div>
+          ) : (
+            <>
+              <p className="font-inter font-bold text-[16px] text-[#130f26]">How to play</p>
+              <div className={`flex flex-col ${compact ? 'gap-[8px]' : 'gap-[12px]'}`}>
+                {steps.map((st, i) => (
+                  <div key={st} className={`bg-[#f1f5ff] rounded-[11px] flex items-center gap-[12px] ${compact ? 'px-[14px] py-[10px]' : 'p-[14px]'}`}>
+                    <div className="size-[28px] shrink-0 rounded-full bg-[#002766] text-white font-inter font-bold text-[13px] flex items-center justify-center">
+                      {i + 1}
+                    </div>
+                    <p className="font-inter font-medium text-[13px] leading-[1.4] text-[#2e3d60]">{st}</p>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-          <div className="mt-auto pt-[8px] -mx-[-1px]">
-            <PrimaryButton onClick={onStart}>{poll ? 'Start Poll' : 'Start Game'}</PrimaryButton>
+            </>
+          )}
+          <div className="mt-auto pt-[8px]">
+            {playedToday ? (
+              <PrimaryButton onClick={onLeave}>Back to RexPlay</PrimaryButton>
+            ) : (
+              <PrimaryButton onClick={onStart}>{poll ? 'Start Poll' : 'Start Game'}</PrimaryButton>
+            )}
           </div>
         </div>
       </div>
@@ -133,45 +151,56 @@ function Option({ letter, text, state, pct, onClick }) {
   );
 }
 
-function Question({ game, index, points, onAnswer, onNext }) {
+
+function Question({ game, index, points, perAnswer, paused, onAnswer, onNext }) {
   const item = game.questions[index];
   const poll = game.kind === 'poll';
+  const limit = game.seconds * 1000;
   const [choice, setChoice] = useState(null); // option index, or -1 when time ran out
-  const [left, setLeft] = useState(game.seconds * 1000);
-  const started = useRef(Date.now());
+  const [left, setLeft] = useState(limit);
+  const [took, setTook] = useState(null); // seconds taken to answer
+  const leftRef = useRef(limit);
+  const compact = useCompact();
+  const scroller = useRef(null);
 
+  // Countdown that pauses while the "End game?" sheet is open.
   useEffect(() => {
-    if (choice !== null) return undefined;
+    if (choice !== null || paused) return undefined;
+    let last = performance.now();
     const t = setInterval(() => {
-      const remaining = game.seconds * 1000 - (Date.now() - started.current);
-      if (remaining <= 0) {
+      const now = performance.now();
+      leftRef.current = Math.max(0, leftRef.current - (now - last));
+      last = now;
+      setLeft(leftRef.current);
+      if (leftRef.current <= 0) {
         clearInterval(t);
-        setLeft(0);
         setChoice(-1);
-        onAnswer(false);
-      } else setLeft(remaining);
+        setTook(game.seconds);
+        onAnswer(false, game.seconds);
+      }
     }, 100);
     return () => clearInterval(t);
-  }, [choice, game.seconds, onAnswer]);
+  }, [choice, paused, game.seconds, onAnswer]);
 
   const pick = (i) => {
-    if (choice !== null) return;
+    if (choice !== null || paused) return;
+    const seconds = Math.round((limit - leftRef.current) / 100) / 10;
     setChoice(i);
-    onAnswer(poll ? true : i === item.answer);
+    setTook(seconds);
+    onAnswer(poll ? true : i === item.answer, seconds);
   };
 
   const answered = choice !== null;
-  const compact = useCompact();
-  const scroller = useRef(null);
-  const tip = useRef(null);
-  useEffect(() => {
-    if (answered && tip.current && scroller.current) {
-      scroller.current.scrollTo({ top: scroller.current.scrollHeight, behavior: 'smooth' });
-    }
-  }, [answered]);
+  const timedOut = choice === -1;
   const correct = !poll && choice === item.answer;
+
+  useEffect(() => {
+    if (answered && scroller.current) scroller.current.scrollTo({ top: scroller.current.scrollHeight, behavior: 'smooth' });
+  }, [answered]);
+
   const seconds = Math.ceil(left / 1000);
   const last = index === game.questions.length - 1;
+  const answerText = `${LETTERS[item.answer]}: ${item.options[item.answer]}`;
 
   const stateFor = (i) => {
     if (!answered) return 'idle';
@@ -180,6 +209,19 @@ function Question({ game, index, points, onAnswer, onNext }) {
     if (i === choice) return 'wrong';
     return 'dim';
   };
+
+  let headline;
+  let detail;
+  if (poll) {
+    headline = `Thanks for sharing! +${perAnswer} ${PTS}`;
+    detail = 'The bars show how other RexPlay players answered.';
+  } else if (correct) {
+    headline = `Correct! +${perAnswer} ${PTS}`;
+    detail = item.explain;
+  } else {
+    headline = timedOut ? `Time’s up! The answer is ${answerText}` : `Not quite — the answer is ${answerText}`;
+    detail = item.explain;
+  }
 
   return (
     <>
@@ -204,23 +246,28 @@ function Question({ game, index, points, onAnswer, onNext }) {
         ))}
       </div>
 
-      {/* Timer */}
+      {/* Timer: counts down while you think, then shows how long you took (or that time ran out) */}
       <div className="absolute left-[22px] right-[22px] top-[172px] flex items-center gap-[10px]">
         <div className="flex-1 h-[6px] rounded-full bg-[rgba(255,255,255,0.15)] overflow-hidden">
           <div
-            className={`h-full rounded-full ${seconds <= 5 ? 'bg-[#ff6b6b]' : 'bg-[#7cf29c]'}`}
-            style={{ width: `${(left / (game.seconds * 1000)) * 100}%`, transition: 'width .1s linear' }}
+            className={`h-full rounded-full ${answered ? (timedOut ? 'bg-[#ff6b6b]' : 'bg-[rgba(255,255,255,0.45)]') : seconds <= 5 ? 'bg-[#ff6b6b]' : 'bg-[#7cf29c]'}`}
+            style={{ width: `${(left / limit) * 100}%`, transition: 'width .1s linear' }}
           />
         </div>
-        <p className={`font-inter font-bold text-[13px] w-[30px] text-right ${seconds <= 5 && !answered ? 'text-[#ff8f8f]' : 'text-white'}`}>{seconds}s</p>
+        <p
+          className={`font-inter font-bold text-[13px] text-right whitespace-nowrap ${
+            answered ? (timedOut ? 'text-[#ff8f8f]' : 'text-[#d7e4ff]') : seconds <= 5 ? 'text-[#ff8f8f]' : 'text-white'
+          }`}
+        >
+          {!answered ? `${seconds}s` : timedOut ? 'Time’s up' : `Answered in ${took}s`}
+        </p>
       </div>
 
-      {/* Question on top; answers panel below with the Next button pinned at its bottom.
-          On short phones the answers scroll inside the panel. */}
+      {/* Question on top; answers panel below with the Next button pinned at its bottom. */}
       <div className="absolute inset-x-0 top-[196px] bottom-0 flex flex-col">
         <div className={`flex-[1_0_auto] px-[22px] pt-[8px] flex flex-col items-start gap-[10px] ${compact ? 'pb-[16px]' : 'pb-[22px]'}`}>
           <div className="bg-[rgba(255,255,255,0.12)] rounded-[20px] px-[10px] py-[4px] font-inter font-bold text-[10px] tracking-[0.4px] text-[#d7e4ff]">
-            {game.topic}
+            {item.topic || game.topic}
           </div>
           <p key={index} className={`font-inter font-bold leading-[1.28] tracking-[-0.3px] text-white animate-[slide-in_.25s_ease-out] ${compact ? 'text-[19px]' : 'text-[21px]'}`}>
             {item.question}
@@ -233,13 +280,9 @@ function Question({ game, index, points, onAnswer, onNext }) {
               <Option key={`${index}-${i}`} letter={LETTERS[i]} text={o} state={stateFor(i)} pct={poll ? item.results[i] : 0} onClick={() => pick(i)} />
             ))}
             {answered && (
-              <div ref={tip} className="mt-[4px] bg-[#eff2fe] rounded-[11px] p-[14px] flex flex-col gap-[4px] animate-[fade_.25s_ease-out] shrink-0">
-                <p className={`font-inter font-bold text-[13px] ${poll || correct ? 'text-[#147f00]' : 'text-[#c62b3b]'}`}>
-                  {poll ? 'Thanks for sharing! +20 points' : correct ? 'Correct! +50 points' : choice === -1 ? 'Time’s up!' : 'Not quite'}
-                </p>
-                <p className="font-inter font-medium text-[12px] leading-[1.45] text-[#4f5a6e]">
-                  {poll ? 'The bars show how other RexPlay players answered.' : item.explain}
-                </p>
+              <div className="mt-[4px] bg-[#eff2fe] rounded-[11px] p-[14px] flex flex-col gap-[4px] animate-[fade_.25s_ease-out] shrink-0">
+                <p className={`font-inter font-bold text-[13px] leading-[1.35] ${poll || correct ? 'text-[#147f00]' : 'text-[#c62b3b]'}`}>{headline}</p>
+                <p className="font-inter font-medium text-[12px] leading-[1.45] text-[#4f5a6e]">{detail}</p>
               </div>
             )}
           </div>
@@ -253,19 +296,21 @@ function Question({ game, index, points, onAnswer, onNext }) {
 }
 
 export default function Game({ go, param }) {
-  const game = gameById(param) || gameById('naira-savings');
-  const { addPlay } = useStore();
+  const game = gameById(param) || gameById('football-fever');
+  const { addPlay, plays, multiplier } = useStore();
+  const playedToday = !!game.daily && plays.some((p) => p.gameId === game.id);
   const [phase, setPhase] = useState('intro');
   const [index, setIndex] = useState(0);
   const [score, setScore] = useState(0);
   const [confirm, setConfirm] = useState(false);
-  const scoreRef = useRef(0);
-  const per = game.kind === 'poll' ? 20 : 50;
+  const run = useRef({ score: 0, time: 0 });
+  const perAnswer = Math.round(pointsPerAnswer(game) * multiplier);
 
-  const onAnswer = useRef((ok) => {
+  const onAnswer = useRef((ok, seconds) => {
+    run.current.time += seconds;
     if (ok) {
-      scoreRef.current += 1;
-      setScore(scoreRef.current);
+      run.current.score += 1;
+      setScore(run.current.score);
     }
   }).current;
 
@@ -274,9 +319,11 @@ export default function Game({ go, param }) {
       setIndex(index + 1);
       return;
     }
-    const points = scoreRef.current * per;
-    const { rank } = leaderboard(game, points);
-    addPlay({ gameId: game.id, score: scoreRef.current, total: game.questions.length, points, rank });
+    const mine = { score: run.current.score, time: Math.round(run.current.time * 10) / 10 };
+    const prev = bestRun(plays, game.id);
+    const best = prev && (prev.score > mine.score || (prev.score === mine.score && prev.time <= mine.time)) ? prev : mine;
+    const { rank } = leaderboard(game, { score: best.score, time: best.time });
+    addPlay({ gameId: game.id, score: mine.score, total: game.questions.length, time: mine.time, rank, rawPoints: mine.score * pointsPerAnswer(game) });
     go('results', { replace: true });
   };
 
@@ -284,11 +331,11 @@ export default function Game({ go, param }) {
     <div className="bg-[#01296a] overflow-clip relative size-full">
       <DarkBackdrop />
       <StatusBar {...DARK_STATUS} />
-      <Header title={game.title} onClose={() => setConfirm(true)} />
+      <Header title={game.title} onClose={() => (phase === 'intro' ? go('rexplay', { replace: true }) : setConfirm(true))} />
       {phase === 'intro' ? (
-        <Intro game={game} onStart={() => setPhase('play')} />
+        <Intro game={game} perAnswer={perAnswer} playedToday={playedToday} onStart={() => setPhase('play')} onLeave={() => go('rexplay', { replace: true })} />
       ) : (
-        <Question key={index} game={game} index={index} points={score * per} onAnswer={onAnswer} onNext={next} />
+        <Question key={index} game={game} index={index} points={score * perAnswer} perAnswer={perAnswer} paused={confirm} onAnswer={onAnswer} onNext={next} />
       )}
       {confirm && <EndGameSheet onCancel={() => setConfirm(false)} onExit={() => go('rexplay', { replace: true })} />}
     </div>

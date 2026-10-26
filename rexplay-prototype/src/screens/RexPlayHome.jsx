@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import StatusBar from './StatusBar.jsx';
 import { BackButton, Fill, GameCard, Icon, SectionHeader, TitleBlock } from './parts.jsx';
-import { ART, GAMES, maxPoints } from '../games.jsx';
+import { ART, CATEGORIES, GAMES, dailyChallenge, maxPoints } from '../games.jsx';
+import { FEATURES, REWARDS } from '../config.js';
+import { useStore } from '../store.jsx';
 
 // Figma: "rex play" › Rexplay (24450:38752)
 export const FIGMA_ASSETS = 'https://www.figma.com/api/mcp/asset/d9fcfd67-56bb-4742-9d5e-168656cdf0a2';
 
-const TABS = ['All', 'Live Now', 'Polls', 'Trivia', 'Products'];
+const TABS = ['All', ...CATEGORIES.map((c) => c.label)];
 
 function Coin({ blurred, left, top, size }) {
   return (
@@ -25,7 +27,7 @@ export function HeroBanner() {
       <div className="-translate-y-1/2 absolute flex flex-col gap-[3px] items-start justify-center left-[19px] text-[#f1f5ff] top-[calc(50%+1px)] w-[179px]">
         <p className="font-inter font-bold text-[14.477px] leading-[1.256] tracking-[-0.5791px] w-full">Your next win starts here</p>
         <div className="flex flex-col font-inter font-normal h-[29px] justify-center overflow-hidden text-[10px] tracking-[-0.2px] w-full">
-          <p className="leading-[1.5]">Play trivia, polls and challenges. Climb the leaderboard and earn points.</p>
+          <p className="leading-[1.5]">Sports, music, money and more. Climb the leaderboard and earn RexPoints.</p>
         </div>
       </div>
       <div className="absolute left-[220.54px] size-[116.291px] top-[7px]">
@@ -46,9 +48,9 @@ export function FilterTabs({ value, onChange }) {
         <button
           key={t}
           onClick={() => onChange(t)}
-          className={`bg-white flex items-center justify-center p-[10px] relative rounded-[6px] cursor-pointer border border-solid ${
+          className={`bg-white flex items-center justify-center py-[10px] px-[4px] relative rounded-[6px] cursor-pointer border border-solid ${
             value === t ? 'border-[#639fff]' : 'border-0'
-          } ${i === 0 ? 'shrink-0 w-[51px]' : 'flex-[1_0_0] min-w-px'}`}
+          } ${i === 0 ? 'shrink-0 w-[44px]' : t === 'Entertainment' ? 'flex-[1.45_0_0] min-w-px' : 'flex-[1_0_0] min-w-px'}`}
         >
           <p className="font-inter font-semibold leading-[normal] text-[#002766] text-[10px] whitespace-nowrap">{t}</p>
         </button>
@@ -56,13 +58,6 @@ export function FilterTabs({ value, onChange }) {
     </div>
   );
 }
-
-const matches = (g, tab) =>
-  tab === 'All' ||
-  (tab === 'Live Now' && g.live) ||
-  (tab === 'Polls' && g.kind === 'poll') ||
-  (tab === 'Trivia' && g.tags.includes('trivia')) ||
-  (tab === 'Products' && g.tags.includes('products'));
 
 // Cards sit two per row at their Figma width; a lone card stays on the left.
 function CardRows({ games, go }) {
@@ -73,7 +68,7 @@ function CardRows({ games, go }) {
       {row.map((g, i) => (
         <GameCard
           key={g.id}
-          live={g.live}
+          live={FEATURES.liveGames && g.live}
           from={g.from}
           to={g.to}
           art={ART[g.art]}
@@ -88,18 +83,45 @@ function CardRows({ games, go }) {
   ));
 }
 
+// Today's 5-question Daily Challenge.
+function DailyCard({ go }) {
+  const { plays } = useStore();
+  const daily = dailyChallenge();
+  const done = plays.find((p) => p.gameId === daily.id);
+  return (
+    <button
+      onClick={() => go(`game/${daily.id}`)}
+      className="relative w-full h-[96px] shrink-0 overflow-hidden rounded-[10px] bg-gradient-to-r from-[#ffcb05] to-[#ffe08a] text-left cursor-pointer active:scale-[.99] transition-transform"
+    >
+      <div className="absolute right-[-6px] top-[2px] size-[96px]">
+        <Fill src="2bdd4.png" />
+      </div>
+      <div className="absolute left-[16px] top-1/2 -translate-y-1/2 w-[250px] flex flex-col gap-[4px]">
+        <div className="flex items-center gap-[6px]">
+          <p className="font-inter font-bold text-[15px] text-[#002766]">Daily Challenge</p>
+          <span className="bg-[#002766] text-white rounded-[10px] px-[7px] py-[1px] font-inter font-semibold text-[9px]">NEW EVERY DAY</span>
+        </div>
+        <p className="font-inter font-medium text-[11px] leading-[1.4] text-[#3d3a1a]">
+          {done
+            ? `Done for today: ${done.score}/${done.total}, +${done.points} ${REWARDS.pointsName}. Come back tomorrow!`
+            : `${daily.questions.length} quick questions · ${daily.seconds}s each · up to ${maxPoints(daily)} ${REWARDS.pointsName}`}
+        </p>
+        {!done && (
+          <span className="mt-[2px] self-start bg-[#002766] text-white rounded-[6px] px-[12px] py-[5px] font-inter font-semibold text-[10px]">Play now</span>
+        )}
+      </div>
+    </button>
+  );
+}
+
 export default function RexPlayHome({ go, back, coins }) {
   const [tab, setTab] = useState('All');
-  const shown = GAMES.filter((g) => matches(g, tab));
-  const live = shown.filter((g) => g.live);
-  const trivia = shown.filter((g) => !g.live && g.kind === 'quiz');
-  const polls = shown.filter((g) => !g.live && g.kind === 'poll');
-  const liveCount = GAMES.filter((g) => g.live).length;
+  const cats = CATEGORIES.filter((c) => tab === 'All' || c.label === tab);
 
   return (
     <div className="overflow-clip relative size-full bg-[#f1f5ff]">
       <StatusBar />
-      <TitleBlock title="RexPlay" subtitle="Play at your own pace" coins={coins} onCoins={() => go('rewards')} />
+      <TitleBlock title="RexPlay" subtitle="Play. Learn. Earn RexPoints." coins={coins} onCoins={() => go('rewards')} />
       <BackButton onClick={back} />
 
       <div className="absolute left-0 right-0 top-[145px] bottom-0 overflow-y-auto overscroll-contain [scrollbar-width:none]">
@@ -109,39 +131,18 @@ export default function RexPlayHome({ go, back, coins }) {
             <FilterTabs value={tab} onChange={setTab} />
           </div>
 
-          {live.length > 0 && (
-            <div className="flex flex-col gap-[9px] items-start relative shrink-0 w-full">
-              <SectionHeader
-                title="Live Now"
-                width={66}
-                right={
-                  <div className="flex gap-[5px] items-center relative shrink-0">
-                    <div className="relative shrink-0 size-[6px] animate-pulse">
-                      <Icon src="64f7e.svg" />
-                    </div>
-                    <p className="font-inter font-semibold leading-[normal] text-[#556276] text-[10px] whitespace-nowrap">
-                      {liveCount} live experiences
-                    </p>
-                  </div>
-                }
-              />
-              <CardRows games={live} go={go} />
-            </div>
-          )}
+          {FEATURES.dailyChallenge && tab === 'All' && <DailyCard go={go} />}
 
-          {trivia.length > 0 && (
-            <div className="flex flex-col gap-[9px] items-start relative shrink-0 w-full">
-              <SectionHeader title="Rex Play Trivia" width={104} />
-              <CardRows games={trivia} go={go} />
-            </div>
-          )}
-
-          {polls.length > 0 && (
-            <div className="flex flex-col gap-[9px] items-start relative shrink-0 w-full">
-              <SectionHeader title="Quick Polls" width={104} />
-              <CardRows games={polls} go={go} />
-            </div>
-          )}
+          {cats.map((c) => {
+            const games = GAMES.filter((g) => g.category === c.id);
+            if (!games.length) return null;
+            return (
+              <div key={c.id} className="flex flex-col gap-[9px] items-start relative shrink-0 w-full">
+                <SectionHeader title={c.name} width={220} />
+                <CardRows games={games} go={go} />
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>

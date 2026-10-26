@@ -52,7 +52,14 @@ const ICONS = {
 const TITLES = { Cash: 'Cash Reward', Data: 'Data Bundle', Airtime: 'Airtime' };
 const KIND = { cash: 'Cash', data: 'Data', airtime: 'Airtime' };
 
-function HistoryItem({ kind, title, detail, points, at }) {
+const BADGE = {
+  success: { label: 'Successful', bg: 'bg-[#f1f9f1]', fg: 'text-[#008f18]' },
+  pending: { label: 'Pending', bg: 'bg-[#fff6e5]', fg: 'text-[#b26b00]' },
+  failed: { label: 'Failed', bg: 'bg-[#ffeef0]', fg: 'text-[#c62b3b]' },
+};
+
+function HistoryItem({ kind, title, detail, points, at, status = 'success' }) {
+  const b = BADGE[status];
   return (
     <div className="bg-white h-[80.333px] overflow-clip relative rounded-[11px] shrink-0 w-full">
       <div className="-translate-x-1/2 -translate-y-1/2 absolute flex items-center justify-between left-[calc(50%+0.5px)] top-[calc(50%-0.17px)] w-[324px]">
@@ -67,11 +74,13 @@ function HistoryItem({ kind, title, detail, points, at }) {
           </div>
         </div>
         <div className="flex flex-col gap-[7px] items-start justify-center relative shrink-0">
-          <p className="font-inter font-semibold leading-[1.5] min-w-full text-[12px] text-[red] text-right tracking-[-0.24px] w-min whitespace-nowrap">
+          <p
+            className={`font-inter font-semibold leading-[1.5] min-w-full text-[12px] text-right tracking-[-0.24px] w-min whitespace-nowrap ${status === 'failed' ? 'text-[#a0a3bd] line-through' : 'text-[red]'}`}
+          >
             -{formatPoints(points)} pts
           </p>
-          <div className="flex h-[20px] items-center justify-center px-[10px] relative rounded-[20px] shrink-0 bg-[#f1f9f1]">
-            <p className="font-inter font-medium leading-[1.5] text-[#008f18] text-[10px] tracking-[-0.2px] whitespace-nowrap">Successful</p>
+          <div className={`flex h-[20px] items-center justify-center px-[10px] relative rounded-[20px] shrink-0 self-end ${b.bg}`}>
+            <p className={`font-inter font-medium leading-[1.5] text-[10px] tracking-[-0.2px] whitespace-nowrap ${b.fg}`}>{b.label}</p>
           </div>
         </div>
       </div>
@@ -90,7 +99,7 @@ export default function RewardsHistory({ back, go }) {
       <StatusBar />
       <div className="-translate-x-1/2 absolute flex flex-col gap-px items-start justify-center left-[calc(50%-1.5px)] top-[89px] w-[359px]">
         <p className="font-inter font-bold leading-[1.3] text-[#002766] text-[20px] whitespace-nowrap">Rewards History</p>
-        <p className="font-inter font-medium leading-[normal] text-[#8f9bb3] text-[12px] w-[259px]">Convert your points to airtime, data, or cash</p>
+        <p className="font-inter font-medium leading-[normal] text-[#8f9bb3] text-[12px] w-[259px]">Your RexPoints redemptions</p>
       </div>
       <div className="-translate-x-[2px]">
         <BackButton onClick={back} />
@@ -117,7 +126,7 @@ export default function RewardsHistory({ back, go }) {
         {items.length === 0 && (
           <div className="bg-white rounded-[11px] w-full p-[24px] flex flex-col items-center gap-[10px] text-center">
             <p className="font-inter font-semibold text-[13px] text-[#130f26]">No redemptions yet</p>
-            <p className="font-inter font-medium text-[11px] text-[#6d7d9c]">Turn your RexPlay points into airtime, data or cash.</p>
+            <p className="font-inter font-medium text-[11px] text-[#6d7d9c]">Turn your RexPoints into airtime, data or cash.</p>
             <button onClick={() => go('redeem')} className="bg-[#002766] text-white rounded-[8px] px-[16px] py-[9px] font-inter font-semibold text-[11px] cursor-pointer">
               Redeem Points
             </button>

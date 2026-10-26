@@ -64,7 +64,7 @@ export default function PromoModal({ variant = 'trophy', onClose, onPlay }) {
           <div className="-translate-x-1/2 -translate-y-1/2 absolute flex flex-col gap-[3px] items-center justify-center left-[calc(50%+3.5px)] text-[#f1f5ff] text-center top-[calc(50%+30.5px)] w-[246px]">
             <p className="font-inter font-bold text-[24px] leading-[1.05] tracking-[-0.96px] w-[205px]">Your next win starts here</p>
             <div className="flex flex-col font-inter font-normal h-[50px] justify-center min-w-full overflow-hidden text-[14px] tracking-[-0.28px] w-min">
-              <p className="leading-[1.5]">Play trivia, polls and challenges. Climb the leaderboard and earn points.</p>
+              <p className="leading-[1.5]">Sports, music, money and more. Climb the leaderboard and earn RexPoints.</p>
             </div>
           </div>
           <button

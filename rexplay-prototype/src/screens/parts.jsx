@@ -1,4 +1,5 @@
 import { asset as a } from '../asset.js';
+import { REWARDS } from '../config.js';
 
 // Pieces that repeat across the RexPlay screens in Figma.
 
@@ -112,7 +113,7 @@ export function GameCard({ from, to = '#f3f5ff', art, live, title, body, points,
             <div className="relative shrink-0 size-[16px]">
               <Icon src="546c8.svg" />
             </div>
-            <p className="font-inter font-semibold leading-[normal] text-[#002d93] text-[11px] whitespace-nowrap">Up to {points} points</p>
+            <p className="font-inter font-semibold leading-[normal] text-[#002d93] text-[11px] whitespace-nowrap">Up to {points} {REWARDS.pointsName}</p>
           </div>
           <div className="bg-[#dae2ff] overflow-clip relative rounded-[24px] shrink-0 size-[24px]">
             <Chevron />

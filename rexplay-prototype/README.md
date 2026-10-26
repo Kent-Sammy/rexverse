@@ -16,30 +16,49 @@ npm run dev      # http://localhost:5173
 Deploy this folder to Vercel as its own project (set **Root Directory** to `rexplay-prototype`).
 Run `npm run assets` and commit `public/assets/` first, so the images ship with it.
 
-## The flow
+## Launch scope
 
-1. **Dashboard** opens with the RexPlay promo pop-up. "RexPlay... Let’s Play" (or the green RexPlay banner) opens RexPlay.
-2. **RexPlay** lists the games; the filter tabs work and a lone card stays at normal width on the left.
-3. **Games** (`src/games.jsx`) — real, playable financial-literacy games:
-   - Naira Savings Trivia, Fixed Deposit Challenge, Budgeting Challenge, Money Smart Quiz — 10 timed questions,
-     50 points per correct answer, a short money tip after every answer.
-   - Saving Habits Poll — 5 questions, 20 points per answer, shows how other players answered.
-   ✕ shows the "End game?" sheet.
-4. **Results** → **Leaderboard** — your real score, rank and points. A score of 5/10 or better (or finishing a poll) gets a confetti celebration.
-5. Coin counter → **Your RexPlay Rewards** (real stats and recent games) → **Redeem Rewards** →
-   **Airtime**, **Data** or **Cash** (paid into your Rex account only) → success receipt → **Rewards History**.
-   Points are deducted; rewards you can’t afford yet are greyed out.
+Trivia across four categories, a simple leaderboard and RexPoints. Polls and "live" games are
+still in the code but switched off in `src/config.js`.
 
-Points, games played and redemptions are kept for the browser session (a refresh keeps them; a new tab starts fresh).
-The phone back gesture and browser back button work on every screen.
+- **Categories:** Football & Sports, Entertainment (Afrobeats & Nollywood), General Knowledge, Money & Finance.
+- **Daily Challenge:** 5 questions (one per category plus a bonus), 15s each, a new set every day, playable once a day.
+- **10-question challenges:** 20s per question.
+- **Leaderboard:** one per game, ranked by correct answers, then by total answer time. The results screen
+  and the leaderboard use the same ranking.
+- **RexPoints:** earned per correct answer, limited per customer per day.
+- **Redemption:** airtime, data and cash (cash to the customer’s Rex account only). Every redemption has a
+  confirmation step, a processing state and a status: Successful, Pending or Failed (failed redemptions
+  don’t take RexPoints). Rewards History shows each status.
+- **RexVault:** everyone can play; RexVault customers earn more and can redeem cash.
+
+## Settings (`src/config.js`)
+
+All rewards numbers are **placeholders** until points issuance, redemption values, eligibility and the
+RexVault benefits are agreed (RexVault benefits also need Compliance approval).
+
+| Setting | Placeholder |
+|---|---|
+| RexPoints per correct answer | 10 (Daily Challenge: 20) |
+| Daily earning cap per customer | 300 RexPoints (RexVault: 450) |
+| Conversion | 10 RexPoints = ₦1 |
+| Daily rewards budget | ₦25,000 across all customers |
+| Airtime / data / cash options | ₦50–₦2,000 / ₦100–₦2,000 / ₦100–₦5,000 |
+| RexVault boost | 1.5× RexPoints, higher daily cap, cash redemption |
+
+`DEMO.tools` shows prototype-only helpers (add 1,000 RexPoints, switch RexVault on/off). Turn it off for customers.
+
+To demonstrate every redemption status: a phone number ending in **1111** gives *Pending* (settles after
+15 seconds) and one ending in **0000** gives *Failed*.
 
 ## Editing the games
 
-Questions, answers and the tip shown after each answer live in `src/games.jsx`. Add a game by adding an entry to `GAMES`.
+Questions, answers and the tip shown after each answer live in `src/games.jsx`.
 
 ## Code
 
 - `src/screens/` — one file per screen; screens from Figma note the Figma node they came from.
-- `src/store.jsx` — points balance, games played and redemptions.
+- `src/config.js` — rewards economics, RexVault benefits, launch switches.
+- `src/store.jsx` — RexPoints balance, daily cap, games played, redemptions and RexVault status.
 - `src/Phone.jsx` — scales the 402×874 design to the device.
 - `scripts/download-assets.mjs` — fetches every Figma image the screens reference into `public/assets/`.

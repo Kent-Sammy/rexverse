@@ -3,7 +3,8 @@ import StatusBar from './StatusBar.jsx';
 import { DARK_STATUS } from './Crowdpurr.jsx';
 import { Fill, Icon } from './parts.jsx';
 import { asset as a } from '../asset.js';
-import { useStore } from '../store.jsx';
+import { formatPoints, useStore } from '../store.jsx';
+import { REWARDS, REXVAULT } from '../config.js';
 import { useCompact, useScreenHeight } from '../Phone.jsx';
 import Confetti from './Confetti.jsx';
 import { gameById, PLAYERS } from '../games.jsx';
@@ -44,12 +45,19 @@ export function PrimaryButton({ children, onClick, light, className = 'w-full' }
 }
 
 export default function GameResults({ go, back }) {
-  const { plays, coins } = useStore();
-  const last = plays[0] || { gameId: 'naira-savings', score: 0, total: 10, points: 0, rank: PLAYERS };
+  const { plays, coins, vault, earnedToday, dailyCap } = useStore();
+  const last = plays[0] || { gameId: 'football-fever', score: 0, total: 10, points: 0, boosted: 0, time: 0, rank: PLAYERS };
   const game = gameById(last.gameId);
   const poll = game.kind === 'poll';
   const compact = useCompact();
   const height = useScreenHeight();
+  const P = REWARDS.pointsName;
+  const boost = vault && REXVAULT.enabled && REXVAULT.pointsMultiplier > 1 ? ` (RexVault ${REXVAULT.pointsMultiplier}× boost)` : '';
+  const note = last.capped
+    ? `You reached today’s limit of ${formatPoints(dailyCap)} ${P}, so ${formatPoints(last.points)} of the ${formatPoints(last.boosted)} ${P} you won were added. Play again tomorrow to earn more.`
+    : last.points > 0
+      ? `${formatPoints(last.points)} ${P} added to your balance${boost}. You’ve earned ${formatPoints(earnedToday)} of ${formatPoints(dailyCap)} today.`
+      : `No ${P} this time — your rank is based on correct answers, then speed. Try again!`;
   // A successful quiz is at least half right; finishing a poll always counts.
   const success = plays.length > 0 && (poll || last.score * 2 >= last.total);
   const [celebrate] = useState(() => {
@@ -81,7 +89,7 @@ export default function GameResults({ go, back }) {
             <p className="font-inter font-medium leading-[normal] text-[#4f5a6e] text-[12px] text-center">
               {poll
                 ? 'Thanks for sharing your saving habits with us!'
-                : `You answered ${last.score} out of ${last.total} questions correctly.`}
+                : `You answered ${last.score} out of ${last.total} correctly in ${last.time}s.`}
             </p>
           </div>
 
@@ -89,14 +97,14 @@ export default function GameResults({ go, back }) {
           <div className="flex gap-[6px] items-center w-full shrink-0">
             <div className={`bg-[#eff2fe] flex-[1_0_0] min-w-px rounded-[11px] flex flex-col gap-[10px] items-center justify-center text-center leading-[normal] ${compact ? 'h-[104px]' : 'h-[130px]'}`}>
               <div className="flex flex-col gap-[3px] items-center">
-                <p className="font-inter font-medium text-[#4f5a6e] text-[12px]">Your Rank</p>
+                <p className="font-inter font-medium text-[#4f5a6e] text-[12px]">Leaderboard Rank</p>
                 <p className="font-inter font-bold text-[#130f26] text-[20px] tracking-[-0.4px]">#{last.rank}</p>
               </div>
               <p className="font-inter font-medium text-[#4f5a6e] text-[12px]">Out of {PLAYERS} players</p>
             </div>
             <div className={`bg-[#fff7eb] flex-[1_0_0] min-w-px rounded-[11px] flex flex-col gap-[10px] items-center justify-center text-center leading-[normal] ${compact ? 'h-[104px]' : 'h-[130px]'}`}>
               <div className="flex flex-col gap-[3px] items-center">
-                <p className="font-inter font-medium text-[#4f5a6e] text-[12px]">Points Earned</p>
+                <p className="font-inter font-medium text-[#4f5a6e] text-[12px]">{REWARDS.pointsName} Earned</p>
                 <div className="flex gap-[3px] items-start">
                   <div className="relative shrink-0 size-[26px]">
                     <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -106,7 +114,7 @@ export default function GameResults({ go, back }) {
                   <p className="font-inter font-bold text-[#130f26] text-[20px] tracking-[-0.4px] min-w-[33px]">{last.points}</p>
                 </div>
               </div>
-              <p className="font-inter font-medium text-[#4f5a6e] text-[12px]">Balance: {coins} pts</p>
+              <p className="font-inter font-medium text-[#4f5a6e] text-[12px]">Balance: {formatPoints(coins)}</p>
             </div>
           </div>
 
@@ -116,7 +124,7 @@ export default function GameResults({ go, back }) {
               <Icon src="7ba8d.svg" />
             </div>
             <p className="font-inter font-medium leading-[normal] text-[#4f5a6e] text-[12px] tracking-[-0.24px]">
-              Your points have been added to your RexPlay balance. Redeem them for airtime, data or cash.
+              {note}
             </p>
           </div>
         </div>

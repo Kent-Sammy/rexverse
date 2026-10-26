@@ -3,7 +3,7 @@ import StatusBar from './StatusBar.jsx';
 import { BackButton, CoinPill, Icon } from './parts.jsx';
 import { asset as a } from '../asset.js';
 import { gameById, leaderboard, GAMES } from '../games.jsx';
-import { useStore } from '../store.jsx';
+import { bestRun, useStore } from '../store.jsx';
 
 // Figma: "rex play" › Rexplay (24453:39999) — Leaderboard.
 export const FIGMA_ASSETS = 'https://www.figma.com/api/mcp/asset/78ba60de-822e-4764-9c38-43e6cf418a02';
@@ -18,20 +18,25 @@ const MEDALS = {
   3: { bg: '#f4ecff', file: '6467e.svg', box: '-translate-x-1/2 bottom-[6px] left-1/2', inset: 'inset-[0_13.98%]' },
 };
 
-function Points({ value }) {
+function Score({ score, total, time }) {
   return (
-    <div className="flex gap-[5px] items-center justify-center p-[10px] relative shrink-0">
-      <div className="relative shrink-0 size-[18px]">
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <img alt="" className="absolute left-[2.07%] max-w-none size-[99.04%] top-0" src={a('2a1e3.png')} />
-        </div>
-      </div>
-      <p className="font-inter font-semibold leading-[normal] text-[#130f26] text-[14px] whitespace-nowrap">{value}</p>
+    <div className="flex flex-col items-end justify-center py-[8px] pr-[12px] relative shrink-0 w-[70px]">
+      <p className="font-inter font-semibold leading-[normal] text-[#130f26] text-[14px] whitespace-nowrap">
+        {score}/{total}
+      </p>
+      <p className="font-inter font-medium leading-[normal] text-[#6d7d9c] text-[10px] whitespace-nowrap">{time}s</p>
     </div>
   );
 }
 
-function Avatar({ file, photo }) {
+function Avatar({ file, photo, name }) {
+  if (!file) {
+    return (
+      <div className="size-[26px] shrink-0 rounded-full bg-[#dae2ff] text-[#002766] font-inter font-bold text-[9px] flex items-center justify-center">
+        {name.split(' ').map((w) => w[0]).join('').slice(0, 2)}
+      </div>
+    );
+  }
   return (
     <div className={`relative shrink-0 size-[26px] ${photo ? 'rounded-[20px]' : ''}`}>
       {photo ? (
@@ -43,18 +48,17 @@ function Avatar({ file, photo }) {
   );
 }
 
-function Row({ rank, name, points, file, photo, last, you }) {
+function Row({ rank, name, score, total, time, file, photo, last, you }) {
   const medal = MEDALS[rank];
-  const rankWidth = rank >= 11 ? 'w-[30px]' : 'w-[46px]';
   return (
     <div
-      className={`flex gap-[12px] items-center relative shrink-0 w-full ${
+      className={`flex gap-[6px] items-center relative shrink-0 w-full ${
         medal || you ? 'rounded-[10px]' : last ? '' : 'border-[#f6f6f6] border-b border-solid'
-      }`}
+      } ${you && !medal ? 'outline outline-[1.5px] outline-[#9ec3ff] -outline-offset-[1.5px]' : ''}`}
       style={{ background: medal ? medal.bg : you ? '#f1f5ff' : undefined }}
     >
       {medal ? (
-        <div className="flex flex-col items-center justify-center p-[10px] relative shrink-0">
+        <div className="flex flex-col items-center justify-center p-[10px] relative shrink-0 w-[46px]">
           <div className="bg-white overflow-clip relative rounded-[20px] shrink-0 size-[26px]">
             <div className={`absolute overflow-clip size-[36px] ${medal.box}`}>
               <div className={`absolute ${medal.inset}`}>
@@ -64,15 +68,18 @@ function Row({ rank, name, points, file, photo, last, you }) {
           </div>
         </div>
       ) : (
-        <div className={`flex flex-col ${rank === 10 ? 'items-start' : 'items-center'} justify-center p-[10px] relative shrink-0 ${rankWidth}`}>
-          <p className={`font-inter font-semibold leading-[normal] text-[#130f26] text-[14px] ${rank >= 10 ? 'w-[17px]' : 'w-full'}`}>{rank}</p>
+        <div className="flex flex-col items-center justify-center py-[10px] relative shrink-0 w-[46px]">
+          <p className="font-inter font-semibold leading-[normal] text-[#130f26] text-[14px]">{rank}</p>
         </div>
       )}
-      <div className="flex flex-[1_0_0] gap-[10px] items-center min-w-px p-[10px] relative">
-        <Avatar file={file} photo={photo} />
-        <p className="font-inter font-semibold leading-[normal] text-[#130f26] text-[14px] whitespace-nowrap">{name}</p>
+      <div className="flex flex-[1_0_0] gap-[10px] items-center min-w-px py-[10px] relative">
+        <Avatar file={file} photo={photo} name={name} />
+        <p className="font-inter font-semibold leading-[normal] text-[#130f26] text-[14px] whitespace-nowrap overflow-hidden text-ellipsis">
+          {name}
+          {you ? ' (You)' : ''}
+        </p>
       </div>
-      <Points value={points} />
+      <Score score={score} total={total} time={time} />
     </div>
   );
 }
@@ -80,13 +87,14 @@ function Row({ rank, name, points, file, photo, last, you }) {
 export default function Leaderboard({ go, back, coins, param }) {
   const { plays } = useStore();
   const game = gameById(param) || GAMES[0];
-  // Your best result in this game (0 if you haven't played it yet).
-  const best = plays.filter((p) => p.gameId === game.id).reduce((m, p) => Math.max(m, p.points), 0);
-  const board = leaderboard(game, best).rows;
+  const best = bestRun(plays, game.id);
+  const board = leaderboard(game, best && { score: best.score, time: best.time });
+  const total = game.questions.length;
   const [tab, setTab] = useState('All Players');
-  const rows = board.filter((r) => tab === 'All Players' || r.rank <= 10);
-  const top = rows.filter((r) => r.rank <= 3);
-  const rest = rows.filter((r) => r.rank > 3);
+  const shown = board.rows.slice(0, tab === 'Top 10' ? 10 : 12).map((r) => ({ ...r, total }));
+  const meBelow = board.rank && board.rank > shown.length ? { ...board.rows[board.rank - 1], total } : null;
+  const top = shown.filter((r) => r.rank <= 3);
+  const rest = shown.filter((r) => r.rank > 3);
 
   return (
     <div className="overflow-clip relative size-full bg-[#063179]">
@@ -118,27 +126,38 @@ export default function Leaderboard({ go, back, coins, param }) {
         </div>
 
         <div className="-translate-x-1/2 absolute flex flex-col gap-[7px] bottom-0 items-start left-[calc(50%+0.5px)] overflow-y-auto overscroll-contain top-[63px] w-[363px] pb-[24px] [scrollbar-width:none]">
-          <div className="bg-[#f1f5ff] flex gap-[12px] items-center relative rounded-[10px] shrink-0 w-full">
-            <div className="flex flex-col items-center justify-center p-[10px] relative shrink-0">
-              <p className="font-inter font-semibold leading-[normal] text-[#002766] text-[12px] w-full">#</p>
-            </div>
-            <div className="flex items-center pl-[28px] pr-[10px] py-[10px] relative shrink-0 w-[250px]">
-              <p className="font-inter font-semibold leading-[normal] text-[#002766] text-[12px] whitespace-nowrap">Player</p>
-            </div>
-            <div className="flex items-center justify-center p-[10px] relative shrink-0 w-[55px]">
-              <p className="font-inter font-semibold leading-[normal] text-[#002766] text-[12px] whitespace-nowrap">Points</p>
-            </div>
+          <div className="bg-[#f1f5ff] flex gap-[6px] items-center relative rounded-[10px] shrink-0 w-full">
+            <p className="w-[46px] text-center py-[10px] font-inter font-semibold leading-[normal] text-[#002766] text-[12px]">#</p>
+            <p className="flex-1 py-[10px] font-inter font-semibold leading-[normal] text-[#002766] text-[12px]">Player</p>
+            <p className="w-[70px] pr-[12px] text-right py-[10px] font-inter font-semibold leading-[normal] text-[#002766] text-[12px]">Score</p>
           </div>
+          <p className="font-inter font-medium text-[10px] text-[#6d7d9c] px-[4px] -mt-[2px]">
+            Ranked by correct answers, then by total answer time. {board.total} players.
+          </p>
           <div className="flex flex-col gap-[7px] items-start relative shrink-0 w-full">
             {top.map((r) => (
-              <Row key={r.name} {...r} />
+              <Row key={r.rank} {...r} />
             ))}
           </div>
           <div className="flex flex-col gap-[15px] items-start relative shrink-0 w-full">
             {rest.map((r, i) => (
-              <Row key={r.name} {...r} last={i === rest.length - 1 || rest[i + 1].you || r.you} />
+              <Row key={r.rank} {...r} last={i === rest.length - 1 || rest[i + 1].you || r.you} />
             ))}
           </div>
+          {meBelow && (
+            <>
+              <p className="w-full text-center font-inter font-bold text-[14px] text-[#a0a3bd] tracking-[4px] -my-[4px]">···</p>
+              <Row {...meBelow} last />
+            </>
+          )}
+          {!best && (
+            <button
+              onClick={() => go(`game/${game.id}`)}
+              className="w-full bg-[#f1f5ff] rounded-[10px] p-[14px] text-center cursor-pointer font-inter font-semibold text-[12px] text-[#002766]"
+            >
+              You’re not on this board yet — play {game.title} to get a rank
+            </button>
+          )}
         </div>
       </div>
     </div>

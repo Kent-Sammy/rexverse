@@ -1,6 +1,8 @@
 import StatusBar from './StatusBar.jsx';
 import { BackButton, Icon, TitleBlock } from './parts.jsx';
 import { PointsBanner } from './Rewards.jsx';
+import { FEATURES, REWARDS, REXVAULT } from '../config.js';
+import { formatPoints, useStore } from '../store.jsx';
 
 // Figma: "rex play" › Redeem Rewards (24454:40947)
 export const FIGMA_ASSETS = 'https://www.figma.com/api/mcp/asset/3b7394a5-728b-4e46-874e-9bf8696abe44';
@@ -19,17 +21,20 @@ function Chevron() {
   );
 }
 
-function Option({ icon, title, body, textWidth = 143, row, onClick }) {
+function Option({ icon, title, body, badge, textWidth = 143, row, onClick }) {
   return (
     <button
       onClick={onClick}
-      className="bg-white flex-[1_0_0] min-h-px overflow-clip relative rounded-[11px] w-full cursor-pointer text-left active:scale-[.99] transition-transform"
+      className="bg-white h-[80px] shrink-0 overflow-clip relative rounded-[11px] w-full cursor-pointer text-left active:scale-[.99] transition-transform"
     >
       <div className={`absolute flex items-center ${row}`}>
         <div className="flex gap-[15px] items-center relative shrink-0">
           {icon}
           <div className="flex flex-col gap-[3px] items-start relative shrink-0" style={{ width: textWidth }}>
-            <p className="font-inter font-semibold leading-[normal] text-[#130f26] text-[11px] whitespace-nowrap">{title}</p>
+            <p className="font-inter font-semibold leading-[normal] text-[#130f26] text-[11px] whitespace-nowrap flex items-center gap-[6px]">
+              {title}
+              {badge && <span className="bg-[#ebfafc] text-[#0b7285] rounded-[8px] px-[6px] py-[1px] text-[8px] font-bold">{badge}</span>}
+            </p>
             <p className="font-inter font-medium leading-[1.5] min-w-full text-[#6d7d9c] text-[10px] tracking-[-0.2px] w-min">{body}</p>
           </div>
         </div>
@@ -40,21 +45,25 @@ function Option({ icon, title, body, textWidth = 143, row, onClick }) {
 }
 
 export default function Redeem({ go, back, coins }) {
+  const { vault, poolRemaining } = useStore();
+  const cashLocked = REXVAULT.enabled && REXVAULT.cashRedemptionVaultOnly && !vault;
   return (
     <div className="overflow-clip relative size-full bg-[#f1f5ff]">
       <StatusBar />
-      <TitleBlock title="Redeem Rewards" subtitle="Convert your points to airtime, data, or cash" subtitleWidth={259} coins={coins} />
+      <TitleBlock title="Redeem Rewards" subtitle={`Convert your ${REWARDS.pointsName} to airtime, data or cash`} subtitleWidth={259} coins={coins} />
       <BackButton onClick={back} />
 
       <div className="-translate-x-1/2 absolute flex flex-col items-start left-[calc(50%+0.5px)] top-[145px] w-[363px]">
         <PointsBanner coins={coins} height={116} />
       </div>
 
-      <div className="-translate-x-1/2 absolute flex flex-col gap-[6px] h-[253px] items-start justify-center left-[calc(50%+0.5px)] top-[275px] w-[363px]">
+      <div className="-translate-x-1/2 absolute flex flex-col gap-[6px] items-start left-[calc(50%+0.5px)] top-[275px] bottom-0 overflow-y-auto pb-[24px] [scrollbar-width:none] w-[363px]">
+        {FEATURES.redeemCash && (
         <Option
           row="justify-between left-[20px] top-[16px] w-[324px]"
           title="Cash Reward"
-          body="Convert points to cash in your Rex account"
+          badge={REXVAULT.enabled && REXVAULT.cashRedemptionVaultOnly ? (vault ? 'RexVault' : '🔒 RexVault') : null}
+          body={cashLocked ? 'For RexVault customers — paid into your Rex account' : 'Paid instantly into your Rex account'}
           onClick={() => go('redeem/cash')}
           icon={
             <div className="bg-[rgba(255,152,0,0.08)] overflow-clip relative rounded-[9.882px] shrink-0 size-[42px]">
@@ -64,6 +73,8 @@ export default function Redeem({ go, back, coins }) {
             </div>
           }
         />
+        )}
+        {FEATURES.redeemAirtime && (
         <Option
           row="justify-between left-[18px] top-[18.67px] w-[323px]"
           title="Airtime"
@@ -82,6 +93,8 @@ export default function Redeem({ go, back, coins }) {
             </div>
           }
         />
+        )}
+        {FEATURES.redeemData && (
         <Option
           row="gap-[75px] left-[18px] top-[19.33px]"
           title="Data Bundle"
@@ -108,6 +121,19 @@ export default function Redeem({ go, back, coins }) {
             </div>
           }
         />
+        )}
+        <div className="w-full bg-white rounded-[11px] p-[14px] flex flex-col gap-[7px] mt-[4px] shrink-0">
+          <div className="flex justify-between items-baseline">
+            <p className="font-inter font-semibold text-[11px] text-[#130f26]">Today’s RexPlay rewards pool</p>
+            <p className="font-inter font-semibold text-[11px] text-[#002766]">
+              ₦{formatPoints(poolRemaining)} left of ₦{formatPoints(REWARDS.dailyBudgetNaira)}
+            </p>
+          </div>
+          <div className="h-[6px] rounded-full bg-[#eff2fe] overflow-hidden">
+            <div className="h-full rounded-full bg-[#22a447]" style={{ width: `${(poolRemaining / REWARDS.dailyBudgetNaira) * 100}%` }} />
+          </div>
+          <p className="font-inter font-medium text-[10px] text-[#6d7d9c]">Rewards are limited each day and refresh at midnight.</p>
+        </div>
       </div>
     </div>
   );

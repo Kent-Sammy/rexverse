@@ -1,8 +1,10 @@
 import StatusBar from './StatusBar.jsx';
-import { BackButton, Fill, TitleBlock } from './parts.jsx';
+import { BackButton, Fill, Icon, TitleBlock } from './parts.jsx';
 import { asset as a } from '../asset.js';
 import { gameById, HERO_ART } from '../games.jsx';
-import { formatDate, useStore } from '../store.jsx';
+import { formatDate, formatPoints, useStore } from '../store.jsx';
+import { DEMO, REWARDS, REXVAULT, toNaira } from '../config.js';
+import { useState } from 'react';
 
 // Figma: "rex play" › Your RexPlay Rewards (24454:40672)
 export const FIGMA_ASSETS = 'https://www.figma.com/api/mcp/asset/ec005c03-591e-4575-a8c9-79e92c838628';
@@ -42,10 +44,10 @@ export function PointsBanner({ coins, height = 147, children }) {
         <div className="flex flex-col gap-[7px] items-start justify-center relative shrink-0 w-full">
           <div className="flex gap-[3px] h-[22px] items-center relative shrink-0 w-full">
             <Coin size={18} />
-            <p className="font-inter font-bold leading-[1.256] text-[#f1f5ff] text-[20px] tracking-[-0.8px] whitespace-nowrap">{coins} Points</p>
+            <p className="font-inter font-bold leading-[1.256] text-[#f1f5ff] text-[20px] tracking-[-0.8px] whitespace-nowrap">{formatPoints(coins)} {REWARDS.pointsName}</p>
           </div>
           <div className="flex flex-col font-inter font-normal h-[29px] justify-center overflow-hidden text-[#f1f5ff] text-[10px] tracking-[-0.2px] w-full">
-            <p className="leading-[1.5]">Play, learn and earn. Redeem your points for exciting rewards.</p>
+            <p className="leading-[1.5]">Worth about ₦{formatPoints(toNaira(coins))} in airtime, data or cash.</p>
           </div>
         </div>
         {children}
@@ -106,80 +108,195 @@ function RecentGame({ game, play }) {
   );
 }
 
+// RexVault: everyone can play; qualifying RexVault customers get extra benefits
+// (values in src/config.js, pending Compliance approval).
+export function VaultCard({ onOpen }) {
+  const { vault, setVault } = useStore();
+  if (!REXVAULT.enabled) return null;
+  const perks = [
+    `${REXVAULT.pointsMultiplier}× ${REWARDS.pointsName} on every correct answer`,
+    `Earn up to ${formatPoints(REXVAULT.dailyEarnCap)} ${REWARDS.pointsName} a day (instead of ${formatPoints(REWARDS.dailyEarnCap)})`,
+    REXVAULT.cashRedemptionVaultOnly && 'Redeem RexPoints as cash into your Rex account',
+  ].filter(Boolean);
+  return (
+    <div className={`w-full rounded-[10px] p-[14px] flex gap-[12px] items-start ${vault ? 'bg-[#e6f9e8]' : 'bg-white'}`}>
+      <div className="size-[38px] shrink-0 rounded-[10px] bg-[#ebfafc] relative">
+        <div className="absolute inset-[7px]">
+          <Icon src="89d81.svg" />
+        </div>
+      </div>
+      <div className="flex-1 min-w-0 flex flex-col gap-[4px]">
+        <p className="font-inter font-bold text-[13px] text-[#130f26]">{vault ? 'RexVault Boost is active' : 'Unlock RexVault Boost'}</p>
+        {perks.map((p) => (
+          <p key={p} className="font-inter font-medium text-[11px] leading-[1.4] text-[#4f5a6e]">
+            {vault ? '✓ ' : '• '}
+            {p}
+          </p>
+        ))}
+        {!vault ? (
+          <button onClick={onOpen} className="self-start mt-[6px] bg-[#002766] text-white rounded-[6px] px-[12px] py-[6px] font-inter font-semibold text-[10px] cursor-pointer">
+            Save in RexVault to unlock
+          </button>
+        ) : (
+          DEMO.tools && <button onClick={() => setVault(false)} className="self-start mt-[2px] font-inter font-medium text-[10px] text-[#6d7d9c] underline cursor-pointer">
+            Demo: switch to a regular customer
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export function VaultSheet({ onClose }) {
+  const { setVault } = useStore();
+  return (
+    <>
+      <div onClick={onClose} className="absolute bg-[rgba(10,13,31,0.75)] inset-0 z-20 animate-[fade_.2s_ease-out]" />
+      <div className="absolute bg-white bottom-0 left-0 w-[402px] rounded-t-[30px] z-30 animate-[sheet-up_.3s_ease-out] px-[26px] pt-[28px] pb-[30px] flex flex-col gap-[14px]">
+        <div className="size-[56px] rounded-[14px] bg-[#ebfafc] relative self-center">
+          <div className="absolute inset-[12px]">
+            <Icon src="89d81.svg" />
+          </div>
+        </div>
+        <p className="font-inter font-bold text-[18px] text-[#130f26] text-center">Save more, earn more</p>
+        <p className="font-inter font-medium text-[13px] leading-[1.5] text-[#6d7d9c] text-center">
+          RexVault customers earn {REXVAULT.pointsMultiplier}× {REWARDS.pointsName}, a higher daily limit
+          {REXVAULT.cashRedemptionVaultOnly ? ' and can redeem for cash' : ''}. Keep an active RexVault savings plan to qualify.
+        </p>
+        <div className="flex flex-col gap-[7px] mt-[6px]">
+          <PrimaryButtonLite
+            dark
+            onClick={() => {
+              setVault(true);
+              onClose();
+            }}
+          >
+            Start saving in RexVault
+          </PrimaryButtonLite>
+          <PrimaryButtonLite onClick={onClose}>Maybe later</PrimaryButtonLite>
+        </div>
+        <p className="font-inter font-medium text-[10px] text-[#a0a3bd] text-center">Prototype: tapping “Start saving” marks you as a RexVault customer.</p>
+      </div>
+    </>
+  );
+}
+
+function PrimaryButtonLite({ dark, children, onClick }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`${dark ? 'bg-[#002766] text-white' : 'bg-[#d1e3ff] text-[#001f52]'} w-full rounded-[12px] py-[16px] font-inter font-semibold text-[14px] cursor-pointer active:scale-[.98] transition-transform`}
+    >
+      {children}
+    </button>
+  );
+}
+
 export default function Rewards({ go, back, coins }) {
-  const { plays } = useStore();
+  const { plays, earnedToday, dailyCap, addDemoPoints } = useStore();
+  const [vaultSheet, setVaultSheet] = useState(false);
   const earned = plays.reduce((n, p) => n + p.points, 0);
-  const bestRank = plays.filter((p) => gameById(p.gameId).kind === 'quiz').reduce((m, p) => Math.min(m, p.rank), Infinity);
+  const bestRank = plays.filter((p) => p.rank).reduce((m, p) => Math.min(m, p.rank), Infinity);
+  const P = REWARDS.pointsName;
 
   return (
     <div className="overflow-clip relative size-full bg-[#f1f5ff]">
       <StatusBar />
-      <TitleBlock title="Your RexPlay Rewards" subtitle="Play at your own pace" coins={coins} />
+      <TitleBlock title="Your RexPlay Rewards" subtitle="Play. Learn. Earn RexPoints." coins={coins} />
       <BackButton onClick={back} />
 
-      <div className="-translate-x-1/2 absolute flex flex-col gap-[14px] items-start left-[calc(50%+0.5px)] top-[145px] w-[363px]">
-        <PointsBanner coins={coins}>
-          <button
-            onClick={() => go('redeem')}
-            className="bg-white flex h-[32px] items-center justify-center p-[10px] relative rounded-[6px] shrink-0 w-[141px] cursor-pointer active:scale-95 transition-transform"
-          >
-            <p className="font-inter font-semibold leading-[normal] text-[#002766] text-[10px] whitespace-nowrap">Redeem Rewards</p>
-          </button>
-        </PointsBanner>
-        <div className="flex gap-[6px] items-center relative shrink-0 w-full">
-          {['Overview', 'History'].map((t) => (
+      <div className="absolute inset-x-0 top-[145px] bottom-0 overflow-y-auto overscroll-contain [scrollbar-width:none]">
+        <div className="mx-auto translate-x-[0.5px] w-[363px] flex flex-col gap-[14px] pb-[28px]">
+          <PointsBanner coins={coins}>
             <button
-              key={t}
-              onClick={() => (t === 'History' ? go('history') : null)}
-              className={`bg-white border border-solid ${t === 'Overview' ? 'border-[#9ec3ff]' : 'border-0'} cursor-pointer flex flex-[1_0_0] items-center justify-center min-w-px p-[10px] relative rounded-[9px]`}
+              onClick={() => go('redeem')}
+              className="bg-white flex h-[32px] items-center justify-center p-[10px] relative rounded-[6px] shrink-0 w-[141px] cursor-pointer active:scale-95 transition-transform"
             >
-              <p className="font-inter font-semibold leading-[normal] text-[#002766] text-[12px] whitespace-nowrap">{t}</p>
+              <p className="font-inter font-semibold leading-[normal] text-[#002766] text-[10px] whitespace-nowrap">Redeem Rewards</p>
             </button>
-          ))}
+          </PointsBanner>
+
+          <div className="flex gap-[6px] items-center relative shrink-0 w-full">
+            {['Overview', 'History'].map((t) => (
+              <button
+                key={t}
+                onClick={() => (t === 'History' ? go('history') : null)}
+                className={`bg-white border border-solid ${t === 'Overview' ? 'border-[#9ec3ff]' : 'border-0'} cursor-pointer flex flex-[1_0_0] items-center justify-center min-w-px p-[10px] relative rounded-[9px]`}
+              >
+                <p className="font-inter font-semibold leading-[normal] text-[#002766] text-[12px] whitespace-nowrap">{t}</p>
+              </button>
+            ))}
+          </div>
+
+          {/* Today's earning limit */}
+          <div className="bg-white rounded-[10px] p-[14px] flex flex-col gap-[8px]">
+            <div className="flex justify-between items-baseline">
+              <p className="font-inter font-bold text-[13px] text-[#130f26]">Earned today</p>
+              <p className="font-inter font-semibold text-[12px] text-[#002766]">
+                {formatPoints(earnedToday)} / {formatPoints(dailyCap)} {P}
+              </p>
+            </div>
+            <div className="h-[8px] rounded-full bg-[#eff2fe] overflow-hidden">
+              <div className="h-full rounded-full bg-[#2c6ef2] transition-[width] duration-500" style={{ width: `${Math.min(100, (earnedToday / dailyCap) * 100)}%` }} />
+            </div>
+            <p className="font-inter font-medium text-[10px] text-[#6d7d9c]">
+              {earnedToday >= dailyCap ? 'Daily limit reached — you can still play for the leaderboard.' : 'Daily limit resets at midnight.'}
+            </p>
+          </div>
+
+          <VaultCard onOpen={() => setVaultSheet(true)} />
+
+          {DEMO.tools && (
+            <button
+              onClick={() => addDemoPoints(DEMO.bonusPoints)}
+              className="self-start font-inter font-medium text-[10px] text-[#6d7d9c] underline cursor-pointer -mt-[6px]"
+            >
+              Demo: add {formatPoints(DEMO.bonusPoints)} {P} (prototype only)
+            </button>
+          )}
+
+          <p className="font-inter font-bold leading-[normal] text-[#130f26] text-[14px] mt-[4px]">Your Stats</p>
+          <div className="flex gap-[6px] h-[112px] items-center w-full shrink-0">
+            <Stat
+              label="Games Played"
+              value={plays.length}
+              labelWidth={89}
+              center="0px"
+              icon={
+                <div className="-translate-x-1/2 absolute left-1/2 size-[29px] top-[16px]">
+                  <Fill src="2bdd4.png" />
+                </div>
+              }
+            />
+            <Stat
+              label="Best Rank"
+              value={Number.isFinite(bestRank) ? `#${bestRank}` : '–'}
+              icon={
+                <div className="absolute left-[43px] size-[29px] top-[16px]">
+                  <Fill src="8c91a.png" />
+                </div>
+              }
+            />
+            <Stat label={`Total ${P}`} value={formatPoints(earned)} icon={<Coin size={29} className="!absolute left-[43px] top-[16px]" />} />
+          </div>
+
+          <p className="font-inter font-bold leading-[normal] text-[#130f26] text-[14px] mt-[4px]">Recent Games</p>
+          <div className="flex flex-col gap-[5px] w-full">
+            {plays.length === 0 ? (
+              <div className="bg-white rounded-[10px] w-full p-[20px] flex flex-col items-center gap-[10px] text-center">
+                <p className="font-inter font-semibold text-[12px] text-[#130f26]">No games yet</p>
+                <p className="font-inter font-medium text-[11px] text-[#6d7d9c]">Play a RexPlay game to start earning {P}.</p>
+                <button onClick={() => go('rexplay')} className="bg-[#002766] text-white rounded-[8px] px-[16px] py-[9px] font-inter font-semibold text-[11px] cursor-pointer">
+                  Play Now
+                </button>
+              </div>
+            ) : (
+              plays.map((p) => <RecentGame key={p.at} game={gameById(p.gameId)} play={p} />)
+            )}
+          </div>
         </div>
       </div>
-
-      <p className="-translate-y-1/2 absolute font-inter font-bold leading-[normal] left-[20px] text-[#130f26] text-[14px] top-[363.5px] whitespace-nowrap">Your Stats</p>
-      <div className="-translate-x-1/2 absolute flex gap-[6px] h-[112px] items-center left-[calc(50%+0.5px)] top-[387px] w-[363px]">
-        <Stat
-          label="Games Played"
-          value={plays.length}
-          labelWidth={89}
-          center="0px"
-          icon={
-            <div className="-translate-x-1/2 absolute left-1/2 size-[29px] top-[16px]">
-              <Fill src="2bdd4.png" />
-            </div>
-          }
-        />
-        <Stat
-          label="Best Rank"
-          value={Number.isFinite(bestRank) ? `#${bestRank}` : '–'}
-          icon={
-            <div className="absolute left-[43px] size-[29px] top-[16px]">
-              <Fill src="8c91a.png" />
-            </div>
-          }
-        />
-        <Stat label="Total Points Earned" value={earned} icon={<Coin size={29} className="!absolute left-[43px] top-[16px]" />} />
-      </div>
-
-      <div className="absolute flex items-center justify-between left-[20px] py-[10px] w-[363px] top-[504px]">
-        <p className="font-inter font-bold leading-[normal] text-[#130f26] text-[14px] whitespace-nowrap">Recent Games</p>
-      </div>
-      <div className="absolute flex flex-col gap-[5px] items-start left-[20px] w-[363px] top-[546px] bottom-0 overflow-y-auto pb-[24px] [scrollbar-width:none]">
-        {plays.length === 0 ? (
-          <div className="bg-white rounded-[10px] w-full p-[20px] flex flex-col items-center gap-[10px] text-center">
-            <p className="font-inter font-semibold text-[12px] text-[#130f26]">No games yet</p>
-            <p className="font-inter font-medium text-[11px] text-[#6d7d9c]">Play a RexPlay game to start earning points.</p>
-            <button onClick={() => go('rexplay')} className="bg-[#002766] text-white rounded-[8px] px-[16px] py-[9px] font-inter font-semibold text-[11px] cursor-pointer">
-              Play Now
-            </button>
-          </div>
-        ) : (
-          plays.map((p) => <RecentGame key={p.at} game={gameById(p.gameId)} play={p} />)
-        )}
-      </div>
+      {vaultSheet && <VaultSheet onClose={() => setVaultSheet(false)} />}
     </div>
   );
 }
