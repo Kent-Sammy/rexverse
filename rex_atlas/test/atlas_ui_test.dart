@@ -81,13 +81,32 @@ void main() {
     await pumpFor(t, 800);
     expect(find.text('Transaction Receipt'), findsNothing);
 
-    // Close and reopen: the conversation is kept.
+    // Close and reopen: Atlas starts on the welcome screen again...
     await t.tap(find.bySemanticsLabel('Close Rex Atlas').last);
     await pumpFor(t, 600);
     expect(find.byType(AtlasSheet), findsNothing);
     await t.tap(find.byKey(const Key('home-atlas-tile')));
     await pumpFor(t, 600);
-    expect(find.text('Transfer Successful!'), findsOneWidget);
+    expect(find.text('How can I help you today?'), findsOneWidget);
+    expect(find.text('Transfer Successful!'), findsNothing);
+    expect(
+      t.state<AtlasSheetState>(find.byType(AtlasSheet)).mode,
+      AtlasSheetMode.collapsed,
+    );
+
+    // ...and the first action brings back the chat with the full history.
+    await t.tap(find.text('Buy\nAirtime'));
+    await pumpFor(t);
+    expect(
+      find.text('Which phone number should I top up, and how much airtime?'),
+      findsOneWidget,
+    );
+    await t.drag(
+      find.byKey(const Key('atlas-message-list')),
+      const Offset(0, 3000),
+    );
+    await pumpFor(t, 600);
+    expect(find.text('Send Money'), findsWidgets);
   });
 
   testWidgets('biometric cancel, PIN fallback and fullscreen toggle', (
@@ -127,27 +146,6 @@ void main() {
     await t.tap(find.bySemanticsLabel('Exit full screen'));
     await pumpFor(t, 500);
     expect(sheet.mode, AtlasSheetMode.expanded);
-  });
-
-  testWidgets('undesigned controls give feedback instead of doing nothing', (
-    t,
-  ) async {
-    setPhone(t, const Size(402, 874));
-    await t.pumpWidget(
-      RexAtlasDemoApp(
-        dependencies: AtlasDependencies.mock(latency: Duration.zero),
-      ),
-    );
-    await t.pump();
-    await t.tap(find.byKey(const Key('home-ask-atlas')));
-    await pumpFor(t, 600);
-    await t.tap(find.bySemanticsLabel('Voice input'));
-    await t.pump();
-    expect(
-      find.text('Voice input isn’t available in this prototype yet'),
-      findsOneWidget,
-    );
-    await pumpFor(t, 3000);
   });
 
   testWidgets('dragging the welcome sheet down closes Atlas', (t) async {

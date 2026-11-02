@@ -21,9 +21,11 @@ class AtlasChatView extends StatefulWidget {
     required this.isFullscreen,
     required this.showHandle,
     required this.onToggleFullscreen,
+    this.initiallyVisibleIds,
+    this.soundOn = true,
+    this.onToggleSound,
     required this.onClose,
     required this.onAttach,
-    required this.onVoice,
     required this.onNotice,
     required this.dragHandleBuilder,
     this.topInset = 0,
@@ -33,9 +35,13 @@ class AtlasChatView extends StatefulWidget {
   final bool isFullscreen;
   final bool showHandle;
   final VoidCallback onToggleFullscreen;
+
+  /// Messages that were already there when Atlas opened (no pop-in).
+  final Set<String>? initiallyVisibleIds;
+  final bool soundOn;
+  final VoidCallback? onToggleSound;
   final VoidCallback onClose;
   final VoidCallback onAttach;
-  final VoidCallback onVoice;
   final ValueChanged<String> onNotice;
 
   /// Wraps the handle + header so the sheet can be dragged by it.
@@ -51,9 +57,9 @@ class _AtlasChatViewState extends State<AtlasChatView> {
   int _lastCount = 0;
 
   /// Messages present when the view opened render without an entrance.
-  late final Set<String> _initialIds = widget.controller.messages
-      .map((m) => m.id)
-      .toSet();
+  late final Set<String> _initialIds =
+      widget.initiallyVisibleIds ??
+      widget.controller.messages.map((m) => m.id).toSet();
 
   static const _groupGap = RexDimens.messageGap; // between different speakers
   static const _bubbleGap = 4.0; // within a run from the same speaker
@@ -99,18 +105,36 @@ class _AtlasChatViewState extends State<AtlasChatView> {
     }
   }
 
-  void _scrollToEnd({bool animate = true}) {
+  /// Scrolls to the newest message. The list builds lazily, so its total
+  /// height is only an estimate until items are laid out; keep going until
+  /// the end is really reached (a few frames at most).
+  void _scrollToEnd({bool animate = true, int attempts = 4}) {
     if (!_scroll.hasClients) return;
     final target = _scroll.position.maxScrollExtent;
     if (animate) {
-      _scroll.animateTo(
-        target,
-        duration: const Duration(milliseconds: 360),
-        curve: Curves.easeOutCubic,
-      );
+      _scroll
+          .animateTo(
+            target,
+            duration: const Duration(milliseconds: 360),
+            curve: Curves.easeOutCubic,
+          )
+          .then((_) => _settleAtEnd(attempts));
     } else {
       _scroll.jumpTo(target);
+      _settleAtEnd(attempts);
     }
+  }
+
+  void _settleAtEnd(int attempts) {
+    if (attempts <= 0) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_scroll.hasClients) return;
+      final p = _scroll.position;
+      if (p.maxScrollExtent - p.pixels > 1) {
+        _scroll.jumpTo(p.maxScrollExtent);
+        _settleAtEnd(attempts - 1);
+      }
+    });
   }
 
   static bool _isBubble(ChatMessage m) =>
@@ -233,6 +257,8 @@ class _AtlasChatViewState extends State<AtlasChatView> {
                           isFullscreen: widget.isFullscreen,
                           onToggleFullscreen: widget.onToggleFullscreen,
                           onClose: widget.onClose,
+                          soundOn: widget.soundOn,
+                          onToggleSound: widget.onToggleSound,
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -264,7 +290,8 @@ class _AtlasChatViewState extends State<AtlasChatView> {
                   enabled: !c.isBusy,
                   onSend: c.send,
                   onAttach: widget.onAttach,
-                  onVoice: widget.onVoice,
+                  speech: c.deps.speech,
+                  onNotice: widget.onNotice,
                 ),
               ),
             ),
@@ -306,7 +333,9 @@ class _TimeHeader extends StatelessWidget {
             ],
           ),
           style: RexTypography.caption.copyWith(
-            color: RexColors.textPlaceholder,
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            color: RexColors.textSecondary,
           ),
         ),
       ),

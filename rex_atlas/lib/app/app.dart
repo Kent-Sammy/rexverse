@@ -40,7 +40,14 @@ class _RexAtlasDemoAppState extends State<RexAtlasDemoApp> {
     if (widget.openAtlasOnStart) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         final ctx = _navigator.currentContext;
-        if (ctx != null) showRexAtlas(ctx, controller: _atlas, now: widget.now);
+        if (ctx != null) {
+          showRexAtlas(
+            ctx,
+            controller: _atlas,
+            now: widget.now,
+            resumeConversation: _atlas.hasConversation,
+          );
+        }
       });
     }
   }

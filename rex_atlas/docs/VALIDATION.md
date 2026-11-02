@@ -19,7 +19,7 @@ device.
 |---|---|
 | `flutter pub get` | ✅ |
 | `flutter analyze` (flutter_lints) | ✅ No issues found |
-| `flutter test` | ✅ 34 tests passed (incl. automated WCAG contrast/label checks, see ACCESSIBILITY.md) |
+| `flutter test` | ✅ 39 tests passed (incl. automated WCAG contrast/label checks, see ACCESSIBILITY.md) |
 | `flutter build web --release` | ✅ |
 
 The tests load the real Inter font so text measurements match the app. They cover:

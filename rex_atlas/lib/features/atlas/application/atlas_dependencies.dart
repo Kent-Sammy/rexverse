@@ -1,4 +1,5 @@
 import '../data/mock/mock_account_services.dart';
+import '../device/device_services.dart';
 import '../data/mock/mock_atlas_assistant_service.dart';
 import '../data/mock/mock_history_services.dart';
 import '../data/mock/mock_data.dart';
@@ -18,6 +19,9 @@ class AtlasDependencies {
     required this.history,
     required this.receipts,
     required this.authorization,
+    required this.speech,
+    required this.attachments,
+    required this.sounds,
     this.isDemo = false,
   });
 
@@ -30,11 +34,21 @@ class AtlasDependencies {
   final ReceiptService receipts;
   final AuthorizationService authorization;
 
+  /// Device features (real implementations even in the demo).
+  final SpeechInputService speech;
+  final AttachmentPicker attachments;
+  final ChatSoundPlayer sounds;
+
   /// When true the UI shows "Demo" labels on results and receipts.
   final bool isDemo;
 
   /// Fully simulated wiring used by the prototype and the widget tests.
-  factory AtlasDependencies.mock({Duration? latency}) {
+  factory AtlasDependencies.mock({
+    Duration? latency,
+    SpeechInputService? speech,
+    AttachmentPicker? attachments,
+    ChatSoundPlayer? sounds,
+  }) {
     Duration l(int ms) => latency ?? Duration(milliseconds: ms);
     final history = MockTransactionHistoryService(latency: l(600));
     return AtlasDependencies(
@@ -46,6 +60,9 @@ class AtlasDependencies {
       history: history,
       receipts: MockReceiptService(history: history, sender: MockData.user),
       authorization: MockAuthorizationService(latency: l(500)),
+      speech: speech ?? DeviceSpeechInputService(),
+      attachments: attachments ?? DeviceAttachmentPicker(),
+      sounds: sounds ?? DeviceChatSoundPlayer(),
       isDemo: true,
     );
   }

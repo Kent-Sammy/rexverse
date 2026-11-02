@@ -94,6 +94,37 @@ class AtlasController extends ChangeNotifier {
     await _respondTo(t);
   }
 
+  /// Adds a user attachment. Reading documents needs a real document /
+  /// vision backend, so the mock assistant says so rather than pretending.
+  Future<void> sendAttachment({
+    required String fileName,
+    required int sizeBytes,
+    required bool isImage,
+    Uint8List? imageBytes,
+  }) async {
+    if (_busy) return;
+    _add(
+      AttachmentMessage(
+        id: _id(),
+        fileName: fileName,
+        sizeBytes: sizeBytes,
+        isImage: isImage,
+        imageBytes: imageBytes,
+      ),
+    );
+    _setBusy(true);
+    final typing = _showTyping();
+    await Future<void>.delayed(const Duration(milliseconds: 600));
+    _remove(typing);
+    _say(
+      "Thanks, I've received ${isImage ? 'your image' : '“$fileName”'}. "
+      "Reading ${isImage ? 'images' : 'documents'} isn't available in this "
+      "prototype yet, so nothing was processed. Tell me what you'd like to do "
+      'and I can help.',
+    );
+    _setBusy(false);
+  }
+
   Future<void> sendSuggestion(Suggestion s) => send(switch (s.action) {
     SuggestionAction.save => 'Save ${s.boldSuffix ?? ''}'.trim(),
     _ => s.title,

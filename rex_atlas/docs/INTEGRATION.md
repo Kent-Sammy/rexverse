@@ -39,7 +39,21 @@ showRexAtlas(context, controller: atlas);
 - **Navigation.** Atlas is a `PopupRoute` (`AtlasSheetRoute`) pushed on the host `Navigator`. The receipt
   is a `MaterialPageRoute` pushed from the sheet. If Rex uses go_router or auto_route, keep Atlas as a
   modal route, or replace these two pushes.
-- **Dependencies.** Only `flutter_svg` is added.
+- **Dependencies.** `flutter_svg`, `speech_to_text`, `file_picker`, `audioplayers`.
+
+## Device features
+
+`lib/features/atlas/device/device_services.dart` holds three small interfaces, each with a real implementation:
+
+| Interface | Implementation | Package |
+|---|---|---|
+| `SpeechInputService` | `DeviceSpeechInputService` | `speech_to_text` |
+| `AttachmentPicker` | `DeviceAttachmentPicker` | `file_picker` |
+| `ChatSoundPlayer` | `DeviceChatSoundPlayer` | `audioplayers` |
+
+Permissions are already declared. Android: `RECORD_AUDIO`, `INTERNET`, and a query for the speech service. iOS
+`Info.plist`: microphone, speech recognition and photo library. Production attachments need an upload/analysis
+backend; today `AtlasController.sendAttachment` only acknowledges the file.
 
 ## Unresolved backend integrations
 

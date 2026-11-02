@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'payment.dart';
 import 'transaction.dart';
 
@@ -97,4 +99,22 @@ class TransactionsMessage extends ChatMessage {
   TransactionsMessage({required super.id, required this.transactions})
     : super(author: ChatAuthor.assistant);
   final List<TransactionRecord> transactions;
+}
+
+/// A photo or document the user shared with Atlas.
+class AttachmentMessage extends ChatMessage {
+  AttachmentMessage({
+    required super.id,
+    required this.fileName,
+    required this.sizeBytes,
+    required this.isImage,
+    this.imageBytes,
+  }) : super(author: ChatAuthor.user);
+
+  final String fileName;
+  final int sizeBytes;
+  final bool isImage;
+
+  /// Thumbnail bytes for images (kept in memory only, never uploaded).
+  final Uint8List? imageBytes;
 }

@@ -8,9 +8,11 @@ import '../../../../core/design_system/design_system.dart';
 import '../../application/atlas_controller.dart';
 import '../../domain/models/models.dart';
 import '../../domain/services/services.dart';
+import '../../device/device_services.dart';
 import '../screens/atlas_chat_view.dart';
 import '../screens/atlas_receipt_screen.dart';
 import '../screens/atlas_welcome_view.dart';
+import '../widgets/attachment_options_sheet.dart';
 import '../widgets/biometric_prompt_sheet.dart';
 
 enum AtlasSheetMode { collapsed, expanded, fullscreen }
@@ -18,7 +20,15 @@ enum AtlasSheetMode { collapsed, expanded, fullscreen }
 /// The Atlas bottom sheet: collapsed (welcome, frame 2), expanded (chat,
 /// frames 3–9) and full screen (header "maximize" button).
 class AtlasSheet extends StatefulWidget {
-  const AtlasSheet({super.key, required this.controller, this.now});
+  const AtlasSheet({
+    super.key,
+    required this.controller,
+    this.now,
+    this.resumeConversation = false,
+  });
+
+  /// Open straight into the chat (design scenes only).
+  final bool resumeConversation;
 
   final AtlasController controller;
   final DateTime? now;
@@ -32,9 +42,20 @@ class AtlasSheetState extends State<AtlasSheet>
   late final AnimationController _height = AnimationController.unbounded(
     vsync: this,
   );
-  late AtlasSheetMode _mode = widget.controller.hasConversation
+
+  /// Atlas always opens on the welcome screen. The chat (with the full
+  /// history) appears once the user does something in this session.
+  late bool _showChat =
+      widget.resumeConversation ||
+      widget.controller.stage == ConversationStage.awaitingAuthorization;
+  late AtlasSheetMode _mode = _showChat
       ? AtlasSheetMode.expanded
       : AtlasSheetMode.collapsed;
+
+  /// Messages that existed when Atlas opened: shown without entrance animation.
+  late final Set<String> _openedIds = widget.controller.messages
+      .map((m) => m.id)
+      .toSet();
   StreamSubscription<AtlasEvent>? _events;
   Size? _lastSize;
   double _lastTop = 0;
@@ -47,6 +68,7 @@ class AtlasSheetState extends State<AtlasSheet>
   @override
   void initState() {
     super.initState();
+    _seenIds = widget.controller.messages.map((m) => m.id).toSet();
     widget.controller.addListener(_onControllerChange);
     _events = widget.controller.events.listen(_onEvent);
     // Reopened while a payment waits for authorisation: ask again.
@@ -107,9 +129,45 @@ class AtlasSheetState extends State<AtlasSheet>
 
   // ---------------------------------------------------------- behaviours
 
+  /// Messages already on screen when Atlas opened (no sound for those).
+  late final Set<String> _seenIds;
+  DateTime _lastReceivedSound = DateTime(2000);
+
+  /// iMessage-style feedback sounds for new messages.
+  void _playSoundsForNewMessages() {
+    final fresh = widget.controller.messages
+        .where((m) => _seenIds.add(m.id))
+        .toList();
+    if (fresh.isEmpty) return;
+    final sounds = widget.controller.deps.sounds;
+    final success = fresh.any(
+      (m) => m is PaymentResultMessage && m.result.isSuccessful,
+    );
+    final received = fresh.any(
+      (m) => m.author == ChatAuthor.assistant && m is! TypingMessage,
+    );
+    final sent = fresh.any((m) => m.author == ChatAuthor.user);
+    if (success) {
+      sounds.play(ChatSound.success);
+    } else if (received) {
+      // One chime per burst of replies (e.g. intro + card + question).
+      final now = DateTime.now();
+      if (now.difference(_lastReceivedSound) >
+          const Duration(milliseconds: 1200)) {
+        _lastReceivedSound = now;
+        sounds.play(ChatSound.received);
+      }
+    } else if (sent) {
+      sounds.play(ChatSound.sent);
+    }
+  }
+
   void _onControllerChange() {
-    if (widget.controller.hasConversation &&
-        _mode == AtlasSheetMode.collapsed) {
+    if (widget.controller.messages.any((m) => !_seenIds.contains(m.id))) {
+      _showChat = true;
+    }
+    _playSoundsForNewMessages();
+    if (_showChat && _mode == AtlasSheetMode.collapsed) {
       _goTo(AtlasSheetMode.expanded);
     }
     if (mounted) setState(() {});
@@ -163,10 +221,24 @@ class AtlasSheetState extends State<AtlasSheet>
   );
 
   // Controls whose behaviour is not specified in Figma (docs/ASSUMPTIONS.md).
-  void _onAttach() =>
-      showNotice('Attachments aren’t available in this prototype yet');
-  void _onVoice() =>
-      showNotice('Voice input isn’t available in this prototype yet');
+  Future<void> _onAttach() async {
+    final kind = await AttachmentOptionsSheet.show(context);
+    if (kind == null || !mounted) return;
+    try {
+      final file = await widget.controller.deps.attachments.pick(kind);
+      if (file == null) return;
+      await widget.controller.sendAttachment(
+        fileName: file.name,
+        sizeBytes: file.sizeBytes,
+        isImage: file.kind == AttachmentKind.image,
+        imageBytes: file.bytes,
+      );
+    } on AttachmentTooLargeException {
+      showNotice('That file is over 10 MB. Please choose a smaller one.');
+    } catch (_) {
+      showNotice("Couldn't open that file. Please try another.");
+    }
+  }
 
   void _onDragUpdate(DragUpdateDetails d) {
     final s = _lastSize;
@@ -242,7 +314,7 @@ class AtlasSheetState extends State<AtlasSheet>
     final full = _mode == AtlasSheetMode.fullscreen;
     final radius = full ? 0.0 : RexDimens.sheetRadius;
 
-    final Widget content = c.hasConversation
+    final Widget content = _showChat && c.hasConversation
         ? AtlasChatView(
             key: const ValueKey('chat'),
             controller: c,
@@ -250,9 +322,14 @@ class AtlasSheetState extends State<AtlasSheet>
             showHandle: !full,
             topInset: full ? top : 0,
             onToggleFullscreen: _toggleFullscreen,
+            initiallyVisibleIds: _openedIds,
+            soundOn: c.deps.sounds.enabled,
+            onToggleSound: () {
+              setState(() => c.deps.sounds.enabled = !c.deps.sounds.enabled);
+              showNotice(c.deps.sounds.enabled ? 'Sounds on' : 'Sounds off');
+            },
             onClose: _close,
             onAttach: _onAttach,
-            onVoice: _onVoice,
             onNotice: showNotice,
             dragHandleBuilder: _dragZone,
           )
@@ -264,7 +341,7 @@ class AtlasSheetState extends State<AtlasSheet>
                   controller: c,
                   now: widget.now,
                   onAttach: _onAttach,
-                  onVoice: _onVoice,
+                  onNotice: showNotice,
                   onComposerFocus: () {
                     if (_mode == AtlasSheetMode.collapsed) {
                       _goTo(AtlasSheetMode.expanded);
@@ -286,12 +363,22 @@ class AtlasSheetState extends State<AtlasSheet>
       alignment: Alignment.bottomCenter,
       child: AnimatedBuilder(
         animation: _height,
-        builder: (context, child) => SizedBox(
-          key: const Key('atlas-sheet'),
-          width: size.width,
-          height: _height.value,
-          child: child,
-        ),
+        builder: (context, child) {
+          // While dragging below its resting height the content keeps its
+          // size and slides down (clipped by the screen) instead of squashing.
+          final contentH = math.max(_height.value, _collapsed(size, top));
+          return SizedBox(
+            key: const Key('atlas-sheet'),
+            width: size.width,
+            height: _height.value.clamp(0.0, size.height),
+            child: OverflowBox(
+              alignment: Alignment.topCenter,
+              minHeight: contentH,
+              maxHeight: contentH,
+              child: child,
+            ),
+          );
+        },
         child: Material(
           type: MaterialType.transparency,
           child: ClipRRect(

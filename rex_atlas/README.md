@@ -37,7 +37,7 @@ flutter analyze
 flutter test
 ```
 
-34 tests: unit tests (formatting, intent parsing, conversation/payment state machine) and widget
+39 tests: unit tests (formatting, intent parsing, conversation/payment state machine) and widget
 tests (end-to-end flow, PIN fallback, full screen, drag-to-close, keyboard, no-overflow at 3 sizes).
 See `docs/VALIDATION.md`.
 
@@ -46,7 +46,7 @@ See `docs/VALIDATION.md`.
 | Area | Status |
 |---|---|
 | Entry from home ("Ask RexAtlas….." pill, RexAtlas tile) | ✅ |
-| Collapsed welcome sheet: greeting, quick actions, recent transfer, composer (frame 2) | ✅ |
+| Collapsed welcome sheet: greeting, quick actions, composer (frame 2; recent-transfer card removed on request) | ✅ |
 | Expanded chat, full screen, drag to snap/close, scrim tap / close / back | ✅ |
 | Messages, typing indicator, auto-scroll, keyboard handling | ✅ |
 | Send-money flow: collect details → review card → confirm → fingerprint → processing → result → suggestions (frames 3–8) | ✅ |
@@ -56,6 +56,7 @@ See `docs/VALIDATION.md`.
 | Airtime purchase | ✅ (flow assumed, built from designed components) |
 | Save, Pay Bills, Rexy December | ⏳ Atlas explains these aren't available yet (no designs) |
 | Error states (AI outage + retry, unknown account, failed payment) | ✅ (not designed) |
+| Voice input (speech-to-text), photo/document upload, chat sounds with mute | ✅ (see `docs/ASSUMPTIONS.md`) |
 | Premium polish: iMessage-style chat, frosted chrome, animated welcome glow, spring sheet, haptics | ✅ (requested; see `docs/ASSUMPTIONS.md`) |
 | Real backends, real biometrics/PIN, analytics, localisation | ❌ for the Rex team |
 
@@ -91,7 +92,7 @@ test/    unit + widget tests
 events (show biometric prompt, open receipt). No third-party state package.
 **Navigation:** Atlas is a `PopupRoute` over the host `Navigator`. The biometric prompt is a modal
 bottom sheet and the receipt is a pushed page.
-**Dependencies:** `flutter_svg` only (plus `flutter_lints` for dev).
+**Dependencies:** `flutter_svg`, `speech_to_text`, `file_picker`, `audioplayers` (plus `flutter_lints` for dev).
 
 ## Documentation
 

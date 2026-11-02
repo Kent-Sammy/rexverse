@@ -7,9 +7,12 @@ environment:
   sdk: ^3.13.7
 
 dependencies:
+  audioplayers: ^6.8.1
+  file_picker: ^13.3.2
   flutter:
     sdk: flutter
   flutter_svg: ^2.3.2
+  speech_to_text: ^7.5.0
 
 dev_dependencies:
   flutter_test:
@@ -23,6 +26,7 @@ flutter:
     - assets/icons/
     - assets/images/
     - assets/images/banks/
+    - assets/sounds/
 
   fonts:
     - family: Inter

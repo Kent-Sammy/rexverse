@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../app/demo_device_frame.dart';
 import '../../../core/design_system/design_system.dart';
+import '../../../core/widgets/glow_outline.dart';
 import '../../../core/widgets/initials_avatar.dart';
 import '../../../core/widgets/pressable.dart';
 import '../../atlas/atlas.dart';
@@ -119,22 +120,27 @@ class _Header extends StatelessWidget {
               key: const Key('home-ask-atlas'),
               semanticLabel: 'Ask Rex Atlas',
               onTap: onAsk,
-              child: Container(
-                height: 40,
-                padding: const EdgeInsets.only(left: 10),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Row(
-                  children: [
-                    const AtlasMarkBadge(size: 21.7, dark: true),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Ask RexAtlas.....',
-                      style: RexTypography.host(14, color: RexColors.navy),
-                    ),
-                  ],
+              focusRadius: 20,
+              // Animated glow outline to draw attention to Atlas.
+              child: GlowOutline(
+                radius: 20,
+                child: Container(
+                  height: 40,
+                  padding: const EdgeInsets.only(left: 10),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    children: [
+                      const AtlasMarkBadge(size: 21.7, dark: true),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Ask RexAtlas.....',
+                        style: RexTypography.host(14, color: RexColors.navy),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),

@@ -21,7 +21,13 @@ Future<void> showRexAtlas(
   BuildContext context, {
   required AtlasController controller,
   DateTime? now,
+  bool resumeConversation = false,
 }) {
-  return Navigator.of(context)
-      .push(AtlasSheetRoute(atlas: controller, now: now));
+  return Navigator.of(context).push(
+    AtlasSheetRoute(
+      atlas: controller,
+      now: now,
+      resumeConversation: resumeConversation,
+    ),
+  );
 }

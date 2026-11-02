@@ -4,10 +4,8 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/design_system/design_system.dart';
 import '../../../../core/formatting/dates.dart';
-import '../../../../core/formatting/naira.dart';
 import '../../../../core/widgets/pressable.dart';
 import '../../application/atlas_controller.dart';
-import '../../domain/models/models.dart';
 import '../widgets/atlas_brand.dart';
 import '../widgets/atlas_composer.dart';
 import '../widgets/atlas_header.dart';
@@ -18,14 +16,14 @@ class AtlasWelcomeView extends StatelessWidget {
     super.key,
     required this.controller,
     required this.onAttach,
-    required this.onVoice,
+    required this.onNotice,
     required this.onComposerFocus,
     this.now,
   });
 
   final AtlasController controller;
   final VoidCallback onAttach;
-  final VoidCallback onVoice;
+  final ValueChanged<String> onNotice;
   final VoidCallback onComposerFocus;
 
   /// Injectable clock for tests/screenshots.
@@ -79,7 +77,8 @@ class AtlasWelcomeView extends StatelessWidget {
               enabled: !controller.isBusy,
               onSend: controller.send,
               onAttach: onAttach,
-              onVoice: onVoice,
+              speech: controller.deps.speech,
+              onNotice: onNotice,
               onFocus: onComposerFocus,
             ),
           ),
@@ -98,7 +97,6 @@ class _WelcomeContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final name = controller.account?.firstName ?? '';
-    final latest = controller.latestTransfer;
     return Column(
       children: [
         const GlowingAtlasAvatar(size: 103),
@@ -153,40 +151,6 @@ class _WelcomeContent extends StatelessWidget {
             ],
           ),
         ),
-        if (latest != null) ...[
-          const SizedBox(height: 45),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32),
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        'Recent Transactions',
-                        style: RexTypography.welcomeSection,
-                      ),
-                    ),
-                    Pressable(
-                      semanticLabel: 'See all transactions',
-                      onTap: () =>
-                          controller.send('Show my recent transactions'),
-                      child: Text(
-                        'See All',
-                        style: RexTypography.welcomeSection,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 13),
-                _RecentTransferCard(
-                  record: latest,
-                  onTap: () => controller.viewReceipt(latest.reference),
-                ),
-              ],
-            ),
-          ),
-        ],
         const SizedBox(height: 8),
       ],
     );
@@ -239,109 +203,6 @@ class _QuickAction extends StatelessWidget {
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _RecentTransferCard extends StatelessWidget {
-  const _RecentTransferCard({required this.record, required this.onTap});
-
-  final TransactionRecord record;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Pressable(
-      semanticLabel:
-          'Transfer to ${record.counterpartyName}, ${Naira.plain(record.amountKobo)}',
-      onTap: onTap,
-      // Card (min 69) with a second layer peeking 9 pt below it, as in Figma;
-      // grows with larger system text.
-      child: Padding(
-        padding: const EdgeInsets.only(bottom: 9),
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            // Second, offset layer behind the card (Figma "Frame 2147235114").
-            Positioned(
-              left: 0,
-              right: 0,
-              top: 9,
-              bottom: -9,
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.16),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-            ),
-            Container(
-              constraints: const BoxConstraints(minHeight: 69),
-              padding: const EdgeInsets.symmetric(horizontal: 19, vertical: 10),
-              decoration: BoxDecoration(
-                color: const Color(0xFF4D6B9D),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 33,
-                    height: 33,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Transform.rotate(
-                      angle: 3 * math.pi / 4,
-                      child: const RexSvgIcon(
-                        RexSvg.arrowLeft,
-                        size: 16,
-                        color: RexColors.accentMint,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          record.counterpartyName ?? record.title,
-                          style: RexTypography.welcomeTxTitle,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 3),
-                        Text(
-                          record.counterpartyMasked ?? '',
-                          style: RexTypography.welcomeTxMeta,
-                        ),
-                      ],
-                    ),
-                  ),
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        Naira.plain(record.amountKobo),
-                        style: RexTypography.welcomeTxTitle,
-                      ),
-                      const SizedBox(height: 3),
-                      Text(
-                        RexDates.welcome(record.timestamp),
-                        style: RexTypography.welcomeTxMeta,
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
         ),
       ),
     );

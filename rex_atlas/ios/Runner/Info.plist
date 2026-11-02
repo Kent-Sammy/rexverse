@@ -66,5 +66,11 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Rex Atlas uses the microphone so you can speak your request instead of typing.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Rex Atlas turns your speech into text so you can review it before sending.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Rex Atlas lets you share a photo or screenshot in the chat.</string>
 </dict>
 </plist>

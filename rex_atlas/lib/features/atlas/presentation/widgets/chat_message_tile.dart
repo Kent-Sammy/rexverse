@@ -6,6 +6,7 @@ import '../../../../core/widgets/pressable.dart';
 import '../../application/atlas_controller.dart';
 import '../../domain/models/models.dart';
 import 'atlas_brand.dart';
+import 'attachment_bubble.dart';
 import 'chat_bubble.dart';
 import 'payment_confirmation_card.dart';
 import 'payment_result_card.dart';
@@ -59,6 +60,10 @@ class ChatMessageTile extends StatelessWidget {
     final m = message;
     return switch (m) {
       TextMessage(author: ChatAuthor.user) => _userRow(m.text),
+      AttachmentMessage() => _userRowWith(
+        AttachmentBubble(message: m),
+        'You shared ${m.fileName}',
+      ),
       TextMessage() => _assistantRow(
         Text(m.text, style: RexTypography.bubble),
         below: m.quickReplies.isEmpty
@@ -134,6 +139,22 @@ class ChatMessageTile extends StatelessWidget {
         onTap: (r) => controller.viewReceipt(r.reference),
       ),
     };
+  }
+
+  Widget _userRowWith(Widget bubble, String label) {
+    return Semantics(
+      container: true,
+      label: label,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Flexible(child: bubble),
+          const SizedBox(width: RexDimens.userAvatarGap),
+          InitialsAvatar(initials: userInitials),
+        ],
+      ),
+    );
   }
 
   Widget _userRow(String text) {

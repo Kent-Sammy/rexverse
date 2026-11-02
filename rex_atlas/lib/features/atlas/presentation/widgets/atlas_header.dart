@@ -11,8 +11,12 @@ class AtlasHeader extends StatelessWidget {
     required this.isFullscreen,
     required this.onToggleFullscreen,
     required this.onClose,
+    this.soundOn = true,
+    this.onToggleSound,
   });
 
+  final bool soundOn;
+  final VoidCallback? onToggleSound;
   final bool isFullscreen;
   final VoidCallback onToggleFullscreen;
   final VoidCallback onClose;
@@ -44,6 +48,27 @@ class AtlasHeader extends StatelessWidget {
               ],
             ),
           ),
+          if (onToggleSound != null)
+            Pressable(
+              key: const Key('atlas-sound-toggle'),
+              semanticLabel: soundOn
+                  ? 'Mute chat sounds'
+                  : 'Turn on chat sounds',
+              onTap: onToggleSound,
+              child: SizedBox(
+                width: 36,
+                height: 33,
+                child: Center(
+                  child: Icon(
+                    soundOn
+                        ? Icons.volume_up_rounded
+                        : Icons.volume_off_rounded,
+                    size: 22,
+                    color: RexColors.headerIcon,
+                  ),
+                ),
+              ),
+            ),
           // Icons sit where Figma puts them (centres at x 337 and 374); the
           // tap areas are widened to 36 pt and the full 33 pt header height.
           Pressable(

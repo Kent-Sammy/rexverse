@@ -61,3 +61,14 @@ These go **beyond** the Figma frames on purpose, at the product owner's request 
 
 | Card type scale | Card text raised to a consistent scale (minimum 11 px) to suit the narrower cards and WCAG legibility |
 | Accessible colours | Failing text colours darkened (see ACCESSIBILITY.md) |
+
+## Second round of product-owner requests
+
+| Change | Detail |
+|---|---|
+| Welcome sheet | The "Recent Transactions" card was removed. The collapsed sheet shrank from 631 to 484 pt to fit |
+| Open behaviour | Atlas **always opens on the welcome screen**. The first action (quick action, typing, voice or upload) switches to the chat, which keeps the **full history** for the session. If a payment is waiting for the fingerprint, Atlas reopens in the chat and asks again |
+| Voice input | The microphone does speech-to-text through the device recogniser. The words appear in the text box for the user to check; they are **never sent automatically**. On Android and in Chrome, audio may be processed by Google's speech service. Rex's privacy/compliance team should review this before production |
+| Uploads | "+" opens Photo or Document (≤ 10 MB). The file appears in the chat (image thumbnail or file chip). The mock assistant says plainly that reading files isn't available in the prototype; files stay on the device and are not uploaded anywhere |
+| Chat sounds | Original sounds (not Apple's): a whoosh on send, a chime on reply (once per burst), a brighter chime on payment success. They respect the iOS silent switch, mix with other audio, and can be muted with the speaker icon in the header |
+| Home "Ask RexAtlas" bar | Animated cyan→purple gradient outline with a soft glow (holds still with reduce motion) |

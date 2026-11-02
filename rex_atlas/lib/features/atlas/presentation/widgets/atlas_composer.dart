@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import '../../../../core/design_system/design_system.dart';
 import '../../../../core/widgets/pressable.dart';
+import '../../device/device_services.dart';
 
 enum ComposerTone { light, onDark }
 
@@ -12,7 +13,8 @@ class AtlasComposer extends StatefulWidget {
     super.key,
     required this.onSend,
     required this.onAttach,
-    required this.onVoice,
+    required this.speech,
+    required this.onNotice,
     this.tone = ComposerTone.light,
     this.enabled = true,
     this.focusNode,
@@ -21,7 +23,12 @@ class AtlasComposer extends StatefulWidget {
 
   final ValueChanged<String> onSend;
   final VoidCallback onAttach;
-  final VoidCallback onVoice;
+
+  /// Speech-to-text for the microphone button.
+  final SpeechInputService speech;
+
+  /// Short status messages (e.g. microphone unavailable).
+  final ValueChanged<String> onNotice;
   final ComposerTone tone;
 
   /// False while the assistant is responding; typing is still allowed.
@@ -33,8 +40,14 @@ class AtlasComposer extends StatefulWidget {
   State<AtlasComposer> createState() => _AtlasComposerState();
 }
 
-class _AtlasComposerState extends State<AtlasComposer> {
+class _AtlasComposerState extends State<AtlasComposer>
+    with SingleTickerProviderStateMixin {
   final _text = TextEditingController();
+  bool _listening = false;
+  late final AnimationController _pulse = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 900),
+  );
   late final FocusNode _focus = widget.focusNode ?? FocusNode();
 
   @override
@@ -48,9 +61,59 @@ class _AtlasComposerState extends State<AtlasComposer> {
 
   @override
   void dispose() {
+    if (_listening) widget.speech.stop();
+    _pulse.dispose();
     _text.dispose();
     if (widget.focusNode == null) _focus.dispose();
     super.dispose();
+  }
+
+  /// Tap once to dictate, tap again to stop. The transcript lands in the
+  /// text field so the user can check it before sending (never auto-sent).
+  Future<void> _toggleListening() async {
+    if (_listening) {
+      await widget.speech.stop();
+      _setListening(false);
+      return;
+    }
+    HapticFeedback.mediumImpact();
+    _setListening(true);
+    final started = await widget.speech.start(
+      onText: (words) {
+        if (!mounted) return;
+        _text.value = TextEditingValue(
+          text: words,
+          selection: TextSelection.collapsed(offset: words.length),
+        );
+      },
+      onDone: () {
+        if (mounted) _setListening(false);
+      },
+      onError: (_) {
+        if (!mounted) return;
+        _setListening(false);
+        widget.onNotice("Sorry, I didn't catch that. Please try again.");
+      },
+    );
+    if (!started && mounted) {
+      _setListening(false);
+      widget.onNotice(
+        'Voice input needs microphone permission. You can allow it in your phone settings.',
+      );
+    }
+  }
+
+  void _setListening(bool v) {
+    if (_listening == v) return;
+    setState(() => _listening = v);
+    final reduce = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+    if (v && !reduce) {
+      _pulse.repeat(reverse: true);
+    } else {
+      _pulse
+        ..stop()
+        ..value = 0;
+    }
   }
 
   bool get _canSend => widget.enabled && _text.text.trim().isNotEmpty;
@@ -60,6 +123,10 @@ class _AtlasComposerState extends State<AtlasComposer> {
       // Empty input: focus the field rather than doing nothing.
       _focus.requestFocus();
       return;
+    }
+    if (_listening) {
+      widget.speech.stop();
+      _setListening(false);
     }
     HapticFeedback.lightImpact();
     widget.onSend(_text.text.trim());
@@ -140,7 +207,9 @@ class _AtlasComposerState extends State<AtlasComposer> {
                         isCollapsed: true,
                         semanticCounterText: '',
                         border: InputBorder.none,
-                        hintText: 'Ask Rex Atlas...',
+                        hintText: _listening
+                            ? 'Listening…'
+                            : 'Ask Rex Atlas...',
                         hintStyle: hint,
                       ),
                     ),
@@ -150,24 +219,38 @@ class _AtlasComposerState extends State<AtlasComposer> {
             ),
           ),
           const SizedBox(width: 8),
-          // Voice: its own round button.
+          // Voice: its own round button. Red and pulsing while listening.
           Pressable(
-            semanticLabel: 'Voice input',
+            key: const Key('atlas-mic-button'),
+            semanticLabel: _listening ? 'Stop voice input' : 'Voice input',
             pressedScale: 0.92,
-            onTap: widget.onVoice,
-            child: Container(
-              width: h,
-              height: h,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: fieldColor,
-                shape: BoxShape.circle,
+            onTap: _toggleListening,
+            child: AnimatedBuilder(
+              animation: _pulse,
+              builder: (context, child) => Container(
+                width: h,
+                height: h,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: _listening ? RexColors.error : fieldColor,
+                  shape: BoxShape.circle,
+                  boxShadow: _listening
+                      ? [
+                          BoxShadow(
+                            color: RexColors.error.withValues(alpha: 0.35),
+                            blurRadius: 6 + 10 * _pulse.value,
+                            spreadRadius: 1 + 5 * _pulse.value,
+                          ),
+                        ]
+                      : null,
+                ),
+                child: child,
               ),
-              // Figma export is #323DFF; tinted white on the dark welcome sheet.
+              // Figma export is #323DFF; tinted white on dark or while listening.
               child: RexSvgIcon(
                 RexSvg.mic,
                 size: 24,
-                color: dark ? Colors.white : null,
+                color: (dark || _listening) ? Colors.white : null,
               ),
             ),
           ),

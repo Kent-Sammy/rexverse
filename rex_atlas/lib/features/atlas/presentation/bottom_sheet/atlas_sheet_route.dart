@@ -6,7 +6,13 @@ import 'atlas_sheet.dart';
 
 /// Presents Atlas over the host app with the Figma scrim (#090D1E @ 75%).
 class AtlasSheetRoute extends PopupRoute<void> {
-  AtlasSheetRoute({required this.atlas, this.now});
+  AtlasSheetRoute({
+    required this.atlas,
+    this.now,
+    this.resumeConversation = false,
+  });
+
+  final bool resumeConversation;
 
   final AtlasController atlas;
   final DateTime? now;
@@ -32,7 +38,11 @@ class AtlasSheetRoute extends PopupRoute<void> {
     Animation<double> animation,
     Animation<double> secondaryAnimation,
   ) {
-    return AtlasSheet(controller: atlas, now: now);
+    return AtlasSheet(
+      controller: atlas,
+      now: now,
+      resumeConversation: resumeConversation,
+    );
   }
 
   @override
