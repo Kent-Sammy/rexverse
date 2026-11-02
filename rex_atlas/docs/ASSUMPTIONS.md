@@ -41,3 +41,20 @@ Every behaviour that is not specified in the designs is listed here, along with 
 - Long titles (for example, "Get Started With Rexy December") scale down to fit, because the Figma text box overflows its tile.
 - Bubble widths hug their content (max 264). Some Figma bubbles have fixed widths, so line breaks can differ.
 - "Demo" labels are added to the result card, receipt and fingerprint sheet, so simulated results can't be mistaken for real banking records.
+
+## Requested by the design owner after the first review
+
+These go **beyond** the Figma frames on purpose, at the product owner's request ("premium" polish and an iMessage-like chat):
+
+| Change | Detail |
+|---|---|
+| iMessage-style bubbles | 18pt corners with a curled tail (Figma: 10pt corners, triangular tail). Consecutive bubbles from the same speaker stack 4pt apart and only the last one shows the avatar and tail |
+| Frosted chrome | Header and input bar are translucent white with background blur; messages scroll beneath. iOS-style bounce scrolling |
+| Conversation time stamp | "Today 9:41 AM" above the first message |
+| Message entrance | New bubbles/cards pop in (fade, rise, slight scale from the sender's side) |
+| Input bar | The "+" stays inside the text pill. **Microphone and send are separate round buttons** next to it; send is solid Rex blue |
+| Cards inset | Review, confirmation, result, suggestion and transaction cards sit between the two avatar columns (start after the Atlas avatar, stop before the user's avatar). Long names wrap to two lines |
+| Welcome motion | The three blue glows drift slowly; a breathing, rotating cyan→purple glow surrounds the robot avatar |
+| Feedback | Buttons scale down slightly when pressed; haptics on taps, send, fingerprint and result |
+| Sheet physics | Snapping uses a spring that follows the release velocity |
+| Success badge | Pops in once per payment |

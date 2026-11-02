@@ -9,6 +9,11 @@ abstract final class AtlasAssets {
   /// "Gemini_Generated_Image_cpel96cpel96cpel 1" incl. its gradient ring.
   static const assistantAvatar = 'assets/images/atlas_assistant_avatar.png';
 
+  /// Same portrait on the brand-blue disc used beside chat messages
+  /// (derived from the export: white background replaced by #323DFF).
+  static const assistantAvatarChat =
+      'assets/images/atlas_assistant_avatar_chat.png';
+
   /// Mark on a light-blue disc ("Frame 2147234634", 33 × 33).
   static const badge = 'assets/images/rex_atlas_badge.svg';
 
@@ -30,14 +35,21 @@ abstract final class AtlasAssets {
 
 /// Assistant avatar (robot portrait with cyan→purple ring).
 class AtlasBotAvatar extends StatelessWidget {
-  const AtlasBotAvatar({super.key, this.size = RexDimens.avatarSize});
+  const AtlasBotAvatar({
+    super.key,
+    this.size = RexDimens.avatarSize,
+    this.onBlue = true,
+  });
 
   final double size;
+
+  /// Chat rows use the blue-disc variant; the welcome sheet uses the white one.
+  final bool onBlue;
 
   @override
   Widget build(BuildContext context) {
     return Image.asset(
-      AtlasAssets.assistantAvatar,
+      onBlue ? AtlasAssets.assistantAvatarChat : AtlasAssets.assistantAvatar,
       width: size,
       height: size,
       filterQuality: FilterQuality.medium,

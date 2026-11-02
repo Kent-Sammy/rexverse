@@ -6,20 +6,44 @@ import '../features/host/presentation/rex_home_screen.dart';
 import 'demo_device_frame.dart';
 
 class RexAtlasDemoApp extends StatefulWidget {
-  const RexAtlasDemoApp({super.key, this.dependencies, this.now});
+  const RexAtlasDemoApp({
+    super.key,
+    this.dependencies,
+    this.now,
+    this.controller,
+    this.openAtlasOnStart = false,
+  });
 
   /// Defaults to [AtlasDependencies.mock]. Tests inject faster mocks.
   final AtlasDependencies? dependencies;
   final DateTime? now;
+
+  /// Pre-built controller (design scenes). Overrides [dependencies].
+  final AtlasController? controller;
+
+  /// Opens Atlas immediately (design scenes).
+  final bool openAtlasOnStart;
 
   @override
   State<RexAtlasDemoApp> createState() => _RexAtlasDemoAppState();
 }
 
 class _RexAtlasDemoAppState extends State<RexAtlasDemoApp> {
-  late final AtlasController _atlas = AtlasController(
-    widget.dependencies ?? AtlasDependencies.mock(),
-  );
+  late final AtlasController _atlas =
+      widget.controller ??
+      AtlasController(widget.dependencies ?? AtlasDependencies.mock());
+  final _navigator = GlobalKey<NavigatorState>();
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.openAtlasOnStart) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final ctx = _navigator.currentContext;
+        if (ctx != null) showRexAtlas(ctx, controller: _atlas, now: widget.now);
+      });
+    }
+  }
 
   @override
   void dispose() {
@@ -30,6 +54,7 @@ class _RexAtlasDemoAppState extends State<RexAtlasDemoApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: _navigator,
       title: 'Rex Atlas Prototype',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(

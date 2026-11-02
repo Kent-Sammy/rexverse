@@ -26,11 +26,17 @@ Originals are kept unchanged in `design/figma-exports/`. The app uses copies und
 The SVG files `95088-success.svg` and `🎉.svg` wrap bitmap images in SVG patterns, which
 `flutter_svg` cannot draw, so they were converted to transparent PNGs.
 
+## Derived from the exports
+
+| File | Made from | Why |
+|---|---|---|
+| `assets/images/atlas_assistant_avatar_chat.png` | `atlas head.png` | Figma's chat rows show the same robot on the brand-blue disc; the white background was flood-filled and replaced with #323DFF |
+| `assets/images/success_badge.png` | `95088-success.svg` | the embedded image had a solid white background that showed as a square on the card wash; white was converted to transparency |
+
 ## Still missing (exports needed)
 
 | Figma layer | Where | Currently shown |
 |---|---|---|
-| Chat-sized assistant avatar (robot on blue disc, frame "Frame 2147234634" inside a chat row, e.g. `25217:43670`) | assistant messages | the welcome avatar (white background) |
 | `vuesax/twotone/add` | composer "+" | Material `add` |
 | `Iconly/Light/Arrow - Down 2` | suggestion and "See More" chevrons | Material chevron |
 | `vuesax/outline/card`, `card-coin`, `Iconly/Curved/Calling`, `vuesax/outline/bank` | transactions list | Material icons |

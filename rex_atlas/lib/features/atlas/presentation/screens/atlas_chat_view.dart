@@ -1,15 +1,21 @@
 import 'dart:math' as math;
+import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/material.dart';
 
 import '../../../../core/design_system/design_system.dart';
+import '../../../../core/formatting/dates.dart';
+import '../../../../core/widgets/appear.dart';
 import '../../../../core/widgets/initials_avatar.dart';
 import '../../application/atlas_controller.dart';
+import '../../domain/models/models.dart';
 import '../widgets/atlas_composer.dart';
 import '../widgets/atlas_header.dart';
 import '../widgets/chat_message_tile.dart';
 
-/// Frames 3–9: the white conversation sheet.
+/// Frames 3–9: the conversation sheet, with an iMessage-style feel:
+/// frosted header and input bar that messages scroll beneath, bounce
+/// scrolling, grouped bubbles and a pop-in for new messages.
 class AtlasChatView extends StatefulWidget {
   const AtlasChatView({
     super.key,
@@ -46,14 +52,29 @@ class _AtlasChatViewState extends State<AtlasChatView> {
   final _scroll = ScrollController();
   int _lastCount = 0;
 
+  /// Messages present when the view opened render without an entrance.
+  late final Set<String> _initialIds = widget.controller.messages
+      .map((m) => m.id)
+      .toSet();
+
+  static const _groupGap = RexDimens.messageGap; // between different speakers
+  static const _bubbleGap = 4.0; // within a run from the same speaker
+  static const _chromeHeight =
+      33.0 + 33.0 + 16.0 + 1.0; // handle, header, gap, divider
+
   @override
   void initState() {
     super.initState();
     widget.controller.addListener(_onChange);
     _lastCount = widget.controller.messages.length;
-    WidgetsBinding.instance.addPostFrameCallback(
-      (_) => _scrollToEnd(animate: false),
-    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final offset = widget.controller.debugInitialScrollOffset;
+      if (offset != null && _scroll.hasClients) {
+        _scroll.jumpTo(offset);
+      } else {
+        _scrollToEnd(animate: false);
+      }
+    });
   }
 
   @override
@@ -86,7 +107,7 @@ class _AtlasChatViewState extends State<AtlasChatView> {
     if (animate) {
       _scroll.animateTo(
         target,
-        duration: const Duration(milliseconds: 280),
+        duration: const Duration(milliseconds: 360),
         curve: Curves.easeOutCubic,
       );
     } else {
@@ -94,93 +115,200 @@ class _AtlasChatViewState extends State<AtlasChatView> {
     }
   }
 
+  static bool _isBubble(ChatMessage m) =>
+      m is TextMessage || m is TypingMessage || m is ErrorMessage;
+
+  static bool _sameRun(ChatMessage? a, ChatMessage? b) =>
+      a != null &&
+      b != null &&
+      _isBubble(a) &&
+      _isBubble(b) &&
+      a.author == b.author &&
+      !(a is TextMessage && a.quickReplies.isNotEmpty);
+
   @override
   Widget build(BuildContext context) {
     final c = widget.controller;
+    final msgs = c.messages;
     final keyboard = MediaQuery.viewInsetsOf(context).bottom;
     final bottom = math.max(RexDimens.composerBottomInset, keyboard + 12);
+    final composerArea = 12 + RexDimens.composerHeight + bottom;
+    final headerArea = widget.topInset + _chromeHeight;
     final initials = InitialsAvatar.fromName(c.account?.holderName ?? '');
+    final started = c.conversationStartedAt;
 
     return ColoredBox(
       color: Colors.white,
-      child: Column(
+      child: Stack(
         children: [
-          widget.dragHandleBuilder(
-            Padding(
-              padding: EdgeInsets.only(top: widget.topInset),
-              child: Column(
-                children: [
-                  Container(
-                    height: 33,
-                    alignment: Alignment.topCenter,
-                    padding: const EdgeInsets.only(
-                      top: RexDimens.chatHandleTop,
-                    ),
-                    child: widget.showHandle ? const SheetHandle() : null,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: RexDimens.pagePadding,
-                    ),
-                    child: AtlasHeader(
-                      isFullscreen: widget.isFullscreen,
-                      onToggleFullscreen: widget.onToggleFullscreen,
-                      onClose: widget.onClose,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  const SizedBox(
-                    height: 1,
-                    width: double.infinity,
-                    child: ColoredBox(color: RexColors.divider),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          Expanded(
+          // Messages run the full height and scroll under the frosted chrome.
+          Positioned.fill(
             child: GestureDetector(
               behavior: HitTestBehavior.translucent,
               onTap: () => FocusScope.of(context).unfocus(),
-              child: ListView.separated(
+              child: ListView.builder(
                 key: const Key('atlas-message-list'),
                 controller: _scroll,
+                physics: const BouncingScrollPhysics(
+                  parent: AlwaysScrollableScrollPhysics(),
+                ),
                 keyboardDismissBehavior:
                     ScrollViewKeyboardDismissBehavior.onDrag,
-                padding: const EdgeInsets.fromLTRB(
+                padding: EdgeInsets.fromLTRB(
                   RexDimens.pagePadding,
-                  20,
+                  headerArea + 20,
                   RexDimens.pagePadding,
-                  24,
+                  composerArea + 16,
                 ),
-                itemCount: c.messages.length,
-                separatorBuilder: (_, _) =>
-                    const SizedBox(height: RexDimens.messageGap),
-                itemBuilder: (context, i) => ChatMessageTile(
-                  key: ValueKey(c.messages[i].id),
-                  message: c.messages[i],
-                  controller: c,
-                  userInitials: initials,
-                  onNotice: widget.onNotice,
+                itemCount: msgs.length + (started == null ? 0 : 1),
+                itemBuilder: (context, index) {
+                  if (started != null && index == 0) {
+                    return _TimeHeader(time: started);
+                  }
+                  final i = started == null ? index : index - 1;
+                  final m = msgs[i];
+                  final prev = i > 0 ? msgs[i - 1] : null;
+                  final next = i + 1 < msgs.length ? msgs[i + 1] : null;
+                  final tile = ChatMessageTile(
+                    key: ValueKey(m.id),
+                    message: m,
+                    controller: c,
+                    userInitials: initials,
+                    onNotice: widget.onNotice,
+                    lastInGroup: !_sameRun(m, next),
+                  );
+                  final gap = i == 0
+                      ? 0.0
+                      : (_sameRun(prev, m) ? _bubbleGap : _groupGap);
+                  final child = _initialIds.contains(m.id)
+                      ? tile
+                      : Appear(
+                          key: ValueKey('appear-${m.id}'),
+                          alignment: m.author == ChatAuthor.user
+                              ? Alignment.bottomRight
+                              : Alignment.bottomLeft,
+                          child: tile,
+                        );
+                  return Padding(
+                    padding: EdgeInsets.only(top: gap),
+                    child: child,
+                  );
+                },
+              ),
+            ),
+          ),
+          // Frosted header.
+          Positioned(
+            left: 0,
+            right: 0,
+            top: 0,
+            child: _Frosted(
+              child: widget.dragHandleBuilder(
+                Padding(
+                  padding: EdgeInsets.only(top: widget.topInset),
+                  child: Column(
+                    children: [
+                      Container(
+                        height: 33,
+                        alignment: Alignment.topCenter,
+                        padding: const EdgeInsets.only(
+                          top: RexDimens.chatHandleTop,
+                        ),
+                        child: widget.showHandle ? const SheetHandle() : null,
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: RexDimens.pagePadding,
+                        ),
+                        child: AtlasHeader(
+                          isFullscreen: widget.isFullscreen,
+                          onToggleFullscreen: widget.onToggleFullscreen,
+                          onClose: widget.onClose,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      const SizedBox(
+                        height: 1,
+                        width: double.infinity,
+                        child: ColoredBox(color: RexColors.divider),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
-          Padding(
-            padding: EdgeInsets.fromLTRB(
-              RexDimens.composerHorizontalInset,
-              12,
-              RexDimens.composerHorizontalInset,
-              bottom,
-            ),
-            child: AtlasComposer(
-              enabled: !c.isBusy,
-              onSend: c.send,
-              onAttach: widget.onAttach,
-              onVoice: widget.onVoice,
+          // Frosted input bar.
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: _Frosted(
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(
+                  RexDimens.composerHorizontalInset,
+                  12,
+                  RexDimens.composerHorizontalInset,
+                  bottom,
+                ),
+                child: AtlasComposer(
+                  enabled: !c.isBusy,
+                  onSend: c.send,
+                  onAttach: widget.onAttach,
+                  onVoice: widget.onVoice,
+                ),
+              ),
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Translucent white with a background blur (iOS "material" look).
+class _Frosted extends StatelessWidget {
+  const _Frosted({required this.child});
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRect(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+        child: ColoredBox(
+          color: Colors.white.withValues(alpha: 0.82),
+          child: child,
+        ),
+      ),
+    );
+  }
+}
+
+/// "Today 9:41 AM" above the first message, as in iMessage.
+class _TimeHeader extends StatelessWidget {
+  const _TimeHeader({required this.time});
+  final DateTime time;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: Center(
+        child: Text.rich(
+          TextSpan(
+            children: [
+              const TextSpan(
+                text: 'Today ',
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
+              TextSpan(text: RexDates.clock(time)),
+            ],
+          ),
+          style: RexTypography.caption.copyWith(
+            color: RexColors.textPlaceholder,
+          ),
+        ),
       ),
     );
   }

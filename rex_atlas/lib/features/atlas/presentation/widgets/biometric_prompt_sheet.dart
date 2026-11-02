@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../../../core/design_system/design_system.dart';
 import '../../../../core/widgets/pressable.dart';
@@ -56,6 +57,7 @@ class _BiometricPromptSheetState extends State<BiometricPromptSheet> {
 
   Future<void> _authorize() async {
     if (_working) return;
+    HapticFeedback.mediumImpact();
     setState(() => _working = true);
     try {
       await widget.onAuthorize();

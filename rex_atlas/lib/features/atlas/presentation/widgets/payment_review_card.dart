@@ -36,8 +36,8 @@ class PaymentReviewCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Container(
-              height: 56,
-              padding: const EdgeInsets.symmetric(horizontal: 10),
+              constraints: const BoxConstraints(minHeight: 56),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(RexDimens.innerCardRadius),
@@ -54,10 +54,15 @@ class PaymentReviewCard extends StatelessWidget {
                         Text(
                           r.name,
                           style: RexTypography.cardName,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        Text(
+                          r.subtitle,
+                          style: RexTypography.cardSub,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        Text(r.subtitle, style: RexTypography.cardSub),
                       ],
                     ),
                   ),

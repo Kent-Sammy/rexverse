@@ -26,6 +26,20 @@ class AtlasController extends ChangeNotifier {
   final AtlasDependencies deps;
 
   final List<ChatMessage> _messages = [];
+
+  /// Design-review only: replaces the visible transcript (state is kept)
+  /// so a Figma frame can be reproduced exactly. See `lib/app/design_scenes.dart`.
+  @visibleForTesting
+  void debugSetMessages(List<ChatMessage> messages) {
+    _messages
+      ..clear()
+      ..addAll(messages);
+    _notify();
+  }
+
+  /// Design-review only: initial scroll offset for the chat list instead of
+  /// scrolling to the newest message. Leave null in production.
+  double? debugInitialScrollOffset;
   final _events = StreamController<AtlasEvent>.broadcast();
   int _ids = 0;
   bool _busy = false;
@@ -39,6 +53,10 @@ class AtlasController extends ChangeNotifier {
   PaymentConfirmationMessage? _confirmation;
 
   List<ChatMessage> get messages => List.unmodifiable(_messages);
+
+  /// When the first message was sent (shown as "Today 9:41 AM").
+  DateTime? get conversationStartedAt => _startedAt;
+  DateTime? _startedAt;
   bool get hasConversation => _messages.isNotEmpty;
   bool get isBusy => _busy;
   ConversationStage get stage => _stage;
@@ -498,6 +516,7 @@ class AtlasController extends ChangeNotifier {
 
   void _add(ChatMessage m) {
     if (m.author == ChatAuthor.user) _deactivateQuickReplies();
+    _startedAt ??= DateTime.now();
     _messages.add(m);
     _notify();
   }

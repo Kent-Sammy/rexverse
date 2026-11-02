@@ -22,6 +22,7 @@ class ChatMessageTile extends StatelessWidget {
     required this.controller,
     required this.userInitials,
     required this.onNotice,
+    this.lastInGroup = true,
   });
 
   final ChatMessage message;
@@ -29,10 +30,32 @@ class ChatMessageTile extends StatelessWidget {
   final String userInitials;
   final ValueChanged<String> onNotice;
 
+  /// iMessage-style grouping: only the last bubble in a run from the same
+  /// author shows the avatar and the tail.
+  final bool lastInGroup;
+
   static const _maxBubble = 264.0;
+
+  /// Cards sit between the two avatar columns: they start after the Atlas
+  /// avatar and stop before the user's avatar, aligned with the bubbles.
+  static const _cardInsets = EdgeInsets.only(
+    left: RexDimens.avatarSize + RexDimens.avatarGap,
+    right: RexDimens.avatarSize + RexDimens.userAvatarGap,
+  );
 
   @override
   Widget build(BuildContext context) {
+    final content = _content();
+    final isCard =
+        message is PaymentReviewMessage ||
+        message is PaymentConfirmationMessage ||
+        message is PaymentResultMessage ||
+        message is SuggestionsMessage ||
+        message is TransactionsMessage;
+    return isCard ? Padding(padding: _cardInsets, child: content) : content;
+  }
+
+  Widget _content() {
     final m = message;
     return switch (m) {
       TextMessage(author: ChatAuthor.user) => _userRow(m.text),
@@ -79,7 +102,7 @@ class ChatMessageTile extends StatelessWidget {
         draft: draft,
       ),
       PaymentResultMessage(:final result, :final receipt) => Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 17),
+        padding: EdgeInsets.zero,
         child: PaymentResultCard(
           result: result,
           detailRows: receipt?.rows ?? const [],
@@ -93,7 +116,7 @@ class ChatMessageTile extends StatelessWidget {
         ),
       ),
       SuggestionsMessage(:final suggestions) => Padding(
-        padding: const EdgeInsets.only(left: 72),
+        padding: EdgeInsets.zero,
         child: Column(
           children: [
             for (var i = 0; i < suggestions.length; i++) ...[
@@ -116,16 +139,18 @@ class ChatMessageTile extends StatelessWidget {
   Widget _userRow(String text) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
-      crossAxisAlignment: CrossAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         Flexible(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: _maxBubble),
-            child: UserBubble(text: text),
+            child: UserBubble(text: text, tail: lastInGroup),
           ),
         ),
         const SizedBox(width: RexDimens.userAvatarGap),
-        InitialsAvatar(initials: userInitials),
+        lastInGroup
+            ? InitialsAvatar(initials: userInitials)
+            : const SizedBox(width: RexDimens.avatarSize),
       ],
     );
   }
@@ -133,15 +158,18 @@ class ChatMessageTile extends StatelessWidget {
   Widget _assistantRow(Widget content, {Widget? below, Color? color}) {
     final bubble = AssistantBubble(
       color: color ?? RexColors.bubbleAssistant,
+      tail: lastInGroup,
       child: content,
     );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            const AtlasBotAvatar(),
+            lastInGroup
+                ? const AtlasBotAvatar()
+                : const SizedBox(width: RexDimens.avatarSize),
             const SizedBox(width: RexDimens.avatarGap),
             Flexible(
               child: ConstrainedBox(

@@ -44,7 +44,7 @@ Figma variables could **not** be read (MCP plan limit, see `FIGMA_INSPECTION.md`
 
 ## Typography
 
-**Font: Inter** (bundled, SIL OFL, `assets/fonts/`). It is a substitute for an unconfirmed family. Hug-width text
+**Font: SF Pro on iOS/macOS (system font), Inter elsewhere** (Inter bundled, SIL OFL, `assets/fonts/`). Figma's server render had to substitute the file's font, which points to SF Pro; Inter is the closest distributable match for Android and web. Hug-width text
 boxes in the metadata match Inter at the chosen sizes within 1–4%, and box heights match a 1.21 line
 height (14 → 17, 28 → 34, 10 → 12, 20 → 24). Figma's server render was narrower than both, which
 suggests the render used a fallback font. **Confirm the family against the Rex style guide**

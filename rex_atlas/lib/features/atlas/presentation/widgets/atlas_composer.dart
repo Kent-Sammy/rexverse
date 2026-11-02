@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../../../core/design_system/design_system.dart';
 import '../../../../core/widgets/pressable.dart';
@@ -60,6 +61,7 @@ class _AtlasComposerState extends State<AtlasComposer> {
       _focus.requestFocus();
       return;
     }
+    HapticFeedback.lightImpact();
     widget.onSend(_text.text.trim());
     _text.clear();
     _focus.requestFocus(); // keep the keyboard up for the next reply
@@ -68,7 +70,7 @@ class _AtlasComposerState extends State<AtlasComposer> {
   @override
   Widget build(BuildContext context) {
     final dark = widget.tone == ComposerTone.onDark;
-    final barColor = dark
+    final fieldColor = dark
         ? Colors.white.withValues(alpha: 0.3)
         : RexColors.softBlue;
     final accent = dark ? Colors.white : RexColors.primary;
@@ -78,87 +80,120 @@ class _AtlasComposerState extends State<AtlasComposer> {
     final input = RexTypography.composerInput.copyWith(
       color: dark ? Colors.white : null,
     );
+    const h = RexDimens.composerHeight;
 
-    return Container(
-      height: RexDimens.composerHeight,
-      padding: const EdgeInsets.only(left: 10, right: 13),
-      decoration: BoxDecoration(
-        color: barColor,
-        borderRadius: BorderRadius.circular(24),
-      ),
+    return SizedBox(
+      height: h,
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Pressable(
-            semanticLabel: 'Add attachment',
-            onTap: widget.onAttach,
-            child: Container(
-              width: 26.8,
-              height: 26.8,
-              alignment: Alignment.center,
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.add, size: 16, color: RexColors.navy),
-            ),
-          ),
-          const SizedBox(width: 14),
+          // Text pill with the "+" button inside.
           Expanded(
-            child: TextField(
-              key: const Key('atlas-composer-field'),
-              controller: _text,
-              focusNode: _focus,
-              style: input,
-              cursorColor: accent,
-              textInputAction: TextInputAction.send,
-              onSubmitted: (_) => _submit(),
-              onTapOutside: (_) {},
-              minLines: 1,
-              maxLines: 1,
-              decoration: InputDecoration(
-                isCollapsed: true,
-                border: InputBorder.none,
-                hintText: 'Ask Rex Atlas...',
-                hintStyle: hint,
+            child: Container(
+              padding: const EdgeInsets.only(left: 10, right: 16),
+              decoration: BoxDecoration(
+                color: fieldColor,
+                borderRadius: BorderRadius.circular(h / 2),
+              ),
+              child: Row(
+                children: [
+                  Pressable(
+                    semanticLabel: 'Add attachment',
+                    onTap: widget.onAttach,
+                    child: Container(
+                      width: 26.8,
+                      height: 26.8,
+                      alignment: Alignment.center,
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.add,
+                        size: 16,
+                        color: RexColors.navy,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: TextField(
+                      key: const Key('atlas-composer-field'),
+                      controller: _text,
+                      focusNode: _focus,
+                      style: input,
+                      cursorColor: accent,
+                      textInputAction: TextInputAction.send,
+                      onSubmitted: (_) => _submit(),
+                      onTapOutside: (_) {},
+                      minLines: 1,
+                      maxLines: 1,
+                      decoration: InputDecoration(
+                        isCollapsed: true,
+                        border: InputBorder.none,
+                        hintText: 'Ask Rex Atlas...',
+                        hintStyle: hint,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
           const SizedBox(width: 8),
+          // Voice: its own round button.
           Pressable(
             semanticLabel: 'Voice input',
+            pressedScale: 0.92,
             onTap: widget.onVoice,
-            child: SizedBox(
-              width: 27,
-              height: 27,
-              child: Center(
-                // Figma export is #323DFF; tinted white on the dark welcome sheet.
-                child: RexSvgIcon(
-                  RexSvg.mic,
-                  size: 27,
-                  color: dark ? Colors.white : null,
-                ),
+            child: Container(
+              width: h,
+              height: h,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: fieldColor,
+                shape: BoxShape.circle,
+              ),
+              // Figma export is #323DFF; tinted white on the dark welcome sheet.
+              child: RexSvgIcon(
+                RexSvg.mic,
+                size: 24,
+                color: dark ? Colors.white : null,
               ),
             ),
           ),
-          const SizedBox(width: 4),
+          const SizedBox(width: 8),
+          // Send: its own round button in solid Rex blue.
           Pressable(
             key: const Key('atlas-send-button'),
             semanticLabel: 'Send message',
+            pressedScale: 0.92,
             onTap: _submit,
             child: AnimatedOpacity(
-              duration: const Duration(milliseconds: 120),
-              // Dimmed only while Atlas is responding (Figma shows the idle
-              // send button at full strength even with an empty field).
+              duration: const Duration(milliseconds: 150),
+              // Dimmed only while Atlas is responding.
               opacity: widget.enabled ? 1 : 0.5,
               child: Container(
-                width: 26.8,
-                height: 26.8,
+                width: h,
+                height: h,
                 alignment: Alignment.center,
-                decoration: const BoxDecoration(
-                  color: Colors.white,
+                decoration: BoxDecoration(
+                  color: dark ? Colors.white : RexColors.primary,
                   shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: (dark ? Colors.black : RexColors.primary)
+                          .withValues(alpha: 0.25),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
-                child: const RexSvgIcon(RexSvg.iconlySend, size: 14),
+                child: RexSvgIcon(
+                  RexSvg.iconlySend,
+                  size: 18,
+                  color: dark ? RexColors.primary : Colors.white,
+                ),
               ),
             ),
           ),

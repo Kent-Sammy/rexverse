@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
 
 import 'rex_colors.dart';
@@ -5,11 +6,20 @@ import 'rex_colors.dart';
 /// Text styles for Rex Atlas.
 ///
 /// Sizes were derived from Figma text-box geometry: box heights match a
-/// 1.21 line height (14 -> 17, 28 -> 34, 10 -> 12) and hug widths match Inter
-/// within a few percent. The exact Figma font family could not be confirmed
-/// (see docs/DESIGN_TOKENS.md); change [fontFamily] here to swap it globally.
+/// 1.21 line height (14 -> 17, 28 -> 34, 10 -> 12). Figma's own renderer had
+/// to substitute the file's font, which points to Apple's SF Pro (not
+/// distributable). So iOS/macOS use the system font (SF Pro), and Android and
+/// web use the bundled Inter, whose metrics match the text boxes within a
+/// few percent. See docs/DESIGN_TOKENS.md.
 abstract final class RexTypography {
-  static const fontFamily = 'Inter';
+  static String? get fontFamily {
+    if (kIsWeb) return 'Inter';
+    return switch (defaultTargetPlatform) {
+      TargetPlatform.iOS || TargetPlatform.macOS => null, // SF Pro
+      _ => 'Inter',
+    };
+  }
+
   static const _lh = 1.21;
 
   static TextStyle _s(

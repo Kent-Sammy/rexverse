@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../../../core/design_system/design_system.dart';
 import '../../../../core/formatting/naira.dart';
@@ -44,7 +45,7 @@ class PaymentResultCard extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(28, 21, 28, 12),
       child: Column(
         children: [
-          _StatusBadge(success: ok),
+          _StatusBadge(success: ok, reference: result.reference),
           const SizedBox(height: 12),
           Text(
             title,
@@ -122,33 +123,79 @@ class PaymentResultCard extends StatelessWidget {
   }
 }
 
-class _StatusBadge extends StatelessWidget {
-  const _StatusBadge({required this.success});
+class _StatusBadge extends StatefulWidget {
+  const _StatusBadge({required this.success, required this.reference});
   final bool success;
+
+  /// Pops in once per payment, not again when scrolled back into view.
+  final String reference;
+
+  static final Set<String> _played = {};
+
+  @override
+  State<_StatusBadge> createState() => _StatusBadgeState();
+}
+
+class _StatusBadgeState extends State<_StatusBadge>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 650),
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    if (_StatusBadge._played.add(widget.reference)) {
+      if (widget.success) {
+        HapticFeedback.mediumImpact();
+      } else {
+        HapticFeedback.heavyImpact();
+      }
+      _c.forward();
+    } else {
+      _c.value = 1;
+    }
+  }
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    if (success) {
+    final Widget badge;
+    if (widget.success) {
       // Figma layer "https://lottiefiles.com/95088-success" (62.8 × 59.1).
-      return Image.asset(AtlasAssets.successBadge, width: 62.8, height: 59.1);
-    }
-    // Failure state is not designed; mirrors the success badge's shape.
-    final fg = success ? RexColors.successTeal : RexColors.error;
-    final halo = success ? RexColors.successHalo : RexColors.errorSoft;
-    return Container(
-      width: 59,
-      height: 59,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(color: halo, shape: BoxShape.circle),
-      child: Container(
-        width: 38,
-        height: 38,
-        decoration: BoxDecoration(color: fg, shape: BoxShape.circle),
-        child: Icon(
-          success ? Icons.check_rounded : Icons.close_rounded,
-          color: Colors.white,
-          size: 24,
+      badge = Image.asset(AtlasAssets.successBadge, width: 62.8, height: 59.1);
+    } else {
+      // Failure state is not designed; mirrors the success badge's shape.
+      badge = Container(
+        width: 59,
+        height: 59,
+        alignment: Alignment.center,
+        decoration: const BoxDecoration(
+          color: RexColors.errorSoft,
+          shape: BoxShape.circle,
         ),
+        child: Container(
+          width: 38,
+          height: 38,
+          decoration: const BoxDecoration(
+            color: RexColors.error,
+            shape: BoxShape.circle,
+          ),
+          child: const Icon(Icons.close_rounded, color: Colors.white, size: 24),
+        ),
+      );
+    }
+    return ScaleTransition(
+      scale: CurvedAnimation(parent: _c, curve: Curves.elasticOut),
+      child: FadeTransition(
+        opacity: CurvedAnimation(parent: _c, curve: const Interval(0, 0.35)),
+        child: badge,
       ),
     );
   }

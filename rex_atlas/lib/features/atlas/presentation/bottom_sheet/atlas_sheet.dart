@@ -2,10 +2,12 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/physics.dart';
 
 import '../../../../core/design_system/design_system.dart';
 import '../../application/atlas_controller.dart';
 import '../../domain/models/models.dart';
+import '../../domain/services/services.dart';
 import '../screens/atlas_chat_view.dart';
 import '../screens/atlas_receipt_screen.dart';
 import '../screens/atlas_welcome_view.dart';
@@ -47,6 +49,14 @@ class AtlasSheetState extends State<AtlasSheet>
     super.initState();
     widget.controller.addListener(_onControllerChange);
     _events = widget.controller.events.listen(_onEvent);
+    // Reopened while a payment waits for authorisation: ask again.
+    final pending = widget.controller.pendingPayment;
+    if (pending != null &&
+        widget.controller.stage == ConversationStage.awaitingAuthorization) {
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => _onEvent(RequestAuthorizationEvent(pending)),
+      );
+    }
   }
 
   @override
@@ -71,7 +81,13 @@ class AtlasSheetState extends State<AtlasSheet>
     AtlasSheetMode.fullscreen => s.height,
   };
 
-  void _goTo(AtlasSheetMode m, {bool animate = true}) {
+  static const _spring = SpringDescription(
+    mass: 1,
+    stiffness: 380,
+    damping: 34,
+  );
+
+  void _goTo(AtlasSheetMode m, {bool animate = true, double velocity = 0}) {
     final s = _lastSize;
     if (s == null) {
       _mode = m;
@@ -80,10 +96,9 @@ class AtlasSheetState extends State<AtlasSheet>
     setState(() => _mode = m);
     final target = _heightFor(m, s, _lastTop);
     if (animate) {
-      _height.animateTo(
-        target,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOutCubic,
+      // Spring snap: follows the finger's release velocity (pt/s, upward +).
+      _height.animateWith(
+        SpringSimulation(_spring, _height.value, target, velocity),
       );
     } else {
       _height.value = target;
@@ -173,14 +188,14 @@ class AtlasSheetState extends State<AtlasSheet>
         orElse: () => AtlasSheetMode.collapsed,
       );
       if (h <= collapsedH + 1) return _close();
-      return _goTo(lower);
+      return _goTo(lower, velocity: -v);
     }
     if (v < -900) {
       final higher = order.firstWhere(
         (m) => _heightFor(m, s, _lastTop) > h + 1,
         orElse: () => AtlasSheetMode.fullscreen,
       );
-      return _goTo(higher);
+      return _goTo(higher, velocity: -v);
     }
     if (h < collapsedH * 0.7) return _close();
     final nearest = order.reduce(
@@ -190,7 +205,7 @@ class AtlasSheetState extends State<AtlasSheet>
           ? a
           : b,
     );
-    _goTo(nearest);
+    _goTo(nearest, velocity: -v);
   }
 
   Widget _dragZone(Widget child) => GestureDetector(

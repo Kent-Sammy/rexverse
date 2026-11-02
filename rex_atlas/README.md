@@ -56,6 +56,7 @@ See `docs/VALIDATION.md`.
 | Airtime purchase | ✅ (flow assumed, built from designed components) |
 | Save, Pay Bills, Rexy December | ⏳ Atlas explains these aren't available yet (no designs) |
 | Error states (AI outage + retry, unknown account, failed payment) | ✅ (not designed) |
+| Premium polish: iMessage-style chat, frosted chrome, animated welcome glow, spring sheet, haptics | ✅ (requested; see `docs/ASSUMPTIONS.md`) |
 | Real backends, real biometrics/PIN, analytics, localisation | ❌ for the Rex team |
 
 ## Project structure

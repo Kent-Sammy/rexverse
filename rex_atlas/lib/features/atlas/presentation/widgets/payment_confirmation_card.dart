@@ -120,9 +120,10 @@ class PaymentConfirmationCard extends StatelessWidget {
             child: CardDivider(),
           ),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            child: SizedBox(
-              height: 52,
+            // Figma: 10 gap + 72 row (10 inner padding) + 10 gap.
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 52),
               child: Row(
                 children: [
                   InitialsAvatar(
@@ -135,14 +136,19 @@ class PaymentConfirmationCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text('from', style: RexTypography.cardSub),
+                        Text('from', style: RexTypography.cardSub, maxLines: 1),
                         Text(
                           source.holderName,
                           style: RexTypography.cardName,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        Text(
+                          source.maskedLabel,
+                          style: RexTypography.cardSub,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        Text(source.maskedLabel, style: RexTypography.cardSub),
                       ],
                     ),
                   ),
@@ -163,26 +169,34 @@ class PaymentConfirmationCard extends StatelessWidget {
               color: RexColors.softBlue,
               borderRadius: BorderRadius.circular(RexDimens.innerCardRadius),
             ),
+            // Figma fee box: 89 tall, fee row at +10, total row (40) at +46.
             child: Column(
               children: [
+                const SizedBox(height: 10),
                 SizedBox(
-                  height: 36,
-                  child: AmountRow(
-                    label: draft.kind == PaymentKind.transfer
-                        ? 'Transfer Fee'
-                        : 'Service Fee',
-                    value: Naira.fixed(draft.feeKobo),
+                  height: 29,
+                  child: Align(
+                    alignment: Alignment.topCenter,
+                    child: AmountRow(
+                      label: draft.kind == PaymentKind.transfer
+                          ? 'Transfer Fee'
+                          : 'Service Fee',
+                      value: Naira.fixed(draft.feeKobo),
+                    ),
                   ),
                 ),
+                const SizedBox(height: 3),
                 const CardDivider(color: Colors.white),
+                const SizedBox(height: 3),
                 SizedBox(
-                  height: 50,
+                  height: 40,
                   child: AmountRow(
                     label: 'Total Debit',
                     value: Naira.fixed(draft.totalKobo),
                     isTotal: true,
                   ),
                 ),
+                const SizedBox(height: 3),
               ],
             ),
           ),

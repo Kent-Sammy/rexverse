@@ -37,20 +37,34 @@ class AtlasWelcomeView extends StatelessWidget {
       RexDimens.composerBottomInset,
       MediaQuery.viewInsetsOf(context).bottom + 12,
     );
-    return DecoratedBox(
-      decoration: const _WelcomeBackground(),
+    return _AnimatedWelcomeBackground(
       child: Column(
         children: [
-          const SizedBox(height: RexDimens.sheetHandleTop),
-          const SheetHandle(color: RexColors.welcomeHandle),
           Expanded(
-            child: SingleChildScrollView(
-              physics: const ClampingScrollPhysics(),
-              padding: const EdgeInsets.only(top: 29),
-              child: _WelcomeContent(
-                controller: controller,
-                now: now ?? DateTime.now(),
-              ),
+            child: Stack(
+              children: [
+                // Content starts below the handle (13 + 4 + 29 = 46, as in
+                // Figma) and scrolls under it, so the avatar glow is never
+                // cut off by a clip edge.
+                Positioned.fill(
+                  child: SingleChildScrollView(
+                    physics: const ClampingScrollPhysics(),
+                    padding: const EdgeInsets.only(top: 46),
+                    child: _WelcomeContent(
+                      controller: controller,
+                      now: now ?? DateTime.now(),
+                    ),
+                  ),
+                ),
+                const Positioned(
+                  top: RexDimens.sheetHandleTop,
+                  left: 0,
+                  right: 0,
+                  child: Center(
+                    child: SheetHandle(color: RexColors.welcomeHandle),
+                  ),
+                ),
+              ],
             ),
           ),
           Padding(
@@ -87,7 +101,7 @@ class _WelcomeContent extends StatelessWidget {
     final latest = controller.latestTransfer;
     return Column(
       children: [
-        const AtlasBotAvatar(size: 103),
+        const GlowingAtlasAvatar(size: 103),
         const SizedBox(height: 12),
         Text(RexDates.greeting(now), style: RexTypography.welcomeGreeting),
         Row(
@@ -335,39 +349,176 @@ class _RecentTransferCard extends StatelessWidget {
 }
 
 /// Navy base with the three blurred glows from Figma (ellipses 1589, 1591,
-/// 1592), approximated with radial gradients.
-class _WelcomeBackground extends Decoration {
-  const _WelcomeBackground();
+/// 1592), drawn as radial gradients that drift slowly around their Figma
+/// positions so the sheet feels alive.
+class _AnimatedWelcomeBackground extends StatefulWidget {
+  const _AnimatedWelcomeBackground({required this.child});
+  final Widget child;
 
   @override
-  BoxPainter createBoxPainter([VoidCallback? onChanged]) => _WelcomePainter();
+  State<_AnimatedWelcomeBackground> createState() =>
+      _AnimatedWelcomeBackgroundState();
 }
 
-class _WelcomePainter extends BoxPainter {
+class _AnimatedWelcomeBackgroundState extends State<_AnimatedWelcomeBackground>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(
+    vsync: this,
+    duration: const Duration(seconds: 16),
+  )..repeat();
+
   @override
-  void paint(Canvas canvas, Offset offset, ImageConfiguration cfg) {
-    final size = cfg.size!;
-    final rect = offset & size;
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(painter: _WelcomePainter(_c), child: widget.child);
+  }
+}
+
+class _WelcomePainter extends CustomPainter {
+  _WelcomePainter(this.t) : super(repaint: t);
+  final Animation<double> t;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = Offset.zero & size;
     canvas.drawRect(rect, Paint()..color = RexColors.welcomeBase);
     // Positions are relative to the 402 x 631 Figma sheet.
     final sx = size.width / 402;
-    void glow(double cx, double cy, double r, double opacity) {
-      final c = Offset(rect.left + cx * sx, rect.top + cy);
+    final a = t.value * 2 * math.pi;
+    void glow(
+      double cx,
+      double cy,
+      double r,
+      double opacity,
+      double phase,
+      double ampX,
+      double ampY,
+    ) {
+      final c = Offset(
+        (cx + math.sin(a + phase) * ampX) * sx,
+        cy + math.cos(a * 1 + phase * 1.3) * ampY,
+      );
+      final radius = r * sx * (1 + 0.06 * math.sin(a * 2 + phase));
       canvas.drawCircle(
         c,
-        r * sx,
+        radius,
         Paint()
           ..shader = RadialGradient(
             colors: [
               RexColors.welcomeGlow.withValues(alpha: opacity),
               RexColors.welcomeGlow.withValues(alpha: 0),
             ],
-          ).createShader(Rect.fromCircle(center: c, radius: r * sx)),
+          ).createShader(Rect.fromCircle(center: c, radius: radius)),
       );
     }
 
-    glow(-3.5, 160, 190, 0.9); // Ellipse 1589
-    glow(325.5, 45, 200, 0.95); // Ellipse 1591
-    glow(206, size.height - 5, 260, 1.0); // Ellipse 1592
+    glow(-3.5, 160, 190, 0.9, 0, 26, 30); // Ellipse 1589
+    glow(325.5, 45, 200, 0.95, 2.1, 30, 22); // Ellipse 1591
+    glow(206, size.height - 5, 260, 1.0, 4.2, 40, 14); // Ellipse 1592
   }
+
+  @override
+  bool shouldRepaint(_WelcomePainter old) => false;
+}
+
+/// Welcome avatar with a soft, breathing cyan→purple glow that slowly
+/// rotates around it (echoing the avatar's gradient ring).
+class GlowingAtlasAvatar extends StatefulWidget {
+  const GlowingAtlasAvatar({super.key, required this.size});
+  final double size;
+
+  @override
+  State<GlowingAtlasAvatar> createState() => _GlowingAtlasAvatarState();
+}
+
+class _GlowingAtlasAvatarState extends State<GlowingAtlasAvatar>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(
+    vsync: this,
+    duration: const Duration(seconds: 6),
+  )..repeat();
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final s = widget.size;
+    return SizedBox(
+      width: s,
+      height: s,
+      child: Stack(
+        clipBehavior: Clip.none,
+        alignment: Alignment.center,
+        children: [
+          Positioned(
+            left: -s * 0.35,
+            top: -s * 0.35,
+            right: -s * 0.35,
+            bottom: -s * 0.35,
+            child: IgnorePointer(child: CustomPaint(painter: _GlowPainter(_c))),
+          ),
+          AtlasBotAvatar(size: s, onBlue: false),
+        ],
+      ),
+    );
+  }
+}
+
+class _GlowPainter extends CustomPainter {
+  _GlowPainter(this.t) : super(repaint: t);
+  final Animation<double> t;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final a = t.value * 2 * math.pi;
+    final center = size.center(Offset.zero);
+    final base = size.shortestSide / 2 / 1.7; // avatar radius
+    final breathe = 0.5 + 0.5 * math.sin(a * 2); // two breaths per turn
+    Shader sweep(double r) => SweepGradient(
+      transform: GradientRotation(a),
+      colors: const [
+        RexColors.ringCyan,
+        RexColors.ringPurple,
+        Color(0xFF4D6BFF),
+        RexColors.ringCyan,
+      ],
+    ).createShader(Rect.fromCircle(center: center, radius: r));
+
+    // Wide soft halo that breathes.
+    final haloR = base * (1.18 + 0.12 * breathe);
+    canvas.drawCircle(
+      center,
+      haloR,
+      Paint()
+        ..shader = sweep(haloR)
+        ..maskFilter = MaskFilter.blur(
+          BlurStyle.normal,
+          base * (0.32 + 0.14 * breathe),
+        )
+        ..color = Colors.white.withValues(alpha: 0.75 + 0.25 * breathe),
+    );
+    // Bright rotating rim hugging the avatar ring.
+    final rimR = base + 2;
+    canvas.drawCircle(
+      center,
+      rimR,
+      Paint()
+        ..shader = sweep(rimR)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 4
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5),
+    );
+  }
+
+  @override
+  bool shouldRepaint(_GlowPainter old) => false;
 }
