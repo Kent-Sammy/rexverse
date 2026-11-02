@@ -24,6 +24,8 @@ Originals are kept unchanged in `design/figma-exports/`. The app uses copies und
 | Notification, Light, wifi-square, Wallet, briefcase, Ticket, lightbulb-ai, check-circle | `assets/icons/*.svg` | home screen |
 | home-2, Frame 33798, Chart, wallet, Frame 33801 | `assets/icons/nav_home/save/invest/borrow/more.svg` | home bottom menu |
 | Show | `assets/icons/eye.svg` | balance visibility icon |
+| Arrow - Down 2 | `assets/icons/chevron.svg` | ">" chevrons (suggestions, See More, Transactions, Start Goal) |
+| Coin Stack | `assets/images/coin_stack.png` | home banner illustration |
 
 The SVG files `95088-success.svg` and `🎉.svg` wrap bitmap images in SVG patterns, which
 `flutter_svg` cannot draw, so they were converted to transparent PNGs.
@@ -40,11 +42,10 @@ The SVG files `95088-success.svg` and `🎉.svg` wrap bitmap images in SVG patte
 | Figma layer | Where | Currently shown |
 |---|---|---|
 | `vuesax/twotone/add` | composer "+" | Material `add` |
-| `Iconly/Light/Arrow - Down 2` | suggestion and "See More" chevrons | Material chevron |
 | `vuesax/outline/card`, `card-coin`, `Iconly/Curved/Calling`, `vuesax/outline/bank` | transactions list | Material icons |
 | `Iconly/Bulk/Calling` | home "Airtime" tile | Material icon |
 | `vuesax/outline/copy` (white, account number) | home screen | Material icon |
-| "Coin Stack" + arrow banner art, balance-card shapes, Learn Finance thumbnail | home screen | Material icon / plain fill |
+| Balance-card background shapes, Learn Finance thumbnail | home screen | plain fill / Material icon |
 | Welcome "Emoji" 👋 | greeting | system emoji |
 
 The other bank logos in the mock directory (Access, Zenith…) never appear in the designs.

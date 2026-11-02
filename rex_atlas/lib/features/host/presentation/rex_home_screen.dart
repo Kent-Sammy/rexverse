@@ -298,8 +298,8 @@ class _BalanceCard extends StatelessWidget {
                     ),
                   ),
                   Text('Transactions', style: RexTypography.host(10)),
-                  const Icon(
-                    Icons.chevron_right_rounded,
+                  const RexSvgIcon(
+                    RexSvg.chevron,
                     size: 14,
                     color: RexColors.textStrong,
                   ),
@@ -470,16 +470,30 @@ class _PromoBanner extends StatelessWidget {
             const SizedBox(width: 7),
             Expanded(
               child: Container(
-                padding: const EdgeInsets.fromLTRB(15, 15, 15, 15),
+                clipBehavior: Clip.antiAlias,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8),
                   gradient: const LinearGradient(
                     colors: [RexColors.bannerBlue, Color(0xFF3570B8)],
                   ),
                 ),
-                child: Row(
+                child: Stack(
                   children: [
-                    Expanded(
+                    // Figma "Coin Stack" (148 wide, flush right/bottom).
+                    Positioned(
+                      right: 0,
+                      bottom: 0,
+                      width: 148,
+                      height: 95,
+                      child: Image.asset(
+                        AtlasAssets.coinStack,
+                        fit: BoxFit.contain,
+                        alignment: Alignment.bottomRight,
+                        excludeFromSemantics: true,
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(15, 15, 148, 15),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -524,12 +538,6 @@ class _PromoBanner extends StatelessWidget {
                           ),
                         ],
                       ),
-                    ),
-                    // Coin-stack illustration not exported (see docs/ASSETS.md).
-                    const Icon(
-                      Icons.trending_up_rounded,
-                      size: 48,
-                      color: Color(0x99FFFFFF),
                     ),
                   ],
                 ),
@@ -584,8 +592,8 @@ class _SectionCard extends StatelessWidget {
                         color: RexColors.navy,
                       ),
                     ),
-                    const Icon(
-                      Icons.chevron_right_rounded,
+                    const RexSvgIcon(
+                      RexSvg.chevron,
                       size: 14,
                       color: RexColors.navy,
                     ),
@@ -644,8 +652,8 @@ class _SavingsPlan extends StatelessWidget {
                           color: RexColors.primary,
                         ),
                       ),
-                      const Icon(
-                        Icons.chevron_right_rounded,
+                      const RexSvgIcon(
+                        RexSvg.chevron,
                         size: 12,
                         color: RexColors.primary,
                       ),

@@ -86,9 +86,9 @@ class SuggestionTile extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 6),
-            const Icon(
-              Icons.chevron_right_rounded,
-              size: 16,
+            const RexSvgIcon(
+              RexSvg.chevron,
+              size: 12,
               color: RexColors.textPrimary,
             ),
           ],

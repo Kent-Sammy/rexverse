@@ -26,6 +26,9 @@ abstract final class AtlasAssets {
   /// Success illustration ("https://lottiefiles.com/95088-success" layer).
   static const successBadge = 'assets/images/success_badge.png';
 
+  /// "Coin Stack" banner illustration (home).
+  static const coinStack = 'assets/images/coin_stack.png';
+
   /// "🎉" illustration on the home savings card.
   static const partyPopper = 'assets/images/party_popper.png';
 

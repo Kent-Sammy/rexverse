@@ -36,7 +36,8 @@ enum RexSvg {
   navInvest('nav_invest'),
   navBorrow('nav_borrow'),
   navMore('nav_more'),
-  eye('eye'); // balance visibility ("Show")
+  eye('eye'), // balance visibility ("Show")
+  chevron('chevron'); // Iconly/Light/Arrow - Down 2 (">" chevrons)
 
   const RexSvg(this.file);
   final String file;
