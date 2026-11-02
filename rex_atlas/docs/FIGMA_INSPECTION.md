@@ -19,7 +19,7 @@ Linked node: `25218:51967`, the section **"RexAtlas  New work flow"** (4362 × 1
 
 **Effect.** Layout geometry is exact: positions and sizes come straight from Figma metadata. Colours were
 **sampled from the Figma render** (see `DESIGN_TOKENS.md`). The font was inferred from text-box
-metrics. Bitmap and vector assets use documented placeholders (`ASSETS.md`).
+metrics. Assets were later exported manually by the design owner (`ASSETS.md`).
 
 **To close the gap**, do either of these:
 1. Upgrade the Figma plan, or run the inspection from an account with a higher MCP limit.

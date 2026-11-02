@@ -104,8 +104,9 @@ bottom sheet and the receipt is a pushed page.
 
 ## Known limitations
 
-- The Figma MCP plan limit blocked design variables, per-node styles and asset export. Colours are
-  sampled from renders, the font is inferred (Inter), and some assets are placeholders.
+- The Figma MCP plan limit blocked design variables and per-node styles, so colours are sampled from
+  renders and the font is inferred (Inter). Most artwork was exported manually from Figma; see
+  `docs/ASSETS.md` for the few still missing.
 - Not run on a physical device or emulator: the build container has no Android SDK/KVM or macOS.
   Verified with Flutter web + headless Chromium and widget tests.
 - The AI is a rule-based mock with a small vocabulary (see the demo script).

@@ -4,6 +4,7 @@ import '../../../../core/design_system/design_system.dart';
 import '../../../../core/formatting/naira.dart';
 import '../../../../core/widgets/pressable.dart';
 import '../../domain/models/models.dart';
+import 'atlas_brand.dart';
 import 'payment_confirmation_card.dart';
 import 'payment_parties.dart';
 import 'transaction_details_panel.dart';
@@ -127,7 +128,11 @@ class _StatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Static stand-in for the Lottie "95088-success" animation layer.
+    if (success) {
+      // Figma layer "https://lottiefiles.com/95088-success" (62.8 × 59.1).
+      return Image.asset(AtlasAssets.successBadge, width: 62.8, height: 59.1);
+    }
+    // Failure state is not designed; mirrors the success badge's shape.
     final fg = success ? RexColors.successTeal : RexColors.error;
     final halo = success ? RexColors.successHalo : RexColors.errorSoft;
     return Container(

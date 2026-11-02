@@ -131,7 +131,12 @@ class _AtlasComposerState extends State<AtlasComposer> {
               width: 27,
               height: 27,
               child: Center(
-                child: RexSvgIcon(RexSvg.audioFilled, size: 25, color: accent),
+                // Figma export is #323DFF; tinted white on the dark welcome sheet.
+                child: RexSvgIcon(
+                  RexSvg.mic,
+                  size: 27,
+                  color: dark ? Colors.white : null,
+                ),
               ),
             ),
           ),
@@ -153,11 +158,7 @@ class _AtlasComposerState extends State<AtlasComposer> {
                   color: Colors.white,
                   shape: BoxShape.circle,
                 ),
-                child: const RexSvgIcon(
-                  RexSvg.sendAltFilled,
-                  size: 14,
-                  color: RexColors.primary,
-                ),
+                child: const RexSvgIcon(RexSvg.iconlySend, size: 14),
               ),
             ),
           ),

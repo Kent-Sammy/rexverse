@@ -38,8 +38,8 @@ Screenshots are in `docs/validation/`. Each compared screen went through capture
 
 | Screen | Status | Fixed during validation | Remaining differences |
 |---|---|---|---|
-| 1 Home (host) | close | header offset (15 pt too low), banner button width | illustrations are placeholders; host is a stand-in |
-| 2 Welcome sheet | close | composer font 17→14, send button no longer dimmed at rest | avatar placeholder; glow shapes approximated; greeting follows time of day |
+| 1 Home (host) | close | header offset (15 pt too low), banner button width | banner art and some icons not yet exported; host is a stand-in |
+| 2 Welcome sheet | close | composer font 17→14, send button no longer dimmed at rest | glow shapes approximated; greeting follows time of day |
 | 3 Chat + review card | close | Amount→Fee pitch 43→36 pt, name/row sizes, quick-reply chips no longer stretch, input keeps focus after send | bubble line breaks differ where Figma used fixed-width text boxes; "OA" vs "OM" |
 | 4 Confirmation card | close | none | from-row shows the user (intentional) |
 | 5 Fingerprint sheet | very close | none | added demo caption |
@@ -47,8 +47,8 @@ Screenshots are in `docs/validation/`. Each compared screen went through capture
 | 8 Suggestions | close | title/subtitle size; long title scales to fit | duplicate tile removed |
 | 9 Transactions | close | row pitch 51→62 pt | new demo transfers appear at the top |
 
-Not claimed: pixel-perfect fidelity. The colours are sampled, the font is unconfirmed, and several
-assets are placeholders (see `ASSETS.md`).
+Not claimed: pixel-perfect fidelity. The colours are sampled and the font is unconfirmed. Most artwork
+is now the real Figma export; the remaining gaps are listed in `ASSETS.md`.
 
 ## Not tested
 

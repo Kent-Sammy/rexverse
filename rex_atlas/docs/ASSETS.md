@@ -7,28 +7,43 @@
 | Inter Regular/Medium/SemiBold/Bold | rsms/inter v4.1 (SIL OFL 1.1) | `assets/fonts/` |
 | `carbon:send-alt-filled`, `fa7-solid:piggy-bank`, `wpf:banknotes`, `bxs:phone-call`, `bi:fingerprint`, `boxicons:maximize-filled`, `coolicons:close`, `ant-design:audio-filled`, `bi:arrow-left`, `ant-design:check-circle-outlined`, `ri:lightbulb-ai-fill` | Iconify, using the **exact icon names from the Figma layer names** (same open-source sets the designer used) | `assets/icons/*.svg` |
 
-## Missing Figma assets (placeholders in use)
+## Exported from Figma by the design owner
 
-Drop the exported file at the given path and it replaces the placeholder automatically
-(`ReplaceableAsset` checks the asset manifest at runtime). After adding files, run `flutter pub get`.
+Originals are kept unchanged in `design/figma-exports/`. The app uses copies under `assets/`.
 
-| Figma layer | Node (example) | Slot path | Current placeholder |
-|---|---|---|---|
-| Assistant avatar "Gemini_Generated_Image_cpel96cpel96cpel 1" | `25217:42513` | `assets/images/atlas_assistant_avatar.png` | blue disc with a robot glyph inside the (correct) gradient ring |
-| Rex Atlas mark (header, tile, confirmation card) | `25217:43423` | `assets/images/rex_atlas_mark.svg` | hand-drawn approximation (`_AtlasMarkPainter`), **temporary** |
-| "GTBank Plc" logo | `25218:43726` | `assets/images/banks/058.png` | orange disc with "GTB" |
-| Other bank / network logos | none | `assets/images/banks/<bankCode>.png`, `net-<Network>.png` | coloured disc with initials |
-| Success Lottie "95088-success" | `25218:48000` | none (needs the `lottie` package) | static teal check badge |
-| Home banner coins, 🎉 illustration, Learn Finance thumbnail, balance-card shapes | `25217:42730`, `25217:42746`, … | none (host stand-in only) | Material icon / emoji |
-| Welcome "Emoji" 👋 | `25217:42497` | none | system emoji glyph |
+| Figma layer | App file | Used in |
+|---|---|---|
+| "Gemini_Generated_Image…" avatar (with ring) | `assets/images/atlas_assistant_avatar.png` | welcome sheet, every assistant message |
+| "Frame 2147234634" (mark on light-blue disc) | `assets/images/rex_atlas_badge.svg` | chat header, confirmation card |
+| mark paths from that frame | `assets/images/rex_atlas_mark.svg` | home "RexAtlas" tile |
+| "Component 5" (mark on navy disc) | `assets/images/rex_atlas_badge_dark.svg` | home "Ask RexAtlas" bar |
+| "GTBank Plc" | `assets/images/banks/058.svg` | review and confirmation cards |
+| "95088-success" | `assets/images/success_badge.png` (3×, extracted from the SVG's embedded image) | result card |
+| "🎉" | `assets/images/party_popper.png` (3×, extracted) | home savings card |
+| Iconly Send, audio frame, copy | `assets/icons/iconly_send.svg`, `mic_frame.svg`, `copy.svg` | composer, Transaction Details |
+| Notification, Light, wifi-square, Wallet, briefcase, Ticket, lightbulb-ai, check-circle | `assets/icons/*.svg` | home screen |
 
-## Icon substitutions (Iconly / vuesax sets are not publicly available)
+The SVG files `95088-success.svg` and `🎉.svg` wrap bitmap images in SVG patterns, which
+`flutter_svg` cannot draw, so they were converted to transparent PNGs.
 
-| Figma icon | Used instead |
-|---|---|
-| `vuesax/twotone/add` (composer +) | `Icons.add` |
-| `Iconly/Bold/Send` (composer send) | `carbon:send-alt-filled` (also a paper plane) |
-| `Iconly/Light/Arrow - Down 2` (chevrons) | `Icons.chevron_right_rounded` |
-| `vuesax/outline/card`, `card-coin`, `Iconly/Curved/Calling`, `vuesax/outline/bank` | `Icons.credit_card_rounded`, `currency_exchange_rounded`, `phone_in_talk_outlined`, `account_balance_outlined` |
-| `Copy` | `Icons.copy_rounded` |
-| Host icons (`vuesax/bold/home-2`, `Iconly/Bold/Wallet`, …) | Material equivalents |
+## Still missing (exports needed)
+
+| Figma layer | Where | Currently shown |
+|---|---|---|
+| Chat-sized assistant avatar (robot on blue disc, frame "Frame 2147234634" inside a chat row, e.g. `25217:43670`) | assistant messages | the welcome avatar (white background) |
+| `vuesax/twotone/add` | composer "+" | Material `add` |
+| `Iconly/Light/Arrow - Down 2` | suggestion and "See More" chevrons | Material chevron |
+| `vuesax/outline/card`, `card-coin`, `Iconly/Curved/Calling`, `vuesax/outline/bank` | transactions list | Material icons |
+| `Iconly/Bulk/Calling` | home "Airtime" tile | Material icon |
+| Bottom-menu icons (home-2, Save, Invest, Borrow, More), eye icon, `vuesax/outline/copy` (white) | home screen | Material icons |
+| "Coin Stack" + arrow banner art, balance-card shapes, Learn Finance thumbnail | home screen | Material icon / plain fill |
+| Welcome "Emoji" 👋 | greeting | system emoji |
+
+The other bank logos in the mock directory (Access, Zenith…) never appear in the designs.
+They fall back to a coloured disc with initials.
+
+## Icons matched by name
+
+The quick-action and sheet icons (`carbon:send-alt-filled`, `fa7-solid:piggy-bank`, `wpf:banknotes`,
+`bxs:phone-call`, `bi:fingerprint`, `boxicons:maximize-filled`, `coolicons:close`, `bi:arrow-left`)
+come from Iconify, using the exact icon names in the Figma layer names.

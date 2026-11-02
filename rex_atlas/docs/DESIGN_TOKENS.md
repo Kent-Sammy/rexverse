@@ -39,7 +39,7 @@ Figma variables could **not** be read (MCP plan limit, see `FIGMA_INSPECTION.md`
 | history icon discs | `#E1FFE3`, `#E7F0FE`, `#E2FCFF`, `#FFF0D9` | transactions list |
 | ring gradient | `#02BEFF` → `#9A35FF` | assistant avatar ring |
 | card wash | `#DCECFF` → `#FCD7FF` | confirmation/result card blurred ellipses |
-| `gtBankOrange` | `#D94F00` | GTBank logo placeholder |
+| `gtBankOrange` | `#D94F00` | GTBank logo (matches the exported SVG) |
 | host tiles | `#EBF3EB`, `#EFF3FF`, `#FFF7EB`, `#EBFAFC` | home service grid |
 
 ## Typography

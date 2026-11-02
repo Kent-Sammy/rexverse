@@ -74,11 +74,7 @@ class TransactionDetailsPanel extends StatelessWidget {
                             );
                             onCopied?.call(rows[i].label);
                           },
-                          child: Icon(
-                            Icons.copy_rounded,
-                            size: 10 * scale,
-                            color: RexColors.textDetailLabel,
-                          ),
+                          child: RexSvgIcon(RexSvg.copy, size: 9.6 * scale),
                         ),
                       ],
                     ],

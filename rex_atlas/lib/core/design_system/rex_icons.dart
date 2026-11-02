@@ -5,8 +5,8 @@ import 'package:flutter_svg/flutter_svg.dart';
 /// (e.g. `carbon:send-alt-filled`). The SVGs in `assets/icons/` were fetched
 /// from Iconify using those exact names, so they match the design source.
 ///
-/// Iconly / vuesax icons (not publicly available) use Material icons
-/// instead; those substitutions are listed in docs/ASSETS.md.
+/// Iconly / vuesax icons were exported from Figma by the design owner and
+/// keep their original colours unless a tint is passed.
 enum RexSvg {
   sendAltFilled('send_alt_filled'), // carbon:send-alt-filled
   piggyBank('piggy_bank'), // fa7-solid:piggy-bank
@@ -20,7 +20,17 @@ enum RexSvg {
   checkCircleOutlined(
     'check_circle_outlined',
   ), // ant-design:check-circle-outlined
-  lightbulbAi('lightbulb_ai'); // ri:lightbulb-ai-fill
+  lightbulbAi('lightbulb_ai'), // ri:lightbulb-ai-fill (Figma export)
+  // Exported from Figma by the design owner:
+  iconlySend('iconly_send'), // Iconly/Bold/Send (composer)
+  mic('mic_frame'), // ant-design:audio-filled frame (composer)
+  copy('copy'), // vuesax copy (Transaction No.)
+  notification('notification'), // home bell
+  light('light'), // Electricity tile
+  wifiSquare('wifi_square'), // Data tile (two-tone, keep colours)
+  wallet('wallet'), // RexSave tile
+  briefcase('briefcase'), // RexVault tile
+  ticket('ticket'); // RexFlex tile
 
   const RexSvg(this.file);
   final String file;
@@ -28,11 +38,13 @@ enum RexSvg {
 }
 
 class RexSvgIcon extends StatelessWidget {
-  const RexSvgIcon(this.icon, {super.key, this.size = 24, required this.color});
+  const RexSvgIcon(this.icon, {super.key, this.size = 24, this.color});
 
   final RexSvg icon;
   final double size;
-  final Color color;
+
+  /// Tint colour. Null keeps the colours baked into the Figma export.
+  final Color? color;
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +52,9 @@ class RexSvgIcon extends StatelessWidget {
       icon.path,
       width: size,
       height: size,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
+      colorFilter: color == null
+          ? null
+          : ColorFilter.mode(color!, BlendMode.srcIn),
     );
   }
 }

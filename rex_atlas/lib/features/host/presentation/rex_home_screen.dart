@@ -128,21 +128,7 @@ class _Header extends StatelessWidget {
                 ),
                 child: Row(
                   children: [
-                    Container(
-                      width: 21.7,
-                      height: 21.7,
-                      alignment: Alignment.center,
-                      decoration: const BoxDecoration(
-                        color: RexColors.navy,
-                        shape: BoxShape.circle,
-                      ),
-                      child: const AtlasMark(
-                        width: 11.4,
-                        height: 9,
-                        primary: Colors.white,
-                        accent: RexColors.headerIcon,
-                      ),
-                    ),
+                    const AtlasMarkBadge(size: 21.7, dark: true),
                     const SizedBox(width: 8),
                     Text(
                       'Ask RexAtlas.....',
@@ -164,11 +150,8 @@ class _Header extends StatelessWidget {
                 color: Colors.white,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
-                Icons.notifications_rounded,
-                size: 22,
-                color: RexColors.navy,
-              ),
+              alignment: Alignment.center,
+              child: const RexSvgIcon(RexSvg.notification, size: 24),
             ),
           ),
           const SizedBox(width: 4),
@@ -283,11 +266,7 @@ class _BalanceCard extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 11),
               child: Row(
                 children: [
-                  const RexSvgIcon(
-                    RexSvg.checkCircleOutlined,
-                    size: 16,
-                    color: RexColors.hostCheckGreen,
-                  ),
+                  const RexSvgIcon(RexSvg.checkCircleOutlined, size: 16),
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text.rich(
@@ -407,31 +386,19 @@ class _ServicesGrid extends StatelessWidget {
               tile(
                 'Data',
                 RexColors.tileBlue,
-                const Icon(
-                  Icons.wifi_rounded,
-                  size: 24,
-                  color: RexColors.iconBlue,
-                ),
+                const RexSvgIcon(RexSvg.wifiSquare, size: 24),
               ),
               gap,
               tile(
                 'Electricity',
                 RexColors.tileOrange,
-                const Icon(
-                  Icons.bolt_rounded,
-                  size: 28,
-                  color: RexColors.iconOrange,
-                ),
+                const RexSvgIcon(RexSvg.light, size: 28),
               ),
               gap,
               tile(
                 'Budgets',
                 RexColors.tileCyan,
-                const RexSvgIcon(
-                  RexSvg.lightbulbAi,
-                  size: 24,
-                  color: RexColors.iconCyan,
-                ),
+                const RexSvgIcon(RexSvg.lightbulbAi, size: 24),
               ),
             ],
           ),
@@ -441,31 +408,19 @@ class _ServicesGrid extends StatelessWidget {
               tile(
                 'RexSave',
                 RexColors.tileOrange,
-                const Icon(
-                  Icons.account_balance_wallet_rounded,
-                  size: 24,
-                  color: RexColors.iconOrange,
-                ),
+                const RexSvgIcon(RexSvg.wallet, size: 24),
               ),
               gap,
               tile(
                 'RexVault',
                 RexColors.tileCyan,
-                const Icon(
-                  Icons.work_rounded,
-                  size: 24,
-                  color: RexColors.iconCyan,
-                ),
+                const RexSvgIcon(RexSvg.briefcase, size: 24),
               ),
               gap,
               tile(
                 'RexFlex',
                 RexColors.tileGreen,
-                const Icon(
-                  Icons.confirmation_number_rounded,
-                  size: 24,
-                  color: RexColors.iconGreen,
-                ),
+                const RexSvgIcon(RexSvg.ticket, size: 24),
               ),
               gap,
               tile(
@@ -687,9 +642,9 @@ class _SavingsPlan extends StatelessWidget {
               ],
             ),
           ),
-          // 🎉 illustration not exported (see docs/ASSETS.md).
-          const Text('🎉', style: TextStyle(fontSize: 34)),
-          const SizedBox(width: 10),
+          // Figma "🎉" illustration (77 × 59), exported by the design owner.
+          Image.asset(AtlasAssets.partyPopper, width: 78, height: 59),
+          const SizedBox(width: 6),
         ],
       ),
     );
