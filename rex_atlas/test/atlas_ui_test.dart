@@ -1,0 +1,218 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:rex_atlas/app/app.dart';
+import 'package:rex_atlas/features/atlas/atlas.dart';
+import 'package:rex_atlas/features/atlas/presentation/bottom_sheet/atlas_sheet.dart';
+
+Future<void> pumpFor(WidgetTester t, [int ms = 1500]) async {
+  for (var i = 0; i < ms ~/ 100; i++) {
+    await t.pump(const Duration(milliseconds: 100));
+  }
+}
+
+Future<void> sendText(WidgetTester t, String text) async {
+  await t.enterText(find.byKey(const Key('atlas-composer-field')), text);
+  await t.pump();
+  await t.tap(find.byKey(const Key('atlas-send-button')));
+  await pumpFor(t);
+}
+
+void setPhone(WidgetTester t, Size size) {
+  t.view.physicalSize = size;
+  t.view.devicePixelRatio = 1;
+  addTearDown(t.view.reset);
+}
+
+void main() {
+  testWidgets('end-to-end designed transfer through the UI', (t) async {
+    setPhone(t, const Size(402, 874));
+    await t.pumpWidget(
+      RexAtlasDemoApp(
+        dependencies: AtlasDependencies.mock(latency: Duration.zero),
+        now: DateTime(2026, 11, 2, 9),
+      ),
+    );
+    await t.pump();
+
+    // Entry point: "Ask RexAtlas....." pill.
+    await t.tap(find.byKey(const Key('home-ask-atlas')));
+    await pumpFor(t, 600);
+    expect(find.text('Good morning,'), findsOneWidget);
+    expect(find.text('How can I help you today?'), findsOneWidget);
+    final sheet = t.state<AtlasSheetState>(find.byType(AtlasSheet));
+    expect(sheet.mode, AtlasSheetMode.collapsed);
+
+    // Quick action → chat expands.
+    await t.tap(find.text('Send\nMoney'));
+    await pumpFor(t);
+    expect(
+      find.text('Which account do you want to send money to?'),
+      findsOneWidget,
+    );
+    expect(sheet.mode, AtlasSheetMode.expanded);
+
+    await sendText(t, 'Send ₦3000 to GTB 0004218716');
+    expect(find.text('ODELEYE OLAYINKA ANTHONY'), findsOneWidget);
+    expect(find.text('Total Debit'), findsOneWidget);
+    expect(find.text('Shall I go ahead?'), findsOneWidget);
+
+    await t.tap(find.byKey(const Key('quick-reply-Yes, continue please')));
+    await pumpFor(t);
+    expect(find.text('Confirm with your fingerprint'), findsOneWidget);
+    expect(
+      find.text('Demo: tap the fingerprint to simulate approval'),
+      findsOneWidget,
+    );
+
+    await t.tap(find.byKey(const Key('biometric-fingerprint')));
+    await pumpFor(t, 3000);
+    expect(find.byKey(const Key('biometric-sheet')), findsNothing);
+    expect(find.text('Transfer Successful!'), findsOneWidget);
+    expect(
+      find.text('Demo transaction · simulated, not a real bank record'),
+      findsOneWidget,
+    );
+
+    await t.tap(find.text('View Receipt'));
+    await pumpFor(t, 1200);
+    expect(find.text('Transaction Receipt'), findsOneWidget);
+    expect(find.byKey(const Key('receipt-demo-banner')), findsOneWidget);
+    await t.tap(find.byKey(const Key('receipt-back')));
+    await pumpFor(t, 800);
+    expect(find.text('Transaction Receipt'), findsNothing);
+
+    // Close and reopen: the conversation is kept.
+    await t.tap(find.bySemanticsLabel('Close Rex Atlas').last);
+    await pumpFor(t, 600);
+    expect(find.byType(AtlasSheet), findsNothing);
+    await t.tap(find.byKey(const Key('home-atlas-tile')));
+    await pumpFor(t, 600);
+    expect(find.text('Transfer Successful!'), findsOneWidget);
+  });
+
+  testWidgets('biometric cancel, PIN fallback and fullscreen toggle', (
+    t,
+  ) async {
+    setPhone(t, const Size(402, 874));
+    await t.pumpWidget(
+      RexAtlasDemoApp(
+        dependencies: AtlasDependencies.mock(latency: Duration.zero),
+      ),
+    );
+    await t.pump();
+    await t.tap(find.byKey(const Key('home-ask-atlas')));
+    await pumpFor(t, 600);
+    await sendText(t, 'Send ₦3000 to GTB 0004218716');
+    await sendText(t, 'yes');
+    expect(find.text('Confirm with your fingerprint'), findsOneWidget);
+
+    await t.tap(find.byKey(const Key('biometric-use-pin')));
+    await t.pump();
+    expect(find.text('PIN authorisation'), findsOneWidget);
+    expect(
+      find.byType(TextField),
+      findsOneWidget,
+    ); // only the composer – no PIN field
+    await t.tap(find.byKey(const Key('biometric-back')));
+    await t.pump();
+
+    await t.tap(find.byKey(const Key('biometric-close')));
+    await pumpFor(t, 800);
+    expect(find.textContaining("I haven't sent anything"), findsOneWidget);
+
+    final sheet = t.state<AtlasSheetState>(find.byType(AtlasSheet));
+    await t.tap(find.bySemanticsLabel('Expand to full screen'));
+    await pumpFor(t, 500);
+    expect(sheet.mode, AtlasSheetMode.fullscreen);
+    await t.tap(find.bySemanticsLabel('Exit full screen'));
+    await pumpFor(t, 500);
+    expect(sheet.mode, AtlasSheetMode.expanded);
+  });
+
+  testWidgets('undesigned controls give feedback instead of doing nothing', (
+    t,
+  ) async {
+    setPhone(t, const Size(402, 874));
+    await t.pumpWidget(
+      RexAtlasDemoApp(
+        dependencies: AtlasDependencies.mock(latency: Duration.zero),
+      ),
+    );
+    await t.pump();
+    await t.tap(find.byKey(const Key('home-ask-atlas')));
+    await pumpFor(t, 600);
+    await t.tap(find.bySemanticsLabel('Voice input'));
+    await t.pump();
+    expect(
+      find.text('Voice input isn’t available in this prototype yet'),
+      findsOneWidget,
+    );
+    await pumpFor(t, 3000);
+  });
+
+  testWidgets('dragging the welcome sheet down closes Atlas', (t) async {
+    setPhone(t, const Size(402, 874));
+    await t.pumpWidget(
+      RexAtlasDemoApp(
+        dependencies: AtlasDependencies.mock(latency: Duration.zero),
+      ),
+    );
+    await t.pump();
+    await t.tap(find.byKey(const Key('home-ask-atlas')));
+    await pumpFor(t, 600);
+    await t.fling(
+      find.byKey(const Key('atlas-drag-zone')),
+      const Offset(0, 400),
+      2000,
+    );
+    await pumpFor(t, 800);
+    expect(find.byType(AtlasSheet), findsNothing);
+  });
+
+  testWidgets('keyboard: collapsed sheet expands and composer stays above it', (
+    t,
+  ) async {
+    setPhone(t, const Size(402, 874));
+    await t.pumpWidget(
+      RexAtlasDemoApp(
+        dependencies: AtlasDependencies.mock(latency: Duration.zero),
+      ),
+    );
+    await t.pump();
+    await t.tap(find.byKey(const Key('home-ask-atlas')));
+    await pumpFor(t, 600);
+    final sheet = t.state<AtlasSheetState>(find.byType(AtlasSheet));
+    expect(sheet.mode, AtlasSheetMode.collapsed);
+
+    t.view.viewInsets = const FakeViewPadding(bottom: 336);
+    addTearDown(t.view.resetViewInsets);
+    await pumpFor(t, 600);
+    expect(sheet.mode, AtlasSheetMode.expanded);
+    final composer = t.getRect(find.byKey(const Key('atlas-composer-field')));
+    expect(composer.bottom, lessThanOrEqualTo(874 - 336));
+    expect(t.takeException(), isNull);
+  });
+
+  for (final size in const [Size(360, 640), Size(320, 568), Size(430, 932)]) {
+    testWidgets(
+      'no layout overflow at ${size.width.toInt()}x${size.height.toInt()}',
+      (t) async {
+        setPhone(t, size);
+        await t.pumpWidget(
+          RexAtlasDemoApp(
+            dependencies: AtlasDependencies.mock(latency: Duration.zero),
+          ),
+        );
+        await t.pump();
+        await t.tap(find.byKey(const Key('home-ask-atlas')));
+        await pumpFor(t, 600);
+        await sendText(t, 'Send ₦3000 to GTB 0004218716');
+        await sendText(t, 'yes');
+        await t.tap(find.byKey(const Key('biometric-fingerprint')));
+        await pumpFor(t, 3000);
+        await sendText(t, 'Show my recent transactions');
+        expect(t.takeException(), isNull);
+      },
+    );
+  }
+}
