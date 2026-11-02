@@ -12,6 +12,8 @@ Figma variables could **not** be read (MCP plan limit, see `FIGMA_INSPECTION.md`
 
 ## Colours
 
+> Several text colours were darkened for WCAG 2.0 AA contrast. See `ACCESSIBILITY.md` for the before and after values.
+
 | Token | Value | Where measured |
 |---|---|---|
 | `navy` | `#002766` | header title, "OM" text, "Make another transfer" button, welcome sheet base |
@@ -59,11 +61,11 @@ suggests the render used a fallback font. **Confirm the family against the Rex s
 | Review rows / total | 14 / 400–600 | box h 17 |
 | Confirmation amount | 22 / 700 | box h 27 |
 | Fingerprint title / body | 20 / 600, 14 / 400 | box h 24 / 17 |
-| Result title / body | 15 / 600, 11.5 / 400 | box h 18 / 28 (2 lines) |
-| Small buttons | 9 / 600 | "View Receipt" hug 58 |
-| Detail rows | 8 / 400 | box h 10, "Transaction No." hug 66 |
+| Result title / body | **16** / 600, **13** / 400 (Figma 15, 11.5) | matched to the chat's 14 px text |
+| Small buttons | **12** / 600 (Figma 9) | one line, scales down to fit |
+| Detail rows | **11** / 400–500 (Figma 8) | raised for legibility in the narrower cards |
 | Suggestion title / subtitle | 14 / 400 (scales down to fit), 12 / 400 | see note* |
-| History title / meta / amount / status | 12/500, 10/400, 12/600, 10/500 | "₦100" hug 31, "Successful" hug 53 |
+| History title / meta / amount / status | 13/500, 11/400, 13/600, 11/500 (Figma 12/10) | minimum 11 px |
 
 \* The Figma text box for "Get Started With Rexy December" (269 wide) overflows its 298-wide tile,
 so the title scales down to fit rather than overflowing.

@@ -6,6 +6,8 @@ import 'package:flutter/painting.dart';
 /// here was sampled from the rendered Figma frames in the
 /// "RexAtlas  New work flow" section (node 25218:51967). See
 /// `docs/DESIGN_TOKENS.md` for where each value was measured.
+/// All text/background pairs meet WCAG 2.0 AA (4.5:1 normal text, 3:1
+/// large text and UI icons); see docs/ACCESSIBILITY.md for the ratios.
 abstract final class RexColors {
   // Brand
   static const navy = Color(0xFF002766);
@@ -25,7 +27,9 @@ abstract final class RexColors {
   // Atlas sheet chrome
   static const sheetHandle = Color(0xFFC0D6FF);
   static const welcomeHandle = Color(0xFFA9C4F6);
-  static const headerIcon = Color(0xFF6CA4FF);
+  static const headerIcon = Color(
+    0xFF4D91FF,
+  ); // Figma #6CA4FF, darkened to 3:1 (WCAG non-text)
 
   /// Scrim drawn over the host app while Atlas is open.
   /// Solved from dimmed vs. undimmed pixels: #090D1E at 75% opacity.
@@ -38,21 +42,26 @@ abstract final class RexColors {
   // Text
   static const textPrimary = Color(0xFF313131);
   static const textStrong = Color(0xFF130F26);
-  static const textSecondary = Color(0xFF838383);
+  static const textSecondary = Color(
+    0xFF696969,
+  ); // Figma #838383 → 4.5:1 on white and #E2EBFF
   static const textMuted = Color(0xFF696666);
-  static const textPlaceholder = Color(0xFF969696);
-  static const textSubtle = Color(0xFF797979);
+  static const textPlaceholder = Color(
+    0xFF696969,
+  ); // Figma #969696 → 4.5:1 on #E2EBFF
+  static const textSubtle = Color(0xFF757575); // Figma #797979 → 4.6:1
   static const textBody = Color(0xFF646464);
   static const textDetailTitle = Color(0xFF444444);
-  static const textDetailLabel = Color(0xFFA5A5A5);
+  static const textDetailLabel = Color(0xFF757575); // Figma #A5A5A5 → 4.6:1
   static const textDetailValue = Color(0xFF505050);
-  static const textTxMeta = Color(0xFF96A1B8);
+  static const textTxMeta = Color(0xFF667697); // Figma #96A1B8 → 4.56:1
 
   // Status
   static const success = Color(0xFF008000);
   static const successTeal = Color(0xFF3DD6C9);
   static const successHalo = Color(0xFFDDF8F5);
   static const error = Color(0xFFD92D20);
+  static const warning = Color(0xFFA66600); // pending status text, 4.64:1
   static const errorSoft = Color(0xFFFDECEA);
 
   // Icon accents (quick actions / suggestions / history)
@@ -90,6 +99,6 @@ abstract final class RexColors {
   static const iconBlue = Color(0xFF5177FD);
   static const iconOrange = Color(0xFFFF981F);
   static const iconCyan = Color(0xFF14C3DA);
-  static const navInactive = Color(0xFFB9C3D6);
-  static const bannerBlue = Color(0xFF4F86C8);
+  static const navInactive = Color(0xFF5F76A1); // 4.57:1
+  static const bannerBlue = Color(0xFF3B76BD); // white text 4.65:1
 }

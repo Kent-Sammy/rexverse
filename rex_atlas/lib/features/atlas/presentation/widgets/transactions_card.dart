@@ -82,14 +82,14 @@ class _TransactionRow extends StatelessWidget {
     final (icon, fg, bg) = _style;
     final status = switch (record.status) {
       TransactionStatus.successful => ('Successful', RexColors.success),
-      TransactionStatus.pending => ('Pending', RexColors.accentOrange),
+      TransactionStatus.pending => ('Pending', RexColors.warning),
       TransactionStatus.failed => ('Failed', RexColors.error),
     };
     return Pressable(
       semanticLabel: '${record.title}, ${Naira.plain(record.amountKobo)}',
       onTap: onTap,
-      child: SizedBox(
-        height: 40,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 40),
         child: Padding(
           padding: const EdgeInsets.only(left: 12, right: 20),
           child: Row(
@@ -135,9 +135,13 @@ class _TransactionRow extends StatelessWidget {
                             ),
                           ),
                         ],
-                        Text(
-                          RexDates.short(record.timestamp),
-                          style: RexTypography.historyMeta,
+                        Flexible(
+                          child: Text(
+                            RexDates.short(record.timestamp),
+                            style: RexTypography.historyMeta,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                       ],
                     ),

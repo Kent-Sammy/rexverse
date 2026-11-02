@@ -173,8 +173,8 @@ class PaymentConfirmationCard extends StatelessWidget {
             child: Column(
               children: [
                 const SizedBox(height: 10),
-                SizedBox(
-                  height: 29,
+                ConstrainedBox(
+                  constraints: const BoxConstraints(minHeight: 29),
                   child: Align(
                     alignment: Alignment.topCenter,
                     child: AmountRow(
@@ -188,8 +188,8 @@ class PaymentConfirmationCard extends StatelessWidget {
                 const SizedBox(height: 3),
                 const CardDivider(color: Colors.white),
                 const SizedBox(height: 3),
-                SizedBox(
-                  height: 40,
+                ConstrainedBox(
+                  constraints: const BoxConstraints(minHeight: 40),
                   child: AmountRow(
                     label: 'Total Debit',
                     value: Naira.fixed(draft.totalKobo),

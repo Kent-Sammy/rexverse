@@ -28,7 +28,20 @@ class _AppearState extends State<Appear> with SingleTickerProviderStateMixin {
   late final AnimationController _c = AnimationController(
     vsync: this,
     duration: widget.duration,
-  )..forward();
+  );
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Respect the OS "reduce motion" setting.
+    final reduce = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+    if (reduce) {
+      _c.value = 1;
+    } else if (_c.status == AnimationStatus.dismissed) {
+      _c.forward();
+    }
+  }
+
   late final Animation<double> _move = CurvedAnimation(
     parent: _c,
     curve: Curves.easeOutBack,

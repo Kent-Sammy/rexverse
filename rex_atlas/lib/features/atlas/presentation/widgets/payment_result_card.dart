@@ -42,7 +42,7 @@ class PaymentResultCard extends StatelessWidget {
         : 'Buy more airtime';
 
     return WashCard(
-      padding: const EdgeInsets.fromLTRB(28, 21, 28, 12),
+      padding: const EdgeInsets.fromLTRB(16, 21, 16, 14),
       child: Column(
         children: [
           _StatusBadge(success: ok, reference: result.reference),
@@ -169,7 +169,12 @@ class _StatusBadgeState extends State<_StatusBadge>
     final Widget badge;
     if (widget.success) {
       // Figma layer "https://lottiefiles.com/95088-success" (62.8 × 59.1).
-      badge = Image.asset(AtlasAssets.successBadge, width: 62.8, height: 59.1);
+      badge = Image.asset(
+        AtlasAssets.successBadge,
+        excludeFromSemantics: true,
+        width: 62.8,
+        height: 59.1,
+      );
     } else {
       // Failure state is not designed; mirrors the success badge's shape.
       badge = Container(
@@ -220,15 +225,20 @@ class _SmallButton extends StatelessWidget {
       semanticLabel: label,
       onTap: onTap,
       child: Container(
-        height: 29.2,
+        constraints: const BoxConstraints(minHeight: 34),
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
         alignment: Alignment.center,
         decoration: BoxDecoration(
           color: background,
           borderRadius: BorderRadius.circular(4),
         ),
-        child: Text(
-          label,
-          style: RexTypography.smallButton.copyWith(color: foreground),
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            label,
+            maxLines: 1,
+            style: RexTypography.smallButton.copyWith(color: foreground),
+          ),
         ),
       ),
     );

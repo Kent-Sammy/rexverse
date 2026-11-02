@@ -37,7 +37,7 @@ flutter analyze
 flutter test
 ```
 
-29 tests: unit tests (formatting, intent parsing, conversation/payment state machine) and widget
+34 tests: unit tests (formatting, intent parsing, conversation/payment state machine) and widget
 tests (end-to-end flow, PIN fallback, full screen, drag-to-close, keyboard, no-overflow at 3 sizes).
 See `docs/VALIDATION.md`.
 
@@ -102,6 +102,7 @@ bottom sheet and the receipt is a pushed page.
 - [`docs/MOCK_SERVICES.md`](docs/MOCK_SERVICES.md): mock behaviour and a step-by-step demo script
 - [`docs/INTEGRATION.md`](docs/INTEGRATION.md): moving Atlas into the Rex app; backend work still needed
 - [`docs/VALIDATION.md`](docs/VALIDATION.md): checks run, screenshot comparisons, known gaps
+- [`docs/ACCESSIBILITY.md`](docs/ACCESSIBILITY.md): WCAG 2.0 AA contrast table and accessibility measures
 
 ## Known limitations
 

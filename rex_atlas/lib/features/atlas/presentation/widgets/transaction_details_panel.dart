@@ -49,7 +49,7 @@ class TransactionDetailsPanel extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 SizedBox(
-                  width: 92 * scale,
+                  width: 104 * scale,
                   child: Text(
                     rows[i].label,
                     style: s(RexTypography.detailLabel),

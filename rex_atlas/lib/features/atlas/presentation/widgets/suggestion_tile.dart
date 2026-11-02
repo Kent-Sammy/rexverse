@@ -33,8 +33,8 @@ class SuggestionTile extends StatelessWidget {
       semanticLabel: '${suggestion.title}${suggestion.boldSuffix ?? ''}',
       onTap: onTap,
       child: Container(
-        height: 56,
-        padding: const EdgeInsets.symmetric(horizontal: 10),
+        constraints: const BoxConstraints(minHeight: 56),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         decoration: BoxDecoration(
           color: RexColors.softBlue,
           borderRadius: BorderRadius.circular(10),

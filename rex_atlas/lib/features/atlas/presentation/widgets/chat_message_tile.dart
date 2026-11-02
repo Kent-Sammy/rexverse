@@ -137,21 +137,25 @@ class ChatMessageTile extends StatelessWidget {
   }
 
   Widget _userRow(String text) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.end,
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: [
-        Flexible(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: _maxBubble),
-            child: UserBubble(text: text, tail: lastInGroup),
+    return Semantics(
+      container: true,
+      label: 'You said',
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Flexible(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: _maxBubble),
+              child: UserBubble(text: text, tail: lastInGroup),
+            ),
           ),
-        ),
-        const SizedBox(width: RexDimens.userAvatarGap),
-        lastInGroup
-            ? InitialsAvatar(initials: userInitials)
-            : const SizedBox(width: RexDimens.avatarSize),
-      ],
+          const SizedBox(width: RexDimens.userAvatarGap),
+          lastInGroup
+              ? InitialsAvatar(initials: userInitials)
+              : const SizedBox(width: RexDimens.avatarSize),
+        ],
+      ),
     );
   }
 
@@ -164,20 +168,25 @@ class ChatMessageTile extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            lastInGroup
-                ? const AtlasBotAvatar()
-                : const SizedBox(width: RexDimens.avatarSize),
-            const SizedBox(width: RexDimens.avatarGap),
-            Flexible(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: _maxBubble),
-                child: bubble,
+        Semantics(
+          container: true,
+          liveRegion: true,
+          label: 'Rex Atlas says',
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              lastInGroup
+                  ? const AtlasBotAvatar()
+                  : const SizedBox(width: RexDimens.avatarSize),
+              const SizedBox(width: RexDimens.avatarGap),
+              Flexible(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: _maxBubble),
+                  child: bubble,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
         if (below != null)
           Padding(

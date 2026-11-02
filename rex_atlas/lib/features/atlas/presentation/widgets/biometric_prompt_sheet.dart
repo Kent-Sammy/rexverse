@@ -70,28 +70,44 @@ class _BiometricPromptSheetState extends State<BiometricPromptSheet> {
   @override
   Widget build(BuildContext context) {
     final bottom = MediaQuery.paddingOf(context).bottom;
-    return SizedBox(
+    // Figma: 299 tall. Min height so it grows with larger system text.
+    return ConstrainedBox(
       key: const Key('biometric-sheet'),
-      height: 299 + (bottom > 34 ? bottom - 34 : 0),
+      constraints: BoxConstraints(
+        minHeight: 299 + (bottom > 34 ? bottom - 34 : 0),
+      ),
       child: Stack(
         children: [
+          Padding(
+            padding: EdgeInsets.only(
+              top: 38,
+              bottom: 24 + (bottom > 34 ? bottom - 34 : 0),
+            ),
+            child: SizedBox(
+              width: double.infinity,
+              child: _showPinInfo ? _pinInfo() : _fingerprint(),
+            ),
+          ),
           Positioned(
-            top: 26,
-            right: 30,
+            top: 16,
+            right: 20,
             child: Pressable(
               key: const Key('biometric-close'),
               semanticLabel: 'Cancel authorisation',
               onTap: _working ? null : () => Navigator.of(context).pop(false),
-              child: const RexSvgIcon(
-                RexSvg.close,
-                size: 24,
-                color: RexColors.headerIcon,
+              // 44pt touch target around the 24pt icon.
+              child: const SizedBox(
+                width: 44,
+                height: 44,
+                child: Center(
+                  child: RexSvgIcon(
+                    RexSvg.close,
+                    size: 24,
+                    color: RexColors.headerIcon,
+                  ),
+                ),
               ),
             ),
-          ),
-          Positioned.fill(
-            top: 38,
-            child: _showPinInfo ? _pinInfo() : _fingerprint(),
           ),
         ],
       ),
@@ -100,6 +116,7 @@ class _BiometricPromptSheetState extends State<BiometricPromptSheet> {
 
   Widget _fingerprint() {
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Pressable(
           key: const Key('biometric-fingerprint'),
@@ -151,7 +168,11 @@ class _BiometricPromptSheetState extends State<BiometricPromptSheet> {
           const SizedBox(height: 10),
           Text(
             'Demo: tap the fingerprint to simulate approval',
-            style: RexTypography.detailLabel.copyWith(fontSize: 10),
+            style: RexTypography.caption.copyWith(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: RexColors.textSecondary,
+            ),
           ),
         ],
       ],
@@ -164,6 +185,7 @@ class _BiometricPromptSheetState extends State<BiometricPromptSheet> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 40),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Container(
             width: 83,

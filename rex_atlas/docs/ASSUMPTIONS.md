@@ -49,7 +49,7 @@ These go **beyond** the Figma frames on purpose, at the product owner's request 
 | Change | Detail |
 |---|---|
 | iMessage-style bubbles | 18pt corners with a curled tail (Figma: 10pt corners, triangular tail). Consecutive bubbles from the same speaker stack 4pt apart and only the last one shows the avatar and tail |
-| Frosted chrome | Header and input bar are translucent white with background blur; messages scroll beneath. iOS-style bounce scrolling |
+| Chrome | Solid white header and input bar (an earlier frosted version let text sit half-hidden under the bar, failing WCAG contrast). iOS-style bounce scrolling |
 | Conversation time stamp | "Today 9:41 AM" above the first message |
 | Message entrance | New bubbles/cards pop in (fade, rise, slight scale from the sender's side) |
 | Input bar | The "+" stays inside the text pill. **Microphone and send are separate round buttons** next to it; send is solid Rex blue |
@@ -58,3 +58,6 @@ These go **beyond** the Figma frames on purpose, at the product owner's request 
 | Feedback | Buttons scale down slightly when pressed; haptics on taps, send, fingerprint and result |
 | Sheet physics | Snapping uses a spring that follows the release velocity |
 | Success badge | Pops in once per payment |
+
+| Card type scale | Card text raised to a consistent scale (minimum 11 px) to suit the narrower cards and WCAG legibility |
+| Accessible colours | Failing text colours darkened (see ACCESSIBILITY.md) |

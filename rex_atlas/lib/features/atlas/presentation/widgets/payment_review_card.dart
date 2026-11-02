@@ -71,8 +71,8 @@ class PaymentReviewCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 12),
-            SizedBox(
-              height: 29,
+            ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 29),
               child: Align(
                 alignment: Alignment.topCenter,
                 child: AmountRow(
@@ -83,8 +83,8 @@ class PaymentReviewCard extends StatelessWidget {
             ),
             const CardDivider(color: Colors.white),
             const SizedBox(height: 6),
-            SizedBox(
-              height: 29,
+            ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 29),
               child: Align(
                 alignment: Alignment.topCenter,
                 child: AmountRow(
@@ -95,7 +95,7 @@ class PaymentReviewCard extends StatelessWidget {
             ),
             const SizedBox(height: 7),
             Container(
-              height: 40,
+              constraints: const BoxConstraints(minHeight: 40),
               padding: const EdgeInsets.symmetric(horizontal: 12),
               decoration: BoxDecoration(
                 color: Colors.white,

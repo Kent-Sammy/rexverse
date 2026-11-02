@@ -90,7 +90,7 @@ class _AtlasComposerState extends State<AtlasComposer> {
           // Text pill with the "+" button inside.
           Expanded(
             child: Container(
-              padding: const EdgeInsets.only(left: 10, right: 16),
+              padding: const EdgeInsets.only(left: 3, right: 16),
               decoration: BoxDecoration(
                 color: fieldColor,
                 borderRadius: BorderRadius.circular(h / 2),
@@ -100,22 +100,30 @@ class _AtlasComposerState extends State<AtlasComposer> {
                   Pressable(
                     semanticLabel: 'Add attachment',
                     onTap: widget.onAttach,
-                    child: Container(
-                      width: 26.8,
-                      height: 26.8,
-                      alignment: Alignment.center,
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.add,
-                        size: 16,
-                        color: RexColors.navy,
+                    focusRadius: 20,
+                    // 40 pt tap area around the 26.8 pt Figma button.
+                    child: SizedBox(
+                      width: 40,
+                      height: 40,
+                      child: Center(
+                        child: Container(
+                          width: 26.8,
+                          height: 26.8,
+                          alignment: Alignment.center,
+                          decoration: const BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.add,
+                            size: 16,
+                            color: RexColors.navy,
+                          ),
+                        ),
                       ),
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 5),
                   Expanded(
                     child: TextField(
                       key: const Key('atlas-composer-field'),
@@ -130,6 +138,7 @@ class _AtlasComposerState extends State<AtlasComposer> {
                       maxLines: 1,
                       decoration: InputDecoration(
                         isCollapsed: true,
+                        semanticCounterText: '',
                         border: InputBorder.none,
                         hintText: 'Ask Rex Atlas...',
                         hintStyle: hint,

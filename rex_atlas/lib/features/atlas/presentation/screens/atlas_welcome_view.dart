@@ -111,7 +111,9 @@ class _WelcomeContent extends StatelessWidget {
             const SizedBox(width: 6),
             // Figma uses an emoji image ("Emoji", 22.7pt); the system emoji
             // font renders the same glyph.
-            const Text('👋', style: TextStyle(fontSize: 21, height: 1.2)),
+            const ExcludeSemantics(
+              child: Text('👋', style: TextStyle(fontSize: 21, height: 1.2)),
+            ),
           ],
         ),
         const SizedBox(height: 10),
@@ -211,7 +213,7 @@ class _QuickAction extends StatelessWidget {
         semanticLabel: label.replaceAll('\n', ' '),
         onTap: onTap,
         child: Container(
-          height: 109,
+          constraints: const BoxConstraints(minHeight: 109),
           decoration: BoxDecoration(
             color: Colors.white.withValues(alpha: 0.16),
             borderRadius: BorderRadius.circular(10),
@@ -255,16 +257,19 @@ class _RecentTransferCard extends StatelessWidget {
       semanticLabel:
           'Transfer to ${record.counterpartyName}, ${Naira.plain(record.amountKobo)}',
       onTap: onTap,
-      child: SizedBox(
-        height: 78,
+      // Card (min 69) with a second layer peeking 9 pt below it, as in Figma;
+      // grows with larger system text.
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 9),
         child: Stack(
+          clipBehavior: Clip.none,
           children: [
             // Second, offset layer behind the card (Figma "Frame 2147235114").
             Positioned(
               left: 0,
               right: 0,
               top: 9,
-              height: 69,
+              bottom: -9,
               child: DecoratedBox(
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.16),
@@ -272,73 +277,68 @@ class _RecentTransferCard extends StatelessWidget {
                 ),
               ),
             ),
-            Positioned(
-              left: 0,
-              right: 0,
-              top: 0,
-              height: 69,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 19),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF4D6B9D),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 33,
-                      height: 33,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.2),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Transform.rotate(
-                        angle: 3 * math.pi / 4,
-                        child: const RexSvgIcon(
-                          RexSvg.arrowLeft,
-                          size: 16,
-                          color: RexColors.accentMint,
-                        ),
+            Container(
+              constraints: const BoxConstraints(minHeight: 69),
+              padding: const EdgeInsets.symmetric(horizontal: 19, vertical: 10),
+              decoration: BoxDecoration(
+                color: const Color(0xFF4D6B9D),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 33,
+                    height: 33,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.2),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Transform.rotate(
+                      angle: 3 * math.pi / 4,
+                      child: const RexSvgIcon(
+                        RexSvg.arrowLeft,
+                        size: 16,
+                        color: RexColors.accentMint,
                       ),
                     ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            record.counterpartyName ?? record.title,
-                            style: RexTypography.welcomeTxTitle,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 3),
-                          Text(
-                            record.counterpartyMasked ?? '',
-                            style: RexTypography.welcomeTxMeta,
-                          ),
-                        ],
-                      ),
-                    ),
-                    Column(
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.end,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          Naira.plain(record.amountKobo),
+                          record.counterpartyName ?? record.title,
                           style: RexTypography.welcomeTxTitle,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 3),
                         Text(
-                          RexDates.welcome(record.timestamp),
+                          record.counterpartyMasked ?? '',
                           style: RexTypography.welcomeTxMeta,
                         ),
                       ],
                     ),
-                  ],
-                ),
+                  ),
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        Naira.plain(record.amountKobo),
+                        style: RexTypography.welcomeTxTitle,
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        RexDates.welcome(record.timestamp),
+                        style: RexTypography.welcomeTxMeta,
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
           ],
@@ -375,6 +375,7 @@ class _AnimatedWelcomeBackgroundState extends State<_AnimatedWelcomeBackground>
 
   @override
   Widget build(BuildContext context) {
+    _respectReducedMotion(context, _c);
     return CustomPaint(painter: _WelcomePainter(_c), child: widget.child);
   }
 }
@@ -451,6 +452,7 @@ class _GlowingAtlasAvatarState extends State<GlowingAtlasAvatar>
 
   @override
   Widget build(BuildContext context) {
+    _respectReducedMotion(context, _c);
     final s = widget.size;
     return SizedBox(
       width: s,
@@ -521,4 +523,15 @@ class _GlowPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_GlowPainter old) => false;
+}
+
+/// WCAG 2.2.2 / OS "reduce motion": decorative loops stop when the user has
+/// asked for fewer animations.
+void _respectReducedMotion(BuildContext context, AnimationController c) {
+  final reduce = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+  if (reduce && c.isAnimating) {
+    c.stop();
+  } else if (!reduce && !c.isAnimating) {
+    c.repeat();
+  }
 }

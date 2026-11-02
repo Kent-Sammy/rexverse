@@ -1,5 +1,4 @@
 import 'dart:math' as math;
-import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/material.dart';
 
@@ -14,8 +13,7 @@ import '../widgets/atlas_header.dart';
 import '../widgets/chat_message_tile.dart';
 
 /// Frames 3–9: the conversation sheet, with an iMessage-style feel:
-/// frosted header and input bar that messages scroll beneath, bounce
-/// scrolling, grouped bubbles and a pop-in for new messages.
+/// bounce scrolling, grouped bubbles and a pop-in for new messages.
 class AtlasChatView extends StatefulWidget {
   const AtlasChatView({
     super.key,
@@ -141,10 +139,18 @@ class _AtlasChatViewState extends State<AtlasChatView> {
       color: Colors.white,
       child: Stack(
         children: [
-          // Messages run the full height and scroll under the frosted chrome.
-          Positioned.fill(
+          // Messages sit between the header and the input bar. (They used to
+          // scroll under translucent chrome, but text half-hidden behind it
+          // failed WCAG contrast.)
+          Positioned(
+            left: 0,
+            right: 0,
+            top: headerArea,
+            bottom: composerArea,
             child: GestureDetector(
               behavior: HitTestBehavior.translucent,
+              // Tap-to-dismiss-keyboard is a convenience, not a control.
+              excludeFromSemantics: true,
               onTap: () => FocusScope.of(context).unfocus(),
               child: ListView.builder(
                 key: const Key('atlas-message-list'),
@@ -154,11 +160,11 @@ class _AtlasChatViewState extends State<AtlasChatView> {
                 ),
                 keyboardDismissBehavior:
                     ScrollViewKeyboardDismissBehavior.onDrag,
-                padding: EdgeInsets.fromLTRB(
+                padding: const EdgeInsets.fromLTRB(
                   RexDimens.pagePadding,
-                  headerArea + 20,
+                  20,
                   RexDimens.pagePadding,
-                  composerArea + 16,
+                  16,
                 ),
                 itemCount: msgs.length + (started == null ? 0 : 1),
                 itemBuilder: (context, index) {
@@ -217,8 +223,11 @@ class _AtlasChatViewState extends State<AtlasChatView> {
                         child: widget.showHandle ? const SheetHandle() : null,
                       ),
                       Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: RexDimens.pagePadding,
+                        // Right inset 10: the 36 pt tap boxes keep the icons
+                        // at their Figma positions.
+                        padding: const EdgeInsets.only(
+                          left: RexDimens.pagePadding,
+                          right: 10,
                         ),
                         child: AtlasHeader(
                           isFullscreen: widget.isFullscreen,
@@ -266,23 +275,14 @@ class _AtlasChatViewState extends State<AtlasChatView> {
   }
 }
 
-/// Translucent white with a background blur (iOS "material" look).
+/// Header / input-bar background.
 class _Frosted extends StatelessWidget {
   const _Frosted({required this.child});
   final Widget child;
 
   @override
-  Widget build(BuildContext context) {
-    return ClipRect(
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-        child: ColoredBox(
-          color: Colors.white.withValues(alpha: 0.82),
-          child: child,
-        ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) =>
+      ColoredBox(color: Colors.white, child: child);
 }
 
 /// "Today 9:41 AM" above the first message, as in iMessage.

@@ -53,7 +53,10 @@ class AtlasBotAvatar extends StatelessWidget {
       width: size,
       height: size,
       filterQuality: FilterQuality.medium,
-      semanticLabel: 'Rex Atlas',
+      // Chat avatars are decorative (each message is announced as
+      // "Rex Atlas says…"); the welcome portrait is labelled.
+      semanticLabel: 'Rex Atlas assistant',
+      excludeFromSemantics: onBlue,
     );
   }
 }
@@ -107,12 +110,13 @@ class BankLogo extends StatelessWidget {
   final double size;
 
   static const _palette = [
-    Color(0xFF0D6EFD),
-    Color(0xFFE21B23),
+    // White initials on each of these meet WCAG AA (≥4.5:1).
+    Color(0xFF0B5ED7),
+    Color(0xFFC81E1E),
     Color(0xFF6F2DBD),
-    Color(0xFF0FA958),
+    Color(0xFF0A7D41),
     Color(0xFF1B1F3B),
-    Color(0xFF00897B),
+    Color(0xFF00695C),
   ];
 
   @override

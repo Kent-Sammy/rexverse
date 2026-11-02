@@ -38,7 +38,7 @@ abstract final class RexTypography {
 
   // Atlas header
   static final headerTitle = _s(17, FontWeight.w600, RexColors.navy);
-  static final headerSubtitle = _s(10, FontWeight.w400, RexColors.textMuted);
+  static final headerSubtitle = _s(11, FontWeight.w400, RexColors.textMuted);
 
   // Chat
   static final bubble = _s(14, FontWeight.w400, RexColors.textPrimary);
@@ -57,7 +57,7 @@ abstract final class RexTypography {
   static final welcomeTile = _s(14, FontWeight.w400, RexColors.white);
   static final welcomeSection = _s(14, FontWeight.w400, RexColors.white);
   static final welcomeTxTitle = _s(14, FontWeight.w500, RexColors.white);
-  static final welcomeTxMeta = _s(10, FontWeight.w400, RexColors.white);
+  static final welcomeTxMeta = _s(11, FontWeight.w400, RexColors.white);
 
   // Review / confirmation cards
   static final cardName = _s(14, FontWeight.w400, RexColors.textPrimary);
@@ -66,9 +66,9 @@ abstract final class RexTypography {
   static final rowValue = _s(14, FontWeight.w500, RexColors.textPrimary);
   static final rowTotal = _s(14, FontWeight.w600, RexColors.textPrimary);
   static final confirmCaption = _s(14, FontWeight.w400, RexColors.textStrong);
-  static final confirmAmount = _s(22, FontWeight.w700, RexColors.textStrong);
-  static final confirmName = _s(12, FontWeight.w500, RexColors.textStrong);
-  static final confirmBank = _s(10, FontWeight.w400, RexColors.textSecondary);
+  static final confirmAmount = _s(24, FontWeight.w700, RexColors.textStrong);
+  static final confirmName = _s(13, FontWeight.w500, RexColors.textStrong);
+  static final confirmBank = _s(11, FontWeight.w400, RexColors.textSecondary);
 
   // Biometric sheet
   static final sheetTitle = _s(20, FontWeight.w600, RexColors.textStrong);
@@ -76,36 +76,37 @@ abstract final class RexTypography {
   static final link = _s(14, FontWeight.w500, RexColors.primary);
 
   // Result card
-  static final resultTitle = _s(15, FontWeight.w600, RexColors.textStrong);
+  static final resultTitle = _s(16, FontWeight.w600, RexColors.textStrong);
   static final resultBody = _s(
-    11.5,
+    13,
     FontWeight.w400,
     RexColors.textBody,
     height: 1.22,
   );
-  static final smallButton = _s(9, FontWeight.w600, RexColors.navy);
-  static final detailTitle = _s(11, FontWeight.w500, RexColors.textDetailTitle);
-  static final detailLabel = _s(8, FontWeight.w400, RexColors.textDetailLabel);
-  static final detailValue = _s(8, FontWeight.w400, RexColors.textDetailValue);
+  static final smallButton = _s(12, FontWeight.w600, RexColors.navy);
+  static final detailTitle = _s(13, FontWeight.w600, RexColors.textDetailTitle);
+  static final detailLabel = _s(11, FontWeight.w400, RexColors.textDetailLabel);
+  static final detailValue = _s(11, FontWeight.w500, RexColors.textDetailValue);
 
   // Suggestions
   static final suggestionTitle = _s(14, FontWeight.w400, RexColors.textPrimary);
   static final suggestionSub = _s(12, FontWeight.w400, RexColors.textSecondary);
 
   // Transaction history
-  static final historyTitle = _s(12, FontWeight.w500, RexColors.textStrong);
-  static final historyMeta = _s(10, FontWeight.w400, RexColors.textTxMeta);
-  static final historyAmount = _s(12, FontWeight.w600, RexColors.textStrong);
-  static final historyStatus = _s(10, FontWeight.w500, RexColors.success);
+  static final historyTitle = _s(13, FontWeight.w500, RexColors.textStrong);
+  static final historyMeta = _s(11, FontWeight.w400, RexColors.textTxMeta);
+  static final historyAmount = _s(13, FontWeight.w600, RexColors.textStrong);
+  static final historyStatus = _s(11, FontWeight.w500, RexColors.success);
 
   // Misc
   static final caption = _s(11, FontWeight.w400, RexColors.textSecondary);
   static final demoBadge = _s(8, FontWeight.w700, RexColors.white);
 
-  // Host (Rex home) – used only by the stand-in host screen.
+  // Host (Rex home) – used only by the stand-in host screen. Sizes below 10
+  // in the Figma home frame are raised to 10 for legibility.
   static TextStyle host(
     double size, {
     FontWeight weight = FontWeight.w400,
     Color color = RexColors.textStrong,
-  }) => _s(size, weight, color);
+  }) => _s(size < 10 ? 10 : size, weight, color);
 }

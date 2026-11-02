@@ -19,8 +19,11 @@ class AtlasHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 33,
+    return ConstrainedBox(
+      constraints: const BoxConstraints(
+        minHeight: 33,
+        maxHeight: double.infinity,
+      ),
       child: Row(
         children: [
           const AtlasMarkBadge(),
@@ -30,7 +33,10 @@ class AtlasHeader extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Rex Atlas', style: RexTypography.headerTitle),
+                Semantics(
+                  header: true,
+                  child: Text('Rex Atlas', style: RexTypography.headerTitle),
+                ),
                 Text(
                   'Your AI banking assistant',
                   style: RexTypography.headerSubtitle,
@@ -38,35 +44,44 @@ class AtlasHeader extends StatelessWidget {
               ],
             ),
           ),
+          // Icons sit where Figma puts them (centres at x 337 and 374); the
+          // tap areas are widened to 36 pt and the full 33 pt header height.
           Pressable(
             semanticLabel: isFullscreen
                 ? 'Exit full screen'
                 : 'Expand to full screen',
             onTap: onToggleFullscreen,
             child: SizedBox(
-              width: 24,
-              height: 24,
-              child: isFullscreen
-                  ? const Icon(
-                      Icons.close_fullscreen_rounded,
-                      size: 20,
-                      color: RexColors.headerIcon,
-                    )
-                  : const RexSvgIcon(
-                      RexSvg.maximize,
-                      size: 24,
-                      color: RexColors.headerIcon,
-                    ),
+              width: 36,
+              height: 33,
+              child: Center(
+                child: isFullscreen
+                    ? const Icon(
+                        Icons.close_fullscreen_rounded,
+                        size: 20,
+                        color: RexColors.headerIcon,
+                      )
+                    : const RexSvgIcon(
+                        RexSvg.maximize,
+                        size: 24,
+                        color: RexColors.headerIcon,
+                      ),
+              ),
             ),
           ),
-          const SizedBox(width: 13),
           Pressable(
             semanticLabel: 'Close Rex Atlas',
             onTap: onClose,
-            child: const RexSvgIcon(
-              RexSvg.close,
-              size: 24,
-              color: RexColors.headerIcon,
+            child: const SizedBox(
+              width: 36,
+              height: 33,
+              child: Center(
+                child: RexSvgIcon(
+                  RexSvg.close,
+                  size: 24,
+                  color: RexColors.headerIcon,
+                ),
+              ),
             ),
           ),
         ],

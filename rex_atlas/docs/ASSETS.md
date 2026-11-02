@@ -22,6 +22,8 @@ Originals are kept unchanged in `design/figma-exports/`. The app uses copies und
 | "🎉" | `assets/images/party_popper.png` (3×, extracted) | home savings card |
 | Iconly Send, audio frame, copy | `assets/icons/iconly_send.svg`, `mic_frame.svg`, `copy.svg` | composer, Transaction Details |
 | Notification, Light, wifi-square, Wallet, briefcase, Ticket, lightbulb-ai, check-circle | `assets/icons/*.svg` | home screen |
+| home-2, Frame 33798, Chart, wallet, Frame 33801 | `assets/icons/nav_home/save/invest/borrow/more.svg` | home bottom menu |
+| Show | `assets/icons/eye.svg` | balance visibility icon |
 
 The SVG files `95088-success.svg` and `🎉.svg` wrap bitmap images in SVG patterns, which
 `flutter_svg` cannot draw, so they were converted to transparent PNGs.
@@ -41,7 +43,7 @@ The SVG files `95088-success.svg` and `🎉.svg` wrap bitmap images in SVG patte
 | `Iconly/Light/Arrow - Down 2` | suggestion and "See More" chevrons | Material chevron |
 | `vuesax/outline/card`, `card-coin`, `Iconly/Curved/Calling`, `vuesax/outline/bank` | transactions list | Material icons |
 | `Iconly/Bulk/Calling` | home "Airtime" tile | Material icon |
-| Bottom-menu icons (home-2, Save, Invest, Borrow, More), eye icon, `vuesax/outline/copy` (white) | home screen | Material icons |
+| `vuesax/outline/copy` (white, account number) | home screen | Material icon |
 | "Coin Stack" + arrow banner art, balance-card shapes, Learn Finance thumbnail | home screen | Material icon / plain fill |
 | Welcome "Emoji" 👋 | greeting | system emoji |
 

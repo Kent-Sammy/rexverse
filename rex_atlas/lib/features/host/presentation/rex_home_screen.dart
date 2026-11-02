@@ -195,7 +195,7 @@ class _BalanceCard extends StatelessWidget {
       child: Column(
         children: [
           Container(
-            height: 156,
+            constraints: const BoxConstraints(minHeight: 156),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(12),
               gradient: const LinearGradient(
@@ -214,7 +214,14 @@ class _BalanceCard extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text('11028281921 | Ololade Mr. Money', style: white),
+                    Flexible(
+                      child: Text(
+                        '11028281921 | Ololade Mr. Money',
+                        style: white,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
                     const SizedBox(width: 4),
                     const Icon(
                       Icons.copy_rounded,
@@ -224,29 +231,30 @@ class _BalanceCard extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 14),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      '₦500,563,670.00',
-                      style: RexTypography.host(
-                        22,
-                        weight: FontWeight.w600,
-                        color: Colors.white,
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '₦500,563,670.00',
+                        style: RexTypography.host(
+                          22,
+                          weight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    const Icon(
-                      Icons.visibility_outlined,
-                      size: 16,
-                      color: Colors.white,
-                    ),
-                  ],
+                      const SizedBox(width: 8),
+                      const RexSvgIcon(RexSvg.eye, size: 17),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 6),
                 Text(
                   'Book Balance :  ₦500,563,670.00',
-                  style: white.copyWith(color: Colors.white70),
+                  style: white.copyWith(
+                    color: Colors.white.withValues(alpha: 0.85),
+                  ),
                 ),
                 const SizedBox(height: 16),
                 Row(
@@ -346,7 +354,8 @@ class _ServicesGrid extends StatelessWidget {
         semanticLabel: label,
         onTap: onTap ?? () => onOther(label),
         child: Container(
-          height: 73,
+          constraints: const BoxConstraints(minHeight: 73),
+          padding: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
             color: bg,
             borderRadius: BorderRadius.circular(8),
@@ -444,86 +453,90 @@ class _PromoBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 95,
-      child: Row(
-        children: [
-          Container(
-            width: 8,
-            decoration: const BoxDecoration(
-              color: RexColors.bannerBlue,
-              borderRadius: BorderRadius.horizontal(right: Radius.circular(8)),
-            ),
-          ),
-          const SizedBox(width: 7),
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.fromLTRB(15, 15, 15, 15),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
-                gradient: const LinearGradient(
-                  colors: [RexColors.bannerBlue, Color(0xFF5B92D1)],
+    return ConstrainedBox(
+      constraints: const BoxConstraints(minHeight: 95),
+      child: IntrinsicHeight(
+        child: Row(
+          children: [
+            Container(
+              width: 8,
+              decoration: const BoxDecoration(
+                color: RexColors.bannerBlue,
+                borderRadius: BorderRadius.horizontal(
+                  right: Radius.circular(8),
                 ),
               ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Capital Market Investments',
-                          style: RexTypography.host(
-                            12,
-                            weight: FontWeight.w600,
-                            color: Colors.white,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          'Subscribe to live IPOs and exercise rights issues...',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: RexTypography.host(8, color: Colors.white),
-                        ),
-                        const Spacer(),
-                        Pressable(
-                          semanticLabel: 'Explore Offers',
-                          onTap: onTap,
-                          child: Container(
-                            height: 26,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
+            ),
+            const SizedBox(width: 7),
+            Expanded(
+              child: Container(
+                padding: const EdgeInsets.fromLTRB(15, 15, 15, 15),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                  gradient: const LinearGradient(
+                    colors: [RexColors.bannerBlue, Color(0xFF3570B8)],
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Capital Market Investments',
+                            style: RexTypography.host(
+                              12,
+                              weight: FontWeight.w600,
                               color: Colors.white,
-                              borderRadius: BorderRadius.circular(4),
                             ),
-                            child: Text(
-                              'Explore Offers',
-                              style: RexTypography.host(
-                                10,
-                                weight: FontWeight.w600,
-                                color: RexColors.navy,
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'Subscribe to live IPOs and exercise rights issues...',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: RexTypography.host(8, color: Colors.white),
+                          ),
+                          const SizedBox(height: 10),
+                          Pressable(
+                            semanticLabel: 'Explore Offers',
+                            onTap: onTap,
+                            child: Container(
+                              height: 26,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                'Explore Offers',
+                                style: RexTypography.host(
+                                  10,
+                                  weight: FontWeight.w600,
+                                  color: RexColors.navy,
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                  // Coin-stack illustration not exported (see docs/ASSETS.md).
-                  const Icon(
-                    Icons.trending_up_rounded,
-                    size: 48,
-                    color: Color(0x99FFFFFF),
-                  ),
-                ],
+                    // Coin-stack illustration not exported (see docs/ASSETS.md).
+                    const Icon(
+                      Icons.trending_up_rounded,
+                      size: 48,
+                      color: Color(0x99FFFFFF),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -596,7 +609,7 @@ class _SavingsPlan extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 74,
+      constraints: const BoxConstraints(minHeight: 74),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
       decoration: BoxDecoration(
         border: Border.all(color: RexColors.hairline),
@@ -617,7 +630,7 @@ class _SavingsPlan extends StatelessWidget {
                   'Save small-small now, ball in December.',
                   style: RexTypography.host(9, color: RexColors.textSecondary),
                 ),
-                const Spacer(),
+                const SizedBox(height: 8),
                 Pressable(
                   semanticLabel: 'Start Goal',
                   onTap: onTap,
@@ -643,7 +656,12 @@ class _SavingsPlan extends StatelessWidget {
             ),
           ),
           // Figma "🎉" illustration (77 × 59), exported by the design owner.
-          Image.asset(AtlasAssets.partyPopper, width: 78, height: 59),
+          Image.asset(
+            AtlasAssets.partyPopper,
+            excludeFromSemantics: true,
+            width: 78,
+            height: 59,
+          ),
           const SizedBox(width: 6),
         ],
       ),
@@ -733,7 +751,9 @@ class _BottomNav extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bottom = MediaQuery.paddingOf(context).bottom;
-    Widget item(IconData icon, String label, {bool active = false}) {
+    // Icons are the Figma exports (active navy, inactive #D2D8E5); labels use
+    // the darker navInactive so the text meets WCAG contrast.
+    Widget item(RexSvg icon, String label, {bool active = false}) {
       final color = active ? RexColors.navy : RexColors.navInactive;
       return Expanded(
         child: Pressable(
@@ -742,7 +762,7 @@ class _BottomNav extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 24, color: color),
+              RexSvgIcon(icon, size: 24),
               const SizedBox(height: 7),
               Text(
                 label,
@@ -763,11 +783,11 @@ class _BottomNav extends StatelessWidget {
       padding: EdgeInsets.fromLTRB(29, 11, 29, bottom > 0 ? bottom - 24 : 10),
       child: Row(
         children: [
-          item(Icons.home_rounded, 'Home', active: true),
-          item(Icons.work_rounded, 'Save'),
-          item(Icons.bar_chart_rounded, 'Invest'),
-          item(Icons.account_balance_wallet_rounded, 'Borrow'),
-          item(Icons.more_horiz_rounded, 'More'),
+          item(RexSvg.navHome, 'Home', active: true),
+          item(RexSvg.navSave, 'Save'),
+          item(RexSvg.navInvest, 'Invest'),
+          item(RexSvg.navBorrow, 'Borrow'),
+          item(RexSvg.navMore, 'More'),
         ],
       ),
     );

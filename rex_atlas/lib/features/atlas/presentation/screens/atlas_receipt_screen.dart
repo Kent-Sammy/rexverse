@@ -91,7 +91,7 @@ class _ReceiptBody extends StatelessWidget {
   Widget build(BuildContext context) {
     final (statusText, statusColor) = switch (receipt.status) {
       TransactionStatus.successful => ('Successful', RexColors.success),
-      TransactionStatus.pending => ('Pending', RexColors.accentOrange),
+      TransactionStatus.pending => ('Pending', RexColors.warning),
       TransactionStatus.failed => ('Failed', RexColors.error),
     };
     return ListView(
@@ -152,7 +152,7 @@ class _ReceiptBody extends StatelessWidget {
               const SizedBox(height: 20),
               TransactionDetailsPanel(
                 rows: receipt.rows,
-                scale: 1.45,
+                scale: 1.2,
                 onCopied: (label) =>
                     ScaffoldMessenger.of(context)
                         .showSnackBar(SnackBar(content: Text('$label copied'))),

@@ -30,7 +30,13 @@ enum RexSvg {
   wifiSquare('wifi_square'), // Data tile (two-tone, keep colours)
   wallet('wallet'), // RexSave tile
   briefcase('briefcase'), // RexVault tile
-  ticket('ticket'); // RexFlex tile
+  ticket('ticket'), // RexFlex tile
+  navHome('nav_home'), // bottom menu (active, navy)
+  navSave('nav_save'),
+  navInvest('nav_invest'),
+  navBorrow('nav_borrow'),
+  navMore('nav_more'),
+  eye('eye'); // balance visibility ("Show")
 
   const RexSvg(this.file);
   final String file;
