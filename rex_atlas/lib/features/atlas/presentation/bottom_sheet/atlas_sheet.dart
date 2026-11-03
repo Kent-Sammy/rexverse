@@ -379,7 +379,7 @@ class AtlasSheetState extends State<AtlasSheet>
           // While dragging below its resting height the content keeps its
           // size and slides down (clipped by the screen) instead of squashing.
           final contentH = math.max(_height.value, _collapsed(size, top));
-          return SizedBox(
+          final sheet = SizedBox(
             key: const Key('atlas-sheet'),
             width: size.width,
             height: _height.value.clamp(0.0, size.height),
@@ -389,6 +389,40 @@ class AtlasSheetState extends State<AtlasSheet>
               maxHeight: contentH,
               child: child,
             ),
+          );
+          if (full) return sheet;
+          // A white card peeking out behind the top of the sheet (stacked
+          // cards look requested by the product owner).
+          return Stack(
+            clipBehavior: Clip.none,
+            alignment: Alignment.bottomCenter,
+            children: [
+              Positioned(
+                key: const Key('atlas-backing-card'),
+                left: 14,
+                right: 14,
+                top: -10,
+                height: 40,
+                child: IgnorePointer(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.92),
+                      borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(RexDimens.sheetRadius),
+                      ),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color(0x22000000),
+                          blurRadius: 12,
+                          offset: Offset(0, -2),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              sheet,
+            ],
           );
         },
         child: Material(

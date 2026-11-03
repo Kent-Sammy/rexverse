@@ -218,7 +218,7 @@ class _AtlasComposerState extends State<AtlasComposer>
               ),
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 10),
           // Voice: its own round button. Red and pulsing while listening.
           Pressable(
             key: const Key('atlas-mic-button'),
@@ -254,7 +254,7 @@ class _AtlasComposerState extends State<AtlasComposer>
               ),
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 10),
           // Send: its own round button in solid Rex blue.
           Pressable(
             key: const Key('atlas-send-button'),

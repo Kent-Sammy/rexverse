@@ -66,9 +66,10 @@ class AtlasWelcomeView extends StatelessWidget {
             ),
           ),
           Padding(
+            // 24 pt between the last row of tiles and the message bar.
             padding: EdgeInsets.fromLTRB(
               RexDimens.composerHorizontalInset,
-              12,
+              24,
               RexDimens.composerHorizontalInset,
               bottom,
             ),
@@ -119,34 +120,96 @@ class _WelcomeContent extends StatelessWidget {
         const SizedBox(height: 21),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 31),
-          child: Row(
+          // Two balanced rows of four quick actions.
+          child: Column(
             children: [
-              _QuickAction(
-                icon: RexSvg.sendAltFilled,
-                color: RexColors.accentMint,
-                label: 'Send\nMoney',
-                onTap: () => controller.send('Send Money'),
+              Row(
+                children: [
+                  _QuickAction(
+                    icon: const RexSvgIcon(
+                      RexSvg.sendAltFilled,
+                      size: 21,
+                      color: RexColors.accentMint,
+                    ),
+                    label: 'Send\nMoney',
+                    onTap: () => controller.send('Send Money'),
+                  ),
+                  const SizedBox(width: 7),
+                  _QuickAction(
+                    icon: const RexSvgIcon(
+                      RexSvg.piggyBank,
+                      size: 21,
+                      color: RexColors.accentOrange,
+                    ),
+                    label: 'Save\nMoney',
+                    onTap: () => controller.send('Save Money'),
+                  ),
+                  const SizedBox(width: 7),
+                  _QuickAction(
+                    icon: const RexSvgIcon(
+                      RexSvg.banknotes,
+                      size: 21,
+                      color: RexColors.accentCyan,
+                    ),
+                    label: 'Pay\nBills',
+                    onTap: () => controller.send('Pay Bills'),
+                  ),
+                  const SizedBox(width: 7),
+                  _QuickAction(
+                    icon: const RexSvgIcon(
+                      RexSvg.phoneCall,
+                      size: 21,
+                      color: RexColors.accentMint,
+                    ),
+                    label: 'Buy\nAirtime',
+                    onTap: () => controller.send('Buy Airtime'),
+                  ),
+                ],
               ),
-              const SizedBox(width: 7),
-              _QuickAction(
-                icon: RexSvg.piggyBank,
-                color: RexColors.accentOrange,
-                label: 'Save\nMoney',
-                onTap: () => controller.send('Save Money'),
-              ),
-              const SizedBox(width: 7),
-              _QuickAction(
-                icon: RexSvg.banknotes,
-                color: RexColors.accentCyan,
-                label: 'Pay\nBills',
-                onTap: () => controller.send('Pay Bills'),
-              ),
-              const SizedBox(width: 7),
-              _QuickAction(
-                icon: RexSvg.phoneCall,
-                color: RexColors.accentMint,
-                label: 'Buy\nAirtime',
-                onTap: () => controller.send('Buy Airtime'),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  _QuickAction(
+                    key: const Key('welcome-fixed-deposit'),
+                    icon: const RexSvgIcon(
+                      RexSvg.briefcase,
+                      size: 21,
+                      color: Color(0xFFB9A8FF),
+                    ),
+                    label: 'Fixed\nDeposit',
+                    onTap: () => controller.send('Save in RexVault'),
+                  ),
+                  const SizedBox(width: 7),
+                  _QuickAction(
+                    icon: const RexSvgIcon(
+                      RexSvg.light,
+                      size: 22,
+                      color: Color(0xFFFFD54F),
+                    ),
+                    label: 'Electricity',
+                    onTap: () => controller.send('Pay electricity bill'),
+                  ),
+                  const SizedBox(width: 7),
+                  _QuickAction(
+                    icon: const Icon(
+                      Icons.tv_rounded,
+                      size: 21,
+                      color: Color(0xFF8FB6FF),
+                    ),
+                    label: 'Cable\nTV',
+                    onTap: () => controller.send('Pay cable TV'),
+                  ),
+                  const SizedBox(width: 7),
+                  _QuickAction(
+                    icon: const Icon(
+                      Icons.receipt_long_rounded,
+                      size: 21,
+                      color: Color(0xFFFFB38A),
+                    ),
+                    label: 'Recent\nActivity',
+                    onTap: () => controller.send('Show my recent transactions'),
+                  ),
+                ],
               ),
             ],
           ),
@@ -159,14 +222,13 @@ class _WelcomeContent extends StatelessWidget {
 
 class _QuickAction extends StatelessWidget {
   const _QuickAction({
+    super.key,
     required this.icon,
-    required this.color,
     required this.label,
     required this.onTap,
   });
 
-  final RexSvg icon;
-  final Color color;
+  final Widget icon;
   final String label;
   final VoidCallback onTap;
 
@@ -193,7 +255,7 @@ class _QuickAction extends StatelessWidget {
                   color: Colors.white.withValues(alpha: 0.2),
                   shape: BoxShape.circle,
                 ),
-                child: RexSvgIcon(icon, size: 21, color: color),
+                child: icon,
               ),
               const SizedBox(height: 10),
               Text(

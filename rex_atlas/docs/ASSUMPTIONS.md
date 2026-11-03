@@ -83,3 +83,12 @@ These go **beyond** the Figma frames on purpose, at the product owner's request 
 | Home tiles | RexSave, RexVault, Electricity and Airtime open Atlas and start that flow. Data, Budgets and RexFlex still show the "part of the main Rex app" notice |
 | PIN pad | See the "Use PIN instead" row above |
 | Amount format | Amounts of ₦10,000 and above show thousands separators (₦100,000); smaller amounts keep the Figma style (₦3000) |
+
+## Welcome sheet layout (v5)
+
+- The welcome sheet has two balanced rows of four quick actions:
+  - Row 1: Send Money, Save Money, Pay Bills, Buy Airtime.
+  - Row 2: Fixed Deposit (opens the RexVault flow), Electricity, Cable TV, Recent Activity.
+- The collapsed sheet height is 608 pt, so both rows fit on a 402×874 screen. On shorter screens the tile area scrolls.
+- The composer sits 24 pt below the tiles. The pill, mic and send buttons are 10 pt apart.
+- A translucent white card peeks 10 pt above the top of the collapsed blue sheet, for depth. It is hidden in fullscreen.

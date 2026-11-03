@@ -13,9 +13,10 @@ abstract final class RexDimens {
   static const chatHandleTop = 18.0; // chat sheet
 
   /// Welcome (collapsed) sheet height on the 874pt artboard. Figma: 631.
-  /// Reduced to 484 after the recent-transaction card was removed at the
-  /// product owner's request (tiles end at 386 + 24 gap + 48 bar + 26).
-  static const collapsedSheetHeight = 484.0;
+  /// Product-owner changes: recent-transaction card removed, a second row of
+  /// quick actions added and more room above the message bar:
+  /// content 510 (two tile rows end at 502 + 8) + 24 gap + 48 bar + 26 = 608.
+  static const collapsedSheetHeight = 608.0;
 
   // Chat layout
   static const pagePadding = 16.0;
