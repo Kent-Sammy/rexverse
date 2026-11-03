@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/widgets.dart';
 
 /// One-shot entrance used for new chat messages: an iMessage-like pop that
@@ -10,6 +12,7 @@ class Appear extends StatefulWidget {
     this.fromScale = 0.92,
     this.alignment = Alignment.bottomCenter,
     this.duration = const Duration(milliseconds: 380),
+    this.delay = Duration.zero,
   });
 
   final Widget child;
@@ -19,6 +22,9 @@ class Appear extends StatefulWidget {
   /// Scale origin: bottom-right for the user, bottom-left for Atlas.
   final Alignment alignment;
   final Duration duration;
+
+  /// Wait before starting, for staggered entrances.
+  final Duration delay;
 
   @override
   State<Appear> createState() => _AppearState();
@@ -37,8 +43,14 @@ class _AppearState extends State<Appear> with SingleTickerProviderStateMixin {
     final reduce = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
     if (reduce) {
       _c.value = 1;
-    } else if (_c.status == AnimationStatus.dismissed) {
-      _c.forward();
+    } else if (_c.status == AnimationStatus.dismissed && _timer == null) {
+      if (widget.delay == Duration.zero) {
+        _c.forward();
+      } else {
+        _timer = Timer(widget.delay, () {
+          if (mounted) _c.forward();
+        });
+      }
     }
   }
 
@@ -51,8 +63,11 @@ class _AppearState extends State<Appear> with SingleTickerProviderStateMixin {
     curve: const Interval(0, 0.6, curve: Curves.easeOut),
   );
 
+  Timer? _timer;
+
   @override
   void dispose() {
+    _timer?.cancel();
     _c.dispose();
     super.dispose();
   }

@@ -92,3 +92,13 @@ These go **beyond** the Figma frames on purpose, at the product owner's request 
 - The collapsed sheet height is 608 pt, so both rows fit on a 402×874 screen. On shorter screens the tile area scrolls.
 - The composer sits 24 pt below the tiles. The pill, mic and send buttons are 10 pt apart.
 - A translucent white card peeks 10 pt above the top of the collapsed blue sheet, for depth. It is hidden in fullscreen.
+
+## Welcome sheet: hero card + quick-action pills (v6)
+
+- The 8-tile grid is replaced by:
+  - a swipeable "Suggested for you" hero card that auto-advances every 5 s;
+  - two rows of glass quick-action pills that scroll sideways together.
+- The hero card cycles through product tips: RexVault 22%, RexSave 16% and electricity tokens. It never shows past transactions, so it makes sense for a first-time user. The tips are static demo copy, not personalised offers.
+- Auto-advance stops when the OS "reduce motion" setting is on. The card height grows with the system text size.
+- The pills keep the same actions and utterances as the old tiles. Fixed Deposit still starts the RexVault flow.
+- Phones shorter than 800 pt get a 64 pt avatar and a 22 pt greeting. Taller phones get a 92 pt avatar. The greeting sits on one line when it fits.

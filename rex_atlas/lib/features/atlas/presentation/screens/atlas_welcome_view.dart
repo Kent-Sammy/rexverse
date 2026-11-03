@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
 import '../../../../core/design_system/design_system.dart';
 import '../../../../core/formatting/dates.dart';
+import '../../../../core/widgets/appear.dart';
 import '../../../../core/widgets/pressable.dart';
 import '../../application/atlas_controller.dart';
 import '../widgets/atlas_brand.dart';
@@ -98,173 +100,446 @@ class _WelcomeContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final name = controller.account?.firstName ?? '';
+    // Short phones get a smaller avatar so both rows of actions stay visible.
+    final compact = MediaQuery.sizeOf(context).height < 800;
+    final greeting = compact
+        ? RexTypography.welcomeGreeting.copyWith(fontSize: 22)
+        : RexTypography.welcomeGreeting;
     return Column(
       children: [
-        const GlowingAtlasAvatar(size: 103),
+        GlowingAtlasAvatar(size: compact ? 64 : 92),
         const SizedBox(height: 12),
-        Text(RexDates.greeting(now), style: RexTypography.welcomeGreeting),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text('$name!', style: RexTypography.welcomeGreeting),
-            const SizedBox(width: 6),
-            // Figma uses an emoji image ("Emoji", 22.7pt); the system emoji
-            // font renders the same glyph.
-            const ExcludeSemantics(
-              child: Text('👋', style: TextStyle(fontSize: 21, height: 1.2)),
-            ),
-          ],
-        ),
-        const SizedBox(height: 10),
-        Text('How can I help you today?', style: RexTypography.welcomeSubtitle),
-        const SizedBox(height: 21),
+        // One line when it fits, wrapping word by word for long names or
+        // large text.
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 31),
-          // Two balanced rows of four quick actions.
-          child: Column(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Wrap(
+            alignment: WrapAlignment.center,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 7,
             children: [
-              Row(
-                children: [
-                  _QuickAction(
-                    icon: const RexSvgIcon(
-                      RexSvg.sendAltFilled,
-                      size: 21,
-                      color: RexColors.accentMint,
-                    ),
-                    label: 'Send\nMoney',
-                    onTap: () => controller.send('Send Money'),
-                  ),
-                  const SizedBox(width: 7),
-                  _QuickAction(
-                    icon: const RexSvgIcon(
-                      RexSvg.piggyBank,
-                      size: 21,
-                      color: RexColors.accentOrange,
-                    ),
-                    label: 'Save\nMoney',
-                    onTap: () => controller.send('Save Money'),
-                  ),
-                  const SizedBox(width: 7),
-                  _QuickAction(
-                    icon: const RexSvgIcon(
-                      RexSvg.banknotes,
-                      size: 21,
-                      color: RexColors.accentCyan,
-                    ),
-                    label: 'Pay\nBills',
-                    onTap: () => controller.send('Pay Bills'),
-                  ),
-                  const SizedBox(width: 7),
-                  _QuickAction(
-                    icon: const RexSvgIcon(
-                      RexSvg.phoneCall,
-                      size: 21,
-                      color: RexColors.accentMint,
-                    ),
-                    label: 'Buy\nAirtime',
-                    onTap: () => controller.send('Buy Airtime'),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  _QuickAction(
-                    key: const Key('welcome-fixed-deposit'),
-                    icon: const RexSvgIcon(
-                      RexSvg.briefcase,
-                      size: 21,
-                      color: Color(0xFFB9A8FF),
-                    ),
-                    label: 'Fixed\nDeposit',
-                    onTap: () => controller.send('Save in RexVault'),
-                  ),
-                  const SizedBox(width: 7),
-                  _QuickAction(
-                    icon: const RexSvgIcon(
-                      RexSvg.light,
-                      size: 22,
-                      color: Color(0xFFFFD54F),
-                    ),
-                    label: 'Electricity',
-                    onTap: () => controller.send('Pay electricity bill'),
-                  ),
-                  const SizedBox(width: 7),
-                  _QuickAction(
-                    icon: const Icon(
-                      Icons.tv_rounded,
-                      size: 21,
-                      color: Color(0xFF8FB6FF),
-                    ),
-                    label: 'Cable\nTV',
-                    onTap: () => controller.send('Pay cable TV'),
-                  ),
-                  const SizedBox(width: 7),
-                  _QuickAction(
-                    icon: const Icon(
-                      Icons.receipt_long_rounded,
-                      size: 21,
-                      color: Color(0xFFFFB38A),
-                    ),
-                    label: 'Recent\nActivity',
-                    onTap: () => controller.send('Show my recent transactions'),
-                  ),
-                ],
+              Text(RexDates.greeting(now), style: greeting),
+              Text('$name!', style: greeting),
+              // Figma uses an emoji image ("Emoji", 22.7pt); the system emoji
+              // font renders the same glyph.
+              const ExcludeSemantics(
+                child: Text('👋', style: TextStyle(fontSize: 21, height: 1.2)),
               ),
             ],
           ),
         ),
+        const SizedBox(height: 10),
+        Text('How can I help you today?', style: RexTypography.welcomeSubtitle),
+        const SizedBox(height: 16),
+        _SuggestionCarousel(onSelect: controller.send),
+        const SizedBox(height: 12),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Semantics(
+              header: true,
+              child: Text(
+                'QUICK ACTIONS',
+                style: RexTypography.welcomeTile.copyWith(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 1,
+                ),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 10),
+        _QuickActionChips(onSelect: controller.send),
         const SizedBox(height: 8),
       ],
     );
   }
 }
 
-class _QuickAction extends StatelessWidget {
-  const _QuickAction({
-    super.key,
-    required this.icon,
-    required this.label,
-    required this.onTap,
-  });
-
-  final Widget icon;
+/// One quick action: label shown on the chip, text sent to Atlas, icon.
+class _Action {
+  const _Action(this.label, this.utterance, this.icon, this.color);
   final String label;
+  final String utterance;
+  final Widget icon;
+  final Color color;
+}
+
+const _ink = Color(0xFF0A2A7D);
+
+const _rowOne = [
+  _Action(
+    'Send Money',
+    'Send Money',
+    RexSvgIcon(RexSvg.sendAltFilled, size: 16, color: _ink),
+    RexColors.accentMint,
+  ),
+  _Action(
+    'Save Money',
+    'Save Money',
+    RexSvgIcon(RexSvg.piggyBank, size: 16, color: _ink),
+    Color(0xFFFFC98A),
+  ),
+  _Action(
+    'Pay Bills',
+    'Pay Bills',
+    RexSvgIcon(RexSvg.banknotes, size: 16, color: _ink),
+    Color(0xFF7FE6F2),
+  ),
+  _Action(
+    'Buy Airtime',
+    'Buy Airtime',
+    RexSvgIcon(RexSvg.phoneCall, size: 16, color: _ink),
+    Color(0xFF8FE3FF),
+  ),
+];
+
+const _rowTwo = [
+  _Action(
+    'Fixed Deposit',
+    'Save in RexVault',
+    RexSvgIcon(RexSvg.briefcase, size: 16, color: _ink),
+    Color(0xFFB9A8FF),
+  ),
+  _Action(
+    'Electricity',
+    'Pay electricity bill',
+    RexSvgIcon(RexSvg.light, size: 17, color: _ink),
+    Color(0xFFFFD54F),
+  ),
+  _Action(
+    'Cable TV',
+    'Pay cable TV',
+    Icon(Icons.tv_rounded, size: 16, color: _ink),
+    Color(0xFF8FB6FF),
+  ),
+  _Action(
+    'Recent Activity',
+    'Show my recent transactions',
+    Icon(Icons.receipt_long_rounded, size: 16, color: _ink),
+    Color(0xFFFFB38A),
+  ),
+];
+
+/// Two rows of glass pills that scroll sideways together, fading out at the
+/// right edge to hint there is more.
+class _QuickActionChips extends StatelessWidget {
+  const _QuickActionChips({required this.onSelect});
+  final ValueChanged<String> onSelect;
+
+  @override
+  Widget build(BuildContext context) {
+    Widget row(List<_Action> actions, int offset) => Row(
+      children: [
+        for (var i = 0; i < actions.length; i++) ...[
+          if (i > 0) const SizedBox(width: 10),
+          Appear(
+            delay: Duration(milliseconds: 120 + 60 * (offset + i)),
+            offset: 10,
+            child: _Chip(action: actions[i], onSelect: onSelect),
+          ),
+        ],
+      ],
+    );
+    return ShaderMask(
+      blendMode: BlendMode.dstIn,
+      shaderCallback: (r) => const LinearGradient(
+        stops: [0, 0.86, 1],
+        colors: [Colors.white, Colors.white, Color(0x00FFFFFF)],
+      ).createShader(r),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            row(_rowOne, 0),
+            const SizedBox(height: 10),
+            row(_rowTwo, 4),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _Chip extends StatelessWidget {
+  const _Chip({required this.action, required this.onSelect});
+  final _Action action;
+  final ValueChanged<String> onSelect;
+
+  @override
+  Widget build(BuildContext context) {
+    return Pressable(
+      key: Key('welcome-action-${action.label}'),
+      semanticLabel: action.label,
+      onTap: () => onSelect(action.utterance),
+      child: Container(
+        constraints: const BoxConstraints(minHeight: 44),
+        padding: const EdgeInsets.fromLTRB(6, 6, 16, 6),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.14),
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 32,
+              height: 32,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: action.color,
+                shape: BoxShape.circle,
+              ),
+              child: action.icon,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              action.label,
+              style: RexTypography.welcomeTile.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// A product tip shown in the hero card. These never describe past
+/// transactions, so they make sense for a first-time user too.
+class _Suggestion {
+  const _Suggestion({
+    required this.title,
+    required this.body,
+    required this.utterance,
+    required this.icon,
+    required this.colors,
+  });
+  final String title;
+  final String body;
+  final String utterance;
+  final Widget icon;
+  final List<Color> colors;
+}
+
+const _suggestions = [
+  _Suggestion(
+    title: 'RexVault: earn 22%',
+    body: '₦100k grows to ₦122k in a year',
+    utterance: 'Save in RexVault',
+    icon: RexSvgIcon(RexSvg.briefcase, size: 24, color: Colors.white),
+    colors: [Color(0xFF9B7BFF), Color(0xFF5A3EE0)],
+  ),
+  _Suggestion(
+    title: 'RexSave: earn 16%',
+    body: 'Flexible savings, withdraw any time',
+    utterance: 'Save Money',
+    icon: RexSvgIcon(RexSvg.piggyBank, size: 24, color: Colors.white),
+    colors: [Color(0xFFFFB15C), Color(0xFFE0670F)],
+  ),
+  _Suggestion(
+    title: 'Electricity in seconds',
+    body: 'Get your meter token right in chat',
+    utterance: 'Pay electricity bill',
+    icon: RexSvgIcon(RexSvg.light, size: 26, color: Colors.white),
+    colors: [Color(0xFFFFC233), Color(0xFFD98A00)],
+  ),
+];
+
+/// Swipeable hero card that gently advances every few seconds (paused when
+/// the user asks for reduced motion) with page dots underneath.
+class _SuggestionCarousel extends StatefulWidget {
+  const _SuggestionCarousel({required this.onSelect});
+  final ValueChanged<String> onSelect;
+
+  @override
+  State<_SuggestionCarousel> createState() => _SuggestionCarouselState();
+}
+
+class _SuggestionCarouselState extends State<_SuggestionCarousel> {
+  final _pages = PageController();
+  Timer? _timer;
+  int _index = 0;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final reduce = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+    _timer?.cancel();
+    _timer = reduce
+        ? null
+        : Timer.periodic(const Duration(seconds: 5), (_) {
+            if (!_pages.hasClients) return;
+            _pages.animateToPage(
+              (_index + 1) % _suggestions.length,
+              duration: const Duration(milliseconds: 520),
+              curve: Curves.easeInOutCubic,
+            );
+          });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _pages.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final scale = math.max(1.0, MediaQuery.textScalerOf(context).scale(1));
+    return Column(
+      children: [
+        SizedBox(
+          height: 98 * scale,
+          child: PageView.builder(
+            controller: _pages,
+            itemCount: _suggestions.length,
+            onPageChanged: (i) => setState(() => _index = i),
+            itemBuilder: (context, i) => Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: _HeroCard(
+                suggestion: _suggestions[i],
+                onTap: () => widget.onSelect(_suggestions[i].utterance),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 10),
+        ExcludeSemantics(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              for (var i = 0; i < _suggestions.length; i++)
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 250),
+                  margin: const EdgeInsets.symmetric(horizontal: 3),
+                  width: i == _index ? 18 : 6,
+                  height: 6,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(
+                      alpha: i == _index ? 1 : 0.4,
+                    ),
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _HeroCard extends StatelessWidget {
+  const _HeroCard({required this.suggestion, required this.onTap});
+  final _Suggestion suggestion;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: Pressable(
-        semanticLabel: label.replaceAll('\n', ' '),
-        onTap: onTap,
-        child: Container(
-          constraints: const BoxConstraints(minHeight: 109),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.16),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Column(
-            children: [
-              const SizedBox(height: 12),
-              Container(
-                width: 42,
-                height: 42,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  shape: BoxShape.circle,
-                ),
-                child: icon,
-              ),
-              const SizedBox(height: 10),
-              Text(
-                label,
-                textAlign: TextAlign.center,
-                style: RexTypography.welcomeTile,
-              ),
+    final s = suggestion;
+    return Pressable(
+      key: Key('welcome-hero-${s.utterance}'),
+      semanticLabel: '${s.title}. ${s.body}',
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(22),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Colors.white.withValues(alpha: 0.26),
+              Colors.white.withValues(alpha: 0.08),
             ],
           ),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.45)),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x55000A3C),
+              blurRadius: 24,
+              offset: Offset(0, 8),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 52,
+              height: 52,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: s.colors,
+                ),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.6),
+                  width: 2,
+                ),
+              ),
+              child: s.icon,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'SUGGESTED FOR YOU',
+                    style: RexTypography.welcomeTile.copyWith(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.9,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    s.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: RexTypography.welcomeTile.copyWith(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    s.body,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: RexTypography.welcomeTile.copyWith(fontSize: 13),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              width: 40,
+              height: 40,
+              alignment: Alignment.center,
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.arrow_forward_rounded,
+                size: 20,
+                color: Color(0xFF2F3FE0),
+              ),
+            ),
+          ],
         ),
       ),
     );

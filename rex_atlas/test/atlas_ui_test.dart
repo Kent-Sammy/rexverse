@@ -43,7 +43,7 @@ void main() {
     expect(sheet.mode, AtlasSheetMode.collapsed);
 
     // Quick action → chat expands.
-    await t.tap(find.text('Send\nMoney'));
+    await t.tap(find.text('Send Money'));
     await pumpFor(t);
     expect(
       find.text('Which account do you want to send money to?'),
@@ -95,7 +95,9 @@ void main() {
     );
 
     // ...and the first action brings back the chat with the full history.
-    await t.tap(find.text('Buy\nAirtime'));
+    await t.ensureVisible(find.text('Buy Airtime'));
+    await pumpFor(t, 600);
+    await t.tap(find.text('Buy Airtime'));
     await pumpFor(t);
     expect(
       find.text('Which phone number should I top up, and how much airtime?'),
