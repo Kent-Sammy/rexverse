@@ -32,14 +32,10 @@ class PaymentResultCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final d = result.draft;
     final r = RecipientInfo.of(d);
-    final isTransfer = d.kind == PaymentKind.transfer;
     final ok = result.isSuccessful;
-    final title = ok
-        ? (isTransfer ? 'Transfer Successful!' : 'Airtime Purchase Successful!')
-        : (isTransfer ? 'Transfer Failed' : 'Airtime Purchase Failed');
-    final repeatLabel = isTransfer
-        ? 'Make another transfer'
-        : 'Buy more airtime';
+    final title = ok ? r.successTitle : r.failureTitle;
+    final repeatLabel = r.repeatLabel;
+    final token = result.details['Token'];
 
     return WashCard(
       padding: const EdgeInsets.fromLTRB(16, 21, 16, 14),
@@ -65,11 +61,7 @@ class PaymentResultCard extends StatelessWidget {
                             fontWeight: FontWeight.w700,
                           ),
                         ),
-                        TextSpan(
-                          text: isTransfer
-                              ? ' has been sent to ${r.name} at ${r.institution}.'
-                              : ' airtime has been sent to ${r.name} (${r.institution}).',
-                        ),
+                        TextSpan(text: r.successSuffix),
                       ],
                     ),
                     style: RexTypography.resultBody,
@@ -81,6 +73,14 @@ class PaymentResultCard extends StatelessWidget {
                     textAlign: TextAlign.center,
                   ),
           ),
+          if (ok && token != null) ...[
+            const SizedBox(height: 14),
+            _TokenBox(
+              token: token,
+              units: result.details['Units'],
+              onCopied: onCopied,
+            ),
+          ],
           const SizedBox(height: 17),
           Row(
             children: [
@@ -239,6 +239,78 @@ class _SmallButton extends StatelessWidget {
             maxLines: 1,
             style: RexTypography.smallButton.copyWith(color: foreground),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Prepaid electricity token: large, grouped, with a copy button.
+class _TokenBox extends StatelessWidget {
+  const _TokenBox({required this.token, required this.onCopied, this.units});
+  final String token;
+  final String? units;
+  final ValueChanged<String> onCopied;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      container: true,
+      label: 'Electricity token ${token.replaceAll('-', ' ')}',
+      child: Container(
+        key: const Key('electricity-token'),
+        width: double.infinity,
+        padding: const EdgeInsets.fromLTRB(14, 10, 8, 10),
+        decoration: BoxDecoration(
+          color: RexColors.softBlue,
+          borderRadius: BorderRadius.circular(RexDimens.innerCardRadius),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    units == null
+                        ? 'Electricity token'
+                        : 'Electricity token · $units',
+                    style: RexTypography.caption.copyWith(
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      token,
+                      style: RexTypography.resultTitle.copyWith(
+                        fontSize: 17,
+                        letterSpacing: 0.5,
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Pressable(
+              key: const Key('copy-token'),
+              semanticLabel: 'Copy token',
+              onTap: () {
+                Clipboard.setData(
+                  ClipboardData(text: token.replaceAll('-', '')),
+                );
+                onCopied('Token');
+              },
+              child: const SizedBox(
+                width: 40,
+                height: 40,
+                child: Center(child: RexSvgIcon(RexSvg.copy, size: 16)),
+              ),
+            ),
+          ],
         ),
       ),
     );

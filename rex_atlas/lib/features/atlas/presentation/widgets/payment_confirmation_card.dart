@@ -83,10 +83,11 @@ class PaymentConfirmationCard extends StatelessWidget {
     final source = switch (draft) {
       TransferDraft(:final source) => source,
       AirtimeDraft(:final source) => source,
+      SavingsDraft(:final source) => source,
+      VaultDraft(:final source) => source,
+      BillDraft(:final source) => source,
     };
-    final caption = draft.kind == PaymentKind.transfer
-        ? 'Send Money'
-        : 'Buy Airtime';
+    final caption = r.caption;
     return WashCard(
       padding: const EdgeInsets.fromLTRB(10, 30, 10, 24),
       child: Column(
@@ -101,7 +102,7 @@ class PaymentConfirmationCard extends StatelessWidget {
           Text('to', style: RexTypography.confirmCaption),
           const SizedBox(height: 10),
           Text(
-            r.name,
+            r.confirmName,
             style: RexTypography.confirmName,
             textAlign: TextAlign.center,
           ),
@@ -109,9 +110,16 @@ class PaymentConfirmationCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(r.subtitle, style: RexTypography.confirmBank),
-              const SizedBox(width: 7),
-              r.smallLogo,
+              Flexible(
+                child: Text(
+                  r.confirmSubtitle,
+                  style: RexTypography.confirmBank,
+                ),
+              ),
+              if (r.smallLogo != null) ...[
+                const SizedBox(width: 7),
+                r.smallLogo!,
+              ],
             ],
           ),
           const SizedBox(height: 20),
@@ -173,14 +181,14 @@ class PaymentConfirmationCard extends StatelessWidget {
             child: Column(
               children: [
                 const SizedBox(height: 10),
+                for (final (label, value) in r.rows)
+                  DetailRow(label: label, value: value),
                 ConstrainedBox(
                   constraints: const BoxConstraints(minHeight: 29),
                   child: Align(
                     alignment: Alignment.topCenter,
                     child: AmountRow(
-                      label: draft.kind == PaymentKind.transfer
-                          ? 'Transfer Fee'
-                          : 'Service Fee',
+                      label: r.feeLabel,
                       value: Naira.fixed(draft.feeKobo),
                     ),
                   ),

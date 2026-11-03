@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/design_system/design_system.dart';
 import '../../../../core/formatting/naira.dart';
-import '../../../../core/widgets/initials_avatar.dart';
 import '../../domain/models/models.dart';
 import 'payment_parties.dart';
 
@@ -20,9 +19,7 @@ class PaymentReviewCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final r = RecipientInfo.of(draft);
-    final feeLabel = draft.kind == PaymentKind.transfer
-        ? 'Transfer Fee'
-        : 'Service Fee';
+    final feeLabel = r.feeLabel;
     return AnimatedOpacity(
       duration: const Duration(milliseconds: 200),
       opacity: isActive ? 1 : 0.5,
@@ -44,7 +41,7 @@ class PaymentReviewCard extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  InitialsAvatar(initials: r.initials, size: 35),
+                  r.avatar,
                   const SizedBox(width: 14),
                   Expanded(
                     child: Column(
@@ -66,11 +63,13 @@ class PaymentReviewCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  r.logo,
+                  ?r.logo,
                 ],
               ),
             ),
             const SizedBox(height: 12),
+            for (final (label, value) in r.rows)
+              DetailRow(label: label, value: value),
             ConstrainedBox(
               constraints: const BoxConstraints(minHeight: 29),
               child: Align(

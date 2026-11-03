@@ -13,7 +13,7 @@ Every behaviour that is not specified in the designs is listed here, along with 
 | "Yes, continue please" | how the user answers | typed replies work ("yes", "continue", "cancel", "change the amount to 5000"). **Addition:** tappable reply chips under "Shall I go ahead?" ("Yes, continue please" / "Cancel"), styled with existing tokens, so testers don't have to type |
 | Fingerprint sheet | how authorisation completes | Tapping the fingerprint runs the **simulated** `AuthorizationService`. A small "Demo: tap the fingerprint to simulate approval" caption is added |
 | Closing the fingerprint sheet | | the transfer is paused: "No problem, I haven't sent anything…" with Continue/Cancel chips |
-| "Use PIN instead" | no design | shows an explanation that the Rex PIN pad isn't part of the prototype. **No PIN is ever collected** |
+| "Use PIN instead" | no design | demo PIN pad (4 boxes + on-screen keypad, no system keyboard). Labelled "Demo: any 4 digits work… Don't use your real PIN". The PIN is verified by the mock service in memory and never stored or sent. Production must use Rex's secure PIN entry |
 | Composer "+" and microphone | no design | show a short notice ("…isn't available in this prototype yet") rather than doing nothing |
 | Send button with empty text | | focuses the input. The button is dimmed only while Atlas is responding |
 | Processing / typing state | not drawn | three-dot indicator in an assistant bubble with a status label ("Checking account details…", "Processing your transfer…") |
@@ -23,7 +23,7 @@ Every behaviour that is not specified in the designs is listed here, along with 
 | Transaction rows, welcome recent-transfer card | | open that transaction's receipt |
 | "See All" (welcome) | | asks Atlas "Show my recent transactions" (frame 9) |
 | Suggestion tiles, "Save Money", "Pay Bills" quick actions | no flows designed | Atlas replies that the feature isn't available in this prototype |
-| "Buy Airtime" | only the tile is designed | airtime flow **assumed**, reusing the designed review → confirm → fingerprint → result components |
+| "Buy Airtime", "Save Money", "Pay Bills", suggestions, home RexSave / RexVault / Electricity / Airtime tiles | only entry points are designed | flows **assumed** (airtime, RexSave + Rexy December, RexVault, electricity / cable TV / internet bills), all reusing the designed review → confirmation → fingerprint → result → receipt components. Choices (bill type, provider, package, lock period, amounts) appear as reply chips |
 | Errors | not designed | AI outage → light-red assistant bubble with "Try again". Unknown account → explanation and re-ask. Payment failure → result card in a failed state ("No money left your account") |
 | Host home controls other than the Atlas entry points | out of scope | a SnackBar explains they belong to the main Rex app |
 
@@ -72,3 +72,14 @@ These go **beyond** the Figma frames on purpose, at the product owner's request 
 | Uploads | "+" opens Photo or Document (≤ 10 MB). The file appears in the chat (image thumbnail or file chip). The mock assistant says plainly that reading files isn't available in the prototype; files stay on the device and are not uploaded anywhere |
 | Chat sounds | Original sounds (not Apple's): a whoosh on send, a chime on reply (once per burst), a brighter chime on payment success. They respect the iOS silent switch, mix with other audio, and can be muted with the speaker icon in the header |
 | Home "Ask RexAtlas" bar | Animated cyan→purple gradient outline with a soft glow (holds still with reduce motion) |
+
+## Third round
+
+| Change | Detail |
+|---|---|
+| RexSave / Rexy December | Rates and bonus are demo values. Rexy December follows the Figma suggestion copy "Get 5% upfront on deposits" |
+| RexVault | Fixed lock periods and rates are demo values. Early withdrawal isn't offered |
+| Bills | Providers are real Nigerian billers, but **prices, packages and tokens are illustrative**. Electricity tokens are random 20-digit numbers. TV/internet amounts come from the chosen package and can't be changed |
+| Home tiles | RexSave, RexVault, Electricity and Airtime open Atlas and start that flow. Data, Budgets and RexFlex still show the "part of the main Rex app" notice |
+| PIN pad | See the "Use PIN instead" row above |
+| Amount format | Amounts of ₦10,000 and above show thousands separators (₦100,000); smaller amounts keep the Figma style (₦3000) |

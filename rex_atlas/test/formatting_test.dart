@@ -7,6 +7,9 @@ void main() {
     expect(Naira.plain(300000), '₦3000');
     expect(Naira.fixed(300000), '₦3000.00');
     expect(Naira.fixed(0), '₦0.00');
+    expect(Naira.plain(10000000), '₦100,000');
+    expect(Naira.fixed(394521), '₦3945.21');
+    expect(Naira.fixed(10000000), '₦100,000.00');
     expect(Naira.grouped(300000), '₦3,000.00');
     expect(Naira.groupedWhole(5000000), '₦50,000');
     expect(Naira.grouped(50056367000), '₦500,563,670.00');

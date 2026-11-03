@@ -55,27 +55,31 @@ class MockAtlasAssistantService implements AtlasAssistantService {
       return const ShowTransactionsIntent();
     }
 
-    final collectingDetails =
-        stage == ConversationStage.awaitingTransferDetails ||
-        stage == ConversationStage.awaitingAirtimeDetails;
-    if (!collectingDetails || !RegExp(r'\d').hasMatch(text)) {
-      if (_has(text, [
-        'bill',
-        'bills',
-        'electricity',
-        'dstv',
-        'gotv',
-        'internet',
-        'cable',
-      ])) {
-        return const UnsupportedFeatureIntent('Bill payments');
-      }
-      if (_has(text, ['rexy', 'december'])) {
-        return const UnsupportedFeatureIntent('Rexy December');
-      }
-      if (_has(text, ['save', 'rexsave', 'savings'])) {
-        return const UnsupportedFeatureIntent('Saving with RexSave');
-      }
+    // While collecting details for a flow, short replies ("90 days",
+    // "IKEDC", "12345678901", "₦5,000") belong to that flow unless the user
+    // clearly switches to something else.
+    final product = _product(text);
+    if (stage == ConversationStage.awaitingBillDetails &&
+        (product == null || product == _Product.bill)) {
+      return _billIntent(raw, text);
+    }
+    if (stage == ConversationStage.awaitingVaultDetails &&
+        (product == null || product == _Product.vault)) {
+      return _vaultIntent(raw, text);
+    }
+    if (stage == ConversationStage.awaitingSavingsDetails &&
+        (product == null || product == _Product.savings)) {
+      return _savingsIntent(raw, text);
+    }
+    switch (product) {
+      case _Product.bill:
+        return _billIntent(raw, text);
+      case _Product.vault:
+        return _vaultIntent(raw, text);
+      case _Product.savings:
+        return _savingsIntent(raw, text);
+      case null:
+        break;
     }
 
     final isAirtime = _has(text, [
@@ -118,7 +122,7 @@ class MockAtlasAssistantService implements AtlasAssistantService {
       'good evening',
     ])) {
       return ReplyIntent(
-        'Hi ${MockData.user.firstName}! I can send money, buy airtime or show your recent transactions.',
+        'Hi ${MockData.user.firstName}! I can send money, buy airtime, pay bills, save with RexSave, lock funds in RexVault or show your recent transactions.',
       );
     }
     if (_has(text, ['thank'])) {
@@ -127,7 +131,7 @@ class MockAtlasAssistantService implements AtlasAssistantService {
       );
     }
     return const ReplyIntent(
-      "Sorry, I can't help with that yet. I can send money, buy airtime or show your recent transactions.",
+      "Sorry, I can't help with that yet. I can send money, buy airtime, pay bills, save with RexSave, lock funds in RexVault or show your recent transactions.",
     );
   }
 
@@ -209,4 +213,123 @@ class MockAtlasAssistantService implements AtlasAssistantService {
     if (p.startsWith('234')) return '0${p.substring(3)}';
     return p;
   }
+
+  // ------------------------------------------------- savings, vault, bills
+
+  static const _electricityWords = [
+    'electricity',
+    'light bill',
+    'nepa',
+    'prepaid',
+    'postpaid',
+    'meter',
+    'power bill',
+  ];
+  static const _tvWords = [
+    'dstv',
+    'gotv',
+    'startimes',
+    'star times',
+    'cable',
+    'decoder',
+    'smartcard',
+    'iuc',
+    'tv',
+  ];
+  static const _internetWords = [
+    'internet',
+    'spectranet',
+    'smile',
+    'broadband',
+  ];
+  static final _customerId = RegExp(r'(?<!\d)(\d{10,13})(?!\d)');
+  static final _tenor = RegExp(
+    r'(\d+|a|one)\s*(days?|months?|years?|yrs?)\b',
+    caseSensitive: false,
+  );
+
+  _Product? _product(String t) {
+    if (_billCategory(t) != null ||
+        _billerAlias(t) != null ||
+        _has(t, ['bill', 'bills', 'utility', 'utilities'])) {
+      return _Product.bill;
+    }
+    if (_has(t, [
+      'vault',
+      'rexvault',
+      'lock',
+      'locked',
+      'fixed deposit',
+      'fixed savings',
+    ])) {
+      return _Product.vault;
+    }
+    if (_has(t, ['rexy', 'december', 'save', 'saving', 'savings', 'rexsave'])) {
+      return _Product.savings;
+    }
+    return null;
+  }
+
+  static BillCategory? _billCategory(String t) {
+    if (_has(t, _electricityWords)) return BillCategory.electricity;
+    if (_has(t, _tvWords)) return BillCategory.cableTv;
+    if (_has(t, _internetWords)) return BillCategory.internet;
+    final alias = _billerAlias(t);
+    if (alias == null) return null;
+    final id = MockData.billerAliases[alias]!;
+    return MockData.billers.firstWhere((b) => b.id == id).category;
+  }
+
+  static String? _billerAlias(String t) {
+    final sorted = MockData.billerAliases.keys.toList()
+      ..sort((a, b) => b.length.compareTo(a.length));
+    for (final alias in sorted) {
+      if (RegExp('\\b${RegExp.escape(alias)}\\b').hasMatch(t)) return alias;
+    }
+    return null;
+  }
+
+  AssistantIntent _billIntent(String raw, String text) {
+    final id = _customerId.firstMatch(raw)?.group(1);
+    final rest = id == null ? raw : raw.replaceFirst(id, ' ');
+    return StartBillIntent(
+      category: _billCategory(text),
+      billerQuery: _billerAlias(text),
+      customerId: id,
+      amountKobo: _parseAmount(rest),
+      packageQuery: raw,
+    );
+  }
+
+  AssistantIntent _vaultIntent(String raw, String text) {
+    final m = _tenor.firstMatch(text);
+    int? days;
+    var rest = raw.replaceAll(RegExp(r'\d+(\.\d+)?\s*%'), ' ');
+    if (m != null) {
+      final n = int.tryParse(m.group(1)!) ?? 1;
+      final unit = m.group(2)!.toLowerCase();
+      days = unit.startsWith('day')
+          ? n
+          : unit.startsWith('month')
+          ? n * 30
+          : n * 365;
+      if (days == 360) days = 365;
+      rest = rest.replaceFirst(
+        RegExp(RegExp.escape(m.group(0)!), caseSensitive: false),
+        ' ',
+      );
+    }
+    return StartVaultIntent(amountKobo: _parseAmount(rest), tenorDays: days);
+  }
+
+  AssistantIntent _savingsIntent(String raw, String text) {
+    final plan = _has(text, ['rexy', 'december'])
+        ? SavingsPlan.rexyDecember
+        : (_has(text, ['rexsave', 'save', 'savings', 'saving'])
+              ? SavingsPlan.rexSave
+              : null);
+    return StartSavingsIntent(amountKobo: _parseAmount(raw), plan: plan);
+  }
 }
+
+enum _Product { bill, vault, savings }

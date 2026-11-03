@@ -75,6 +75,21 @@ class _TransactionRow extends StatelessWidget {
       RexColors.accentOrange,
       RexColors.historyOrangeBg,
     ),
+    TransactionCategory.savings => (
+      Icons.savings_rounded,
+      RexColors.accentOrange,
+      RexColors.historyOrangeBg,
+    ),
+    TransactionCategory.vault => (
+      Icons.lock_rounded,
+      RexColors.accentCyan,
+      RexColors.historyCyanBg,
+    ),
+    TransactionCategory.bill => (
+      Icons.receipt_long_rounded,
+      RexColors.accentBlue,
+      RexColors.historyBlueBg,
+    ),
   };
 
   @override

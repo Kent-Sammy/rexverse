@@ -24,8 +24,12 @@ class RexHomeScreen extends StatefulWidget {
 }
 
 class _RexHomeScreenState extends State<RexHomeScreen> {
-  void _openAtlas() =>
-      showRexAtlas(context, controller: widget.atlas, now: widget.now);
+  void _openAtlas([String? startWith]) => showRexAtlas(
+    context,
+    controller: widget.atlas,
+    now: widget.now,
+    initialMessage: startWith,
+  );
 
   void _notInPrototype(String what) {
     ScaffoldMessenger.of(context)
@@ -67,6 +71,7 @@ class _RexHomeScreenState extends State<RexHomeScreen> {
                     const SizedBox(height: 10),
                     _ServicesGrid(
                       onAtlas: _openAtlas,
+                      onAsk: _openAtlas,
                       onOther: _notInPrototype,
                     ),
                     const SizedBox(height: 10),
@@ -342,8 +347,15 @@ class _BalanceCard extends StatelessWidget {
 }
 
 class _ServicesGrid extends StatelessWidget {
-  const _ServicesGrid({required this.onAtlas, required this.onOther});
+  const _ServicesGrid({
+    required this.onAtlas,
+    required this.onAsk,
+    required this.onOther,
+  });
   final VoidCallback onAtlas;
+
+  /// Opens Atlas and starts a flow (e.g. "Save Money").
+  final ValueChanged<String> onAsk;
   final ValueChanged<String> onOther;
 
   @override
@@ -396,6 +408,8 @@ class _ServicesGrid extends StatelessWidget {
                   size: 24,
                   color: RexColors.iconGreen,
                 ),
+                onTap: () => onAsk('Buy Airtime'),
+                key: const Key('home-airtime-tile'),
               ),
               gap,
               tile(
@@ -408,6 +422,8 @@ class _ServicesGrid extends StatelessWidget {
                 'Electricity',
                 RexColors.tileOrange,
                 const RexSvgIcon(RexSvg.light, size: 28),
+                onTap: () => onAsk('Pay electricity bill'),
+                key: const Key('home-electricity-tile'),
               ),
               gap,
               tile(
@@ -424,12 +440,16 @@ class _ServicesGrid extends StatelessWidget {
                 'RexSave',
                 RexColors.tileOrange,
                 const RexSvgIcon(RexSvg.wallet, size: 24),
+                onTap: () => onAsk('Save Money'),
+                key: const Key('home-rexsave-tile'),
               ),
               gap,
               tile(
                 'RexVault',
                 RexColors.tileCyan,
                 const RexSvgIcon(RexSvg.briefcase, size: 24),
+                onTap: () => onAsk('Lock funds in RexVault'),
+                key: const Key('home-rexvault-tile'),
               ),
               gap,
               tile(

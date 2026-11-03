@@ -49,6 +49,9 @@ class AtlasController extends ChangeNotifier {
 
   _TransferSlots _transfer = _TransferSlots();
   _AirtimeSlots _airtime = _AirtimeSlots();
+  _SavingsSlots _savings = _SavingsSlots();
+  _VaultSlots _vault = _VaultSlots();
+  _BillSlots _bill = _BillSlots();
   PaymentDraft? _pending;
   PaymentConfirmationMessage? _confirmation;
 
@@ -144,7 +147,19 @@ class AtlasController extends ChangeNotifier {
     final draft = _pending;
     if (draft == null) return;
     final token = await deps.authorization.authorizeWithBiometrics(
-      purpose: draft.kind == PaymentKind.transfer ? 'transfer' : 'airtime',
+      purpose: _noun(draft.kind),
+    );
+    unawaited(_execute(draft, token));
+  }
+
+  /// Called by the PIN pad. Rethrows [IncorrectPinException] /
+  /// [PinLockedException] so the pad can show the error.
+  Future<void> authorizeWithPin(String pin) async {
+    final draft = _pending;
+    if (draft == null) return;
+    final token = await deps.authorization.authorizeWithPin(
+      pin: pin,
+      purpose: _noun(draft.kind),
     );
     unawaited(_execute(draft, token));
   }
@@ -202,6 +217,12 @@ class AtlasController extends ChangeNotifier {
         await _handleTransfer(intent);
       case StartAirtimeIntent():
         await _handleAirtime(intent);
+      case StartSavingsIntent():
+        await _handleSavings(intent);
+      case StartVaultIntent():
+        await _handleVault(intent);
+      case StartBillIntent():
+        await _handleBill(intent);
       case ChangeAmountIntent(:final amountKobo):
         await _changeAmount(amountKobo);
       case ConfirmIntent():
@@ -215,7 +236,8 @@ class AtlasController extends ChangeNotifier {
       case UnsupportedFeatureIntent(:final featureName):
         _say(
           "$featureName through Atlas isn't available in this prototype yet. "
-          'I can send money, buy airtime or show your recent transactions.',
+          'I can send money, buy airtime, pay bills, save with RexSave, lock '
+          'funds in RexVault or show your recent transactions.',
         );
       case ReplyIntent(:final text):
         _say(text);
@@ -336,6 +358,236 @@ class AtlasController extends ChangeNotifier {
     );
   }
 
+  // --------------------------------------------------------------- savings
+
+  Future<void> _handleSavings(StartSavingsIntent i) async {
+    if (_stage != ConversationStage.awaitingSavingsDetails) {
+      _deactivatePending();
+      _savings = _SavingsSlots();
+    }
+    _savings.merge(i);
+    _stage = ConversationStage.awaitingSavingsDetails;
+    final s = _savings;
+    final plan = s.plan ?? SavingsPlan.rexSave;
+    if (s.amountKobo == null) {
+      final sample = await deps.savings.quote(plan, 10000);
+      _say(
+        plan == SavingsPlan.rexyDecember
+            ? 'Rexy December gives you ${(sample.bonusKobo / 100).toStringAsFixed(0)}% '
+                  'upfront on deposits, locked until December 31. How much would you like to save?'
+            : 'RexSave earns ${sample.annualRatePct.toStringAsFixed(0)}% a year and you can '
+                  'withdraw any time. How much would you like to save?',
+        quickReplies: const ['₦5,000', '₦10,000', '₦50,000'],
+      );
+      return;
+    }
+    final min = deps.savings.minDepositKobo(plan);
+    if (s.amountKobo! < min) {
+      s.amountKobo = null;
+      _say(
+        'The minimum ${plan.displayName} deposit is ${Naira.groupedWhole(min)}. '
+        'How much would you like to save?',
+      );
+      return;
+    }
+    final q = await deps.savings.quote(plan, s.amountKobo!);
+    _presentReview(
+      SavingsDraft(
+        amountKobo: s.amountKobo!,
+        feeKobo: 0,
+        plan: plan,
+        source: await _sourceAccount(),
+        annualRatePct: q.annualRatePct,
+        bonusKobo: q.bonusKobo,
+        lockedUntil: q.lockedUntil,
+      ),
+      intro: 'Great. Please review your ${plan.displayName} deposit.',
+    );
+  }
+
+  // ----------------------------------------------------------------- vault
+
+  static String _tenorLabel(int days) => days == 365 ? '1 year' : '$days days';
+
+  Future<void> _handleVault(StartVaultIntent i) async {
+    if (_stage != ConversationStage.awaitingVaultDetails) {
+      _deactivatePending();
+      _vault = _VaultSlots();
+    }
+    _vault.merge(i);
+    _stage = ConversationStage.awaitingVaultDetails;
+    final s = _vault;
+    final v = deps.vault;
+    if (s.amountKobo == null) {
+      _say(
+        'How much would you like to lock in RexVault? The minimum is '
+        '${Naira.groupedWhole(v.minLockKobo)}.',
+        quickReplies: const ['₦50,000', '₦100,000', '₦500,000'],
+      );
+      return;
+    }
+    if (s.amountKobo! < v.minLockKobo) {
+      s.amountKobo = null;
+      _say(
+        'The minimum RexVault lock is ${Naira.groupedWhole(v.minLockKobo)}. '
+        'How much would you like to lock?',
+      );
+      return;
+    }
+    if (s.tenorDays != null && !v.rates.containsKey(s.tenorDays)) {
+      s.tenorDays = null;
+      _say("I can lock funds for 30, 90 or 180 days, or 1 year.");
+    }
+    if (s.tenorDays == null) {
+      _say(
+        'For how long? Longer locks earn more interest.',
+        quickReplies: [
+          for (final e in v.rates.entries)
+            '${_tenorLabel(e.key)} · ${e.value.toStringAsFixed(0)}% p.a.',
+        ],
+      );
+      return;
+    }
+    final q = await v.quote(amountKobo: s.amountKobo!, tenorDays: s.tenorDays!);
+    _presentReview(
+      VaultDraft(
+        amountKobo: s.amountKobo!,
+        feeKobo: 0,
+        tenorDays: s.tenorDays!,
+        annualRatePct: q.annualRatePct,
+        interestKobo: q.interestKobo,
+        maturity: q.maturity,
+        source: await _sourceAccount(),
+      ),
+      intro:
+          'Here are the details of your RexVault lock. Locked funds can\'t '
+          'be withdrawn before the maturity date.',
+    );
+  }
+
+  // ----------------------------------------------------------------- bills
+
+  Future<void> _handleBill(StartBillIntent i) async {
+    if (_stage != ConversationStage.awaitingBillDetails) {
+      _deactivatePending();
+      _bill = _BillSlots();
+    }
+    final s = _bill;
+    s.merge(i);
+    _stage = ConversationStage.awaitingBillDetails;
+    final bills = deps.bills;
+
+    if (s.billerQuery != null &&
+        (s.biller == null ||
+            s.biller!.shortName.toLowerCase() != s.billerQuery)) {
+      final found = await bills.findBiller(s.billerQuery!);
+      if (found != null && found.id != s.biller?.id) {
+        s
+          ..biller = found
+          ..category = found.category
+          ..customer = null
+          ..package = null;
+      }
+    }
+    if (s.category == null) {
+      _say(
+        'Which bill would you like to pay?',
+        quickReplies: [for (final c in BillCategory.values) c.displayName],
+      );
+      return;
+    }
+    final biller = s.biller;
+    if (biller == null) {
+      final list = await bills.billers(s.category!);
+      _say(
+        s.category == BillCategory.electricity
+            ? 'Which electricity company?'
+            : 'Which ${s.category!.displayName.toLowerCase()} provider?',
+        quickReplies: [for (final b in list) b.shortName],
+      );
+      return;
+    }
+    if (s.customerId == null) {
+      _say('What is your ${biller.shortName} ${biller.customerIdLabel}?');
+      return;
+    }
+    if (s.customer == null || s.checkedId != s.customerId) {
+      final typing = _showTyping(label: 'Checking ${biller.customerIdLabel}…');
+      try {
+        s.customer = await bills.validateCustomer(biller, s.customerId!);
+        s.checkedId = s.customerId;
+      } on BillCustomerNotFoundException catch (e) {
+        _remove(typing);
+        s.customerId = null;
+        _say('${e.message} Please check it and try again.');
+        return;
+      }
+      _remove(typing);
+    }
+
+    int amount;
+    BillPackage? package;
+    if (biller.hasPackages) {
+      final list = await bills.packages(biller);
+      if (s.package == null && s.packageQuery != null) {
+        final q = s.packageQuery!.toLowerCase();
+        final sorted = [...list]
+          ..sort((a, b) => b.name.length.compareTo(a.name.length));
+        for (final p in sorted) {
+          if (q.contains(p.name.toLowerCase())) {
+            s.package = p;
+            break;
+          }
+        }
+      }
+      if (s.package == null) {
+        _say(
+          'Which ${biller.shortName} package?',
+          quickReplies: [
+            for (final p in list)
+              '${p.name} · ${Naira.groupedWhole(p.amountKobo)}',
+          ],
+        );
+        return;
+      }
+      package = s.package;
+      amount = package!.amountKobo;
+    } else {
+      if (s.amountKobo == null) {
+        _say(
+          'How much electricity would you like to buy? '
+          '(${Naira.groupedWhole(biller.minAmountKobo)} to ${Naira.groupedWhole(biller.maxAmountKobo)})',
+          quickReplies: const ['₦2,000', '₦5,000', '₦10,000'],
+        );
+        return;
+      }
+      if (s.amountKobo! < biller.minAmountKobo ||
+          s.amountKobo! > biller.maxAmountKobo) {
+        s.amountKobo = null;
+        _say(
+          '${biller.shortName} payments must be between '
+          '${Naira.groupedWhole(biller.minAmountKobo)} and '
+          '${Naira.groupedWhole(biller.maxAmountKobo)}. How much would you like to pay?',
+        );
+        return;
+      }
+      amount = s.amountKobo!;
+    }
+    _presentReview(
+      BillDraft(
+        amountKobo: amount,
+        feeKobo: 0,
+        biller: biller,
+        customerId: s.customerId!,
+        customer: s.customer!,
+        source: await _sourceAccount(),
+        package: package,
+      ),
+      intro:
+          "Got it. I've verified the ${biller.customerIdLabel}. Please review and confirm.",
+    );
+  }
+
   // ------------------------------------------------------- shared payment
 
   void _presentReview(PaymentDraft draft, {required String intro}) {
@@ -372,6 +624,41 @@ class AtlasController extends ChangeNotifier {
           p.copyWith(amountKobo: amountKobo),
           intro: "Done. I've updated the amount to ${Naira.plain(amountKobo)}.",
         );
+      case SavingsDraft():
+        final q = await deps.savings.quote(p.plan, amountKobo);
+        _presentReview(
+          p.copyWith(amountKobo: amountKobo, bonusKobo: q.bonusKobo),
+          intro: "Done. I've updated the amount to ${Naira.plain(amountKobo)}.",
+        );
+      case VaultDraft():
+        final q = await deps.vault.quote(
+          amountKobo: amountKobo,
+          tenorDays: p.tenorDays,
+        );
+        _presentReview(
+          VaultDraft(
+            amountKobo: amountKobo,
+            feeKobo: p.feeKobo,
+            tenorDays: p.tenorDays,
+            annualRatePct: q.annualRatePct,
+            interestKobo: q.interestKobo,
+            maturity: q.maturity,
+            source: p.source,
+          ),
+          intro: "Done. I've updated the amount to ${Naira.plain(amountKobo)}.",
+        );
+      case BillDraft():
+        if (p.package != null) {
+          _say(
+            'The price is set by the ${p.biller.shortName} ${p.package!.name} package. '
+            'You can cancel and choose a different package.',
+          );
+          return;
+        }
+        _presentReview(
+          p.copyWith(amountKobo: amountKobo),
+          intro: "Done. I've updated the amount to ${Naira.plain(amountKobo)}.",
+        );
     }
   }
 
@@ -384,9 +671,7 @@ class AtlasController extends ChangeNotifier {
     _stage = ConversationStage.awaitingAuthorization;
     if (_confirmation == null) {
       _say(
-        p.kind == PaymentKind.transfer
-            ? 'Please confirm with your biometrics to complete this transfer'
-            : 'Please confirm with your biometrics to complete this purchase',
+        'Please confirm with your biometrics to complete this ${_noun(p.kind)}',
       );
       _confirmation = PaymentConfirmationMessage(id: _id(), draft: p);
       _add(_confirmation!);
@@ -396,24 +681,43 @@ class AtlasController extends ChangeNotifier {
 
   void _cancel() {
     final p = _pending;
-    final collecting =
-        _stage == ConversationStage.awaitingTransferDetails ||
-        _stage == ConversationStage.awaitingAirtimeDetails;
+    final stage = _stage;
+    final collecting = const {
+      ConversationStage.awaitingTransferDetails,
+      ConversationStage.awaitingAirtimeDetails,
+      ConversationStage.awaitingSavingsDetails,
+      ConversationStage.awaitingVaultDetails,
+      ConversationStage.awaitingBillDetails,
+    }.contains(stage);
     _deactivatePending();
     if (_confirmation != null) {
       _messages.remove(_confirmation);
       _confirmation = null;
     }
     _pending = null;
-    _transfer = _TransferSlots();
-    _airtime = _AirtimeSlots();
+    _resetSlots();
     _stage = ConversationStage.idle;
     if (p != null || collecting) {
-      _say(
-        p?.kind == PaymentKind.airtime
-            ? "Okay, I've cancelled the airtime purchase. Nothing was charged."
-            : "Okay, I've cancelled this transfer. No money was sent.",
-      );
+      final kind =
+          p?.kind ??
+          switch (stage) {
+            ConversationStage.awaitingAirtimeDetails => PaymentKind.airtime,
+            ConversationStage.awaitingSavingsDetails => PaymentKind.savings,
+            ConversationStage.awaitingVaultDetails => PaymentKind.vault,
+            ConversationStage.awaitingBillDetails => PaymentKind.bill,
+            _ => PaymentKind.transfer,
+          };
+      _say(switch (kind) {
+        PaymentKind.transfer =>
+          "Okay, I've cancelled this transfer. No money was sent.",
+        PaymentKind.airtime =>
+          "Okay, I've cancelled the airtime purchase. Nothing was charged.",
+        PaymentKind.savings =>
+          "Okay, I've cancelled the deposit. Nothing was moved.",
+        PaymentKind.vault => "Okay, I've cancelled. No funds were locked.",
+        PaymentKind.bill =>
+          "Okay, I've cancelled the bill payment. Nothing was charged.",
+      });
     } else {
       _say('Okay. Anything else I can help with?');
     }
@@ -425,16 +729,15 @@ class AtlasController extends ChangeNotifier {
       _messages.remove(_confirmation);
       _confirmation = null;
     }
-    final typing = _showTyping(
-      label: draft.kind == PaymentKind.transfer
-          ? 'Processing your transfer…'
-          : 'Processing your purchase…',
-    );
+    final typing = _showTyping(label: 'Processing your ${_noun(draft.kind)}…');
     PaymentResult result;
     try {
       result = switch (draft) {
         TransferDraft() => await deps.transfers.execute(draft, token),
         AirtimeDraft() => await deps.airtime.purchase(draft, token),
+        SavingsDraft() => await deps.savings.deposit(draft, token),
+        VaultDraft() => await deps.vault.lock(draft, token),
+        BillDraft() => await deps.bills.pay(draft, token),
       };
     } catch (_) {
       _remove(typing);
@@ -455,8 +758,7 @@ class AtlasController extends ChangeNotifier {
       return;
     }
     _pending = null;
-    _transfer = _TransferSlots();
-    _airtime = _AirtimeSlots();
+    _resetSlots();
     _stage = ConversationStage.idle;
     Receipt? receipt;
     if (result.isSuccessful) {
@@ -499,6 +801,22 @@ class AtlasController extends ChangeNotifier {
   }
 
   // -------------------------------------------------------------- helpers
+
+  static String _noun(PaymentKind k) => switch (k) {
+    PaymentKind.transfer => 'transfer',
+    PaymentKind.airtime => 'purchase',
+    PaymentKind.savings => 'deposit',
+    PaymentKind.vault => 'lock',
+    PaymentKind.bill => 'payment',
+  };
+
+  void _resetSlots() {
+    _transfer = _TransferSlots();
+    _airtime = _AirtimeSlots();
+    _savings = _SavingsSlots();
+    _vault = _VaultSlots();
+    _bill = _BillSlots();
+  }
 
   Future<SourceAccount> _sourceAccount() async =>
       _account ??= await deps.accounts.primaryAccount();
@@ -598,5 +916,52 @@ class _AirtimeSlots {
     amountKobo = i.amountKobo ?? amountKobo;
     phoneNumber = i.phoneNumber ?? phoneNumber;
     network = i.network ?? network;
+  }
+}
+
+class _SavingsSlots {
+  int? amountKobo;
+  SavingsPlan? plan;
+
+  void merge(StartSavingsIntent i) {
+    amountKobo = i.amountKobo ?? amountKobo;
+    plan = i.plan ?? plan;
+  }
+}
+
+class _VaultSlots {
+  int? amountKobo;
+  int? tenorDays;
+
+  void merge(StartVaultIntent i) {
+    amountKobo = i.amountKobo ?? amountKobo;
+    tenorDays = i.tenorDays ?? tenorDays;
+  }
+}
+
+class _BillSlots {
+  BillCategory? category;
+  String? billerQuery;
+  Biller? biller;
+  String? customerId;
+  String? checkedId;
+  BillCustomer? customer;
+  BillPackage? package;
+  String? packageQuery;
+  int? amountKobo;
+
+  void merge(StartBillIntent i) {
+    if (i.category != null && i.category != category) {
+      category = i.category;
+      if (biller != null && biller!.category != category) {
+        biller = null;
+        customer = null;
+        package = null;
+      }
+    }
+    billerQuery = i.billerQuery ?? billerQuery;
+    if (i.customerId != null) customerId = i.customerId;
+    amountKobo = i.amountKobo ?? amountKobo;
+    packageQuery = i.packageQuery;
   }
 }

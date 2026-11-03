@@ -3,27 +3,34 @@ import 'package:flutter/services.dart';
 
 import '../../../../core/design_system/design_system.dart';
 import '../../../../core/widgets/pressable.dart';
+import 'pin_pad.dart';
 
 /// Frame 5 "Confirm with your fingerprint" sheet.
 ///
 /// SIMULATION: tapping the fingerprint calls [onAuthorize], which goes to
-/// the (mock) AuthorizationService. No biometric hardware is used and no PIN
-/// is collected. Returns `true` from the route when authorised.
+/// the (mock) AuthorizationService. No biometric hardware is used. "Use PIN
+/// instead" opens a demo PIN pad; the PIN is checked by the mock service and
+/// never stored. Returns `true` from the route when authorised.
 class BiometricPromptSheet extends StatefulWidget {
   const BiometricPromptSheet({
     super.key,
     required this.onAuthorize,
+    required this.onAuthorizePin,
     required this.isDemo,
     this.purpose = 'transfer',
   });
 
   final Future<void> Function() onAuthorize;
+
+  /// Verifies a transaction PIN; throws on a wrong PIN.
+  final Future<void> Function(String pin) onAuthorizePin;
   final bool isDemo;
   final String purpose;
 
   static Future<bool> show(
     BuildContext context, {
     required Future<void> Function() onAuthorize,
+    required Future<void> Function(String pin) onAuthorizePin,
     required bool isDemo,
     String purpose = 'transfer',
   }) async {
@@ -40,6 +47,7 @@ class BiometricPromptSheet extends StatefulWidget {
       ),
       builder: (_) => BiometricPromptSheet(
         onAuthorize: onAuthorize,
+        onAuthorizePin: onAuthorizePin,
         isDemo: isDemo,
         purpose: purpose,
       ),
@@ -179,45 +187,18 @@ class _BiometricPromptSheetState extends State<BiometricPromptSheet> {
     );
   }
 
-  /// "Use PIN instead" is designed only as a link. The prototype must not
-  /// collect PINs, so it explains where PIN entry would happen instead.
+  /// "Use PIN instead" → transaction PIN pad (demo verification; the PIN
+  /// is never stored or sent anywhere).
   Widget _pinInfo() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 40),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 83,
-            height: 83,
-            alignment: Alignment.center,
-            decoration: const BoxDecoration(
-              color: RexColors.fingerprintCircle,
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.dialpad_rounded,
-              size: 40,
-              color: Color(0xFF000EFF),
-            ),
-          ),
-          const SizedBox(height: 26),
-          Text('PIN authorisation', style: RexTypography.sheetTitle),
-          const SizedBox(height: 4),
-          Text(
-            "Rex's secure transaction PIN pad isn't part of this prototype, so no PIN is collected here.",
-            style: RexTypography.sheetBody,
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 18),
-          Pressable(
-            key: const Key('biometric-back'),
-            semanticLabel: 'Use fingerprint',
-            onTap: () => setState(() => _showPinInfo = false),
-            child: Text('Use fingerprint', style: RexTypography.link),
-          ),
-        ],
-      ),
+    return PinPad(
+      key: const Key('pin-pad'),
+      isDemo: widget.isDemo,
+      purpose: widget.purpose,
+      onUseFingerprint: () => setState(() => _showPinInfo = false),
+      onSubmit: (pin) async {
+        await widget.onAuthorizePin(pin);
+        if (mounted) Navigator.of(context).pop(true);
+      },
     );
   }
 }

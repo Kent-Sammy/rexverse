@@ -70,6 +70,9 @@ abstract final class MockReceiptBuilder {
     if (r.counterpartyBankLabel != null) {
       rows.add(ReceiptRow('Recipient’s Bank', r.counterpartyBankLabel!));
     }
+    for (final e in r.details.entries) {
+      rows.add(ReceiptRow(e.key, e.value, copyable: e.key == 'Token'));
+    }
     if (r.category == TransactionCategory.airtime && r.channel != null) {
       rows.add(ReceiptRow('Phone Number', r.channel!));
     }
@@ -81,6 +84,10 @@ abstract final class MockReceiptBuilder {
             'Airtime purchase | ${sender.accountNumber}',
           TransactionCategory.cardPayment =>
             'Card payment | ${r.channel ?? ''}',
+          TransactionCategory.savings => 'Deposit from ${sender.holderName}',
+          TransactionCategory.vault =>
+            'RexVault lock from ${sender.holderName}',
+          TransactionCategory.bill => '${r.title} | ${sender.holderName}',
           _ => 'Transfer from ${sender.holderName} | ${sender.accountNumber}',
         }),
       )

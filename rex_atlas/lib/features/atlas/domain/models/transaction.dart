@@ -1,4 +1,12 @@
-enum TransactionCategory { cardPayment, transfer, airtime, businessTransfer }
+enum TransactionCategory {
+  cardPayment,
+  transfer,
+  airtime,
+  businessTransfer,
+  savings,
+  vault,
+  bill,
+}
 
 enum TransactionStatus { successful, pending, failed }
 
@@ -15,6 +23,7 @@ class TransactionRecord {
     this.counterpartyBankLabel,
     this.counterpartyMasked,
     this.isSimulated = true,
+    this.details = const {},
   });
 
   final String reference;
@@ -28,6 +37,9 @@ class TransactionRecord {
   final String? counterpartyBankLabel; // "GTBank (0004218716)"
   final String? counterpartyMasked; // "GTBank **** 8716"
   final bool isSimulated;
+
+  /// Product-specific receipt rows (token, meter number, plan, maturity…).
+  final Map<String, String> details;
 }
 
 /// Key/value receipt as shown in the "Transaction Details" panel.

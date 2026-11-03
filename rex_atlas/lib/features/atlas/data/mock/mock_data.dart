@@ -107,4 +107,205 @@ abstract final class MockData {
     counterpartyMasked: 'GTBank **** 8716',
     counterpartyBankLabel: 'GTBank (0004218716)',
   );
+
+  // ---------------------------------------------------------------- bills
+  // Illustrative providers and prices for the demo, not live tariffs.
+
+  static const billers = <Biller>[
+    Biller(
+      id: 'ikedc',
+      name: 'Ikeja Electric (IKEDC)',
+      shortName: 'IKEDC',
+      category: BillCategory.electricity,
+      customerIdLabel: 'meter number',
+      minIdLength: 11,
+      maxIdLength: 13,
+      minAmountKobo: 100000,
+      maxAmountKobo: 50000000,
+    ),
+    Biller(
+      id: 'ekedc',
+      name: 'Eko Electric (EKEDC)',
+      shortName: 'EKEDC',
+      category: BillCategory.electricity,
+      customerIdLabel: 'meter number',
+      minIdLength: 11,
+      maxIdLength: 13,
+      minAmountKobo: 100000,
+      maxAmountKobo: 50000000,
+    ),
+    Biller(
+      id: 'aedc',
+      name: 'Abuja Electric (AEDC)',
+      shortName: 'AEDC',
+      category: BillCategory.electricity,
+      customerIdLabel: 'meter number',
+      minIdLength: 11,
+      maxIdLength: 13,
+      minAmountKobo: 100000,
+      maxAmountKobo: 50000000,
+    ),
+    Biller(
+      id: 'ibedc',
+      name: 'Ibadan Electric (IBEDC)',
+      shortName: 'IBEDC',
+      category: BillCategory.electricity,
+      customerIdLabel: 'meter number',
+      minIdLength: 11,
+      maxIdLength: 13,
+      minAmountKobo: 100000,
+      maxAmountKobo: 50000000,
+    ),
+    Biller(
+      id: 'phed',
+      name: 'Port Harcourt Electric (PHED)',
+      shortName: 'PHED',
+      category: BillCategory.electricity,
+      customerIdLabel: 'meter number',
+      minIdLength: 11,
+      maxIdLength: 13,
+      minAmountKobo: 100000,
+      maxAmountKobo: 50000000,
+    ),
+    Biller(
+      id: 'eedc',
+      name: 'Enugu Electric (EEDC)',
+      shortName: 'EEDC',
+      category: BillCategory.electricity,
+      customerIdLabel: 'meter number',
+      minIdLength: 11,
+      maxIdLength: 13,
+      minAmountKobo: 100000,
+      maxAmountKobo: 50000000,
+    ),
+    Biller(
+      id: 'dstv',
+      name: 'DStv',
+      shortName: 'DStv',
+      category: BillCategory.cableTv,
+      customerIdLabel: 'smartcard number',
+      minIdLength: 10,
+      maxIdLength: 11,
+    ),
+    Biller(
+      id: 'gotv',
+      name: 'GOtv',
+      shortName: 'GOtv',
+      category: BillCategory.cableTv,
+      customerIdLabel: 'IUC number',
+      minIdLength: 10,
+      maxIdLength: 11,
+    ),
+    Biller(
+      id: 'startimes',
+      name: 'StarTimes',
+      shortName: 'StarTimes',
+      category: BillCategory.cableTv,
+      customerIdLabel: 'smartcard number',
+      minIdLength: 10,
+      maxIdLength: 11,
+    ),
+    Biller(
+      id: 'spectranet',
+      name: 'Spectranet',
+      shortName: 'Spectranet',
+      category: BillCategory.internet,
+      customerIdLabel: 'account ID',
+      minIdLength: 10,
+      maxIdLength: 10,
+    ),
+    Biller(
+      id: 'smile',
+      name: 'Smile',
+      shortName: 'Smile',
+      category: BillCategory.internet,
+      customerIdLabel: 'account ID',
+      minIdLength: 10,
+      maxIdLength: 10,
+    ),
+  ];
+
+  static const billerAliases = <String, String>{
+    'ikedc': 'ikedc',
+    'ikeja electric': 'ikedc',
+    'ikeja': 'ikedc',
+    'ekedc': 'ekedc',
+    'eko electric': 'ekedc',
+    'eko': 'ekedc',
+    'aedc': 'aedc',
+    'abuja electric': 'aedc',
+    'abuja': 'aedc',
+    'ibedc': 'ibedc',
+    'ibadan electric': 'ibedc',
+    'ibadan': 'ibedc',
+    'phed': 'phed',
+    'port harcourt electric': 'phed',
+    'port harcourt': 'phed',
+    'eedc': 'eedc',
+    'enugu electric': 'eedc',
+    'enugu': 'eedc',
+    'dstv': 'dstv',
+    'gotv': 'gotv',
+    'startimes': 'startimes',
+    'star times': 'startimes',
+    'spectranet': 'spectranet',
+    'smile': 'smile',
+  };
+
+  static const packages = <String, List<BillPackage>>{
+    'dstv': [
+      BillPackage(id: 'dstv-padi', name: 'Padi', amountKobo: 440000),
+      BillPackage(id: 'dstv-yanga', name: 'Yanga', amountKobo: 600000),
+      BillPackage(id: 'dstv-confam', name: 'Confam', amountKobo: 1100000),
+      BillPackage(id: 'dstv-compact', name: 'Compact', amountKobo: 1900000),
+      BillPackage(
+        id: 'dstv-compact-plus',
+        name: 'Compact Plus',
+        amountKobo: 3000000,
+      ),
+      BillPackage(id: 'dstv-premium', name: 'Premium', amountKobo: 4450000),
+    ],
+    'gotv': [
+      BillPackage(id: 'gotv-smallie', name: 'Smallie', amountKobo: 190000),
+      BillPackage(id: 'gotv-jinja', name: 'Jinja', amountKobo: 390000),
+      BillPackage(id: 'gotv-jolli', name: 'Jolli', amountKobo: 580000),
+      BillPackage(id: 'gotv-max', name: 'Max', amountKobo: 850000),
+      BillPackage(id: 'gotv-supa', name: 'Supa', amountKobo: 1140000),
+    ],
+    'startimes': [
+      BillPackage(id: 'st-nova', name: 'Nova', amountKobo: 190000),
+      BillPackage(id: 'st-basic', name: 'Basic', amountKobo: 370000),
+      BillPackage(id: 'st-classic', name: 'Classic', amountKobo: 550000),
+    ],
+    'spectranet': [
+      BillPackage(id: 'spec-lite', name: 'Unlimited Lite', amountKobo: 1500000),
+      BillPackage(id: 'spec-plus', name: 'Unlimited Plus', amountKobo: 2500000),
+      BillPackage(
+        id: 'spec-premium',
+        name: 'Unlimited Premium',
+        amountKobo: 3500000,
+      ),
+    ],
+    'smile': [
+      BillPackage(id: 'smile-10gb', name: '10GB Monthly', amountKobo: 500000),
+      BillPackage(id: 'smile-30gb', name: '30GB Monthly', amountKobo: 1100000),
+      BillPackage(
+        id: 'smile-unl',
+        name: 'Unlimited Monthly',
+        amountKobo: 2000000,
+      ),
+    ],
+  };
+
+  static const billCustomerAddress = '14 Admiralty Way, Lekki, Lagos';
+
+  // -------------------------------------------------------- savings/vault
+  static const rexSaveRatePct = 12.0;
+  static const rexyDecemberBonusPct = 5.0;
+  static const vaultRates = <int, double>{
+    30: 14.0,
+    90: 16.0,
+    180: 18.0,
+    365: 20.0,
+  };
 }

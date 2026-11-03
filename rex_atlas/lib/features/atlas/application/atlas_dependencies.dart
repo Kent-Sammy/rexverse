@@ -4,6 +4,7 @@ import '../data/mock/mock_atlas_assistant_service.dart';
 import '../data/mock/mock_history_services.dart';
 import '../data/mock/mock_data.dart';
 import '../data/mock/mock_payment_services.dart';
+import '../data/mock/mock_product_services.dart';
 import '../domain/services/services.dart';
 
 /// Everything Atlas needs from the outside world. The host app builds one
@@ -19,6 +20,9 @@ class AtlasDependencies {
     required this.history,
     required this.receipts,
     required this.authorization,
+    required this.savings,
+    required this.vault,
+    required this.bills,
     required this.speech,
     required this.attachments,
     required this.sounds,
@@ -33,6 +37,9 @@ class AtlasDependencies {
   final TransactionHistoryService history;
   final ReceiptService receipts;
   final AuthorizationService authorization;
+  final SavingsService savings;
+  final VaultService vault;
+  final BillsService bills;
 
   /// Device features (real implementations even in the demo).
   final SpeechInputService speech;
@@ -60,6 +67,13 @@ class AtlasDependencies {
       history: history,
       receipts: MockReceiptService(history: history, sender: MockData.user),
       authorization: MockAuthorizationService(latency: l(500)),
+      savings: MockSavingsService(history: history, latency: l(1200)),
+      vault: MockVaultService(history: history, latency: l(1200)),
+      bills: MockBillsService(
+        history: history,
+        customerName: MockData.user.holderName,
+        latency: l(1200),
+      ),
       speech: speech ?? DeviceSpeechInputService(),
       attachments: attachments ?? DeviceAttachmentPicker(),
       sounds: sounds ?? DeviceChatSoundPlayer(),

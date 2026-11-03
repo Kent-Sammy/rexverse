@@ -37,7 +37,7 @@ flutter analyze
 flutter test
 ```
 
-39 tests: unit tests (formatting, intent parsing, conversation/payment state machine) and widget
+54 tests: unit tests (formatting, intent parsing, conversation/payment state machine) and widget
 tests (end-to-end flow, PIN fallback, full screen, drag-to-close, keyboard, no-overflow at 3 sizes).
 See `docs/VALIDATION.md`.
 
@@ -54,7 +54,8 @@ See `docs/VALIDATION.md`.
 | Receipt view (demo-labelled) | ✅ (not designed; see assumptions) |
 | Recent transactions (frame 9) → receipt | ✅ |
 | Airtime purchase | ✅ (flow assumed, built from designed components) |
-| Save, Pay Bills, Rexy December | ⏳ Atlas explains these aren't available yet (no designs) |
+| RexSave (incl. Rexy December), RexVault, bills (electricity with token, cable TV, internet) | ✅ (flows assumed; demo prices) |
+| Fingerprint or demo PIN pad authorisation | ✅ (PIN never stored; see `docs/ASSUMPTIONS.md`) |
 | Error states (AI outage + retry, unknown account, failed payment) | ✅ (not designed) |
 | Voice input (speech-to-text), photo/document upload, chat sounds with mute | ✅ (see `docs/ASSUMPTIONS.md`) |
 | Premium polish: iMessage-style chat, frosted chrome, animated welcome glow, spring sheet, haptics | ✅ (requested; see `docs/ASSUMPTIONS.md`) |

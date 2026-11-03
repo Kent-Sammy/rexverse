@@ -64,7 +64,10 @@ backend; today `AtlasController.sendAttachment` only acknowledges the file.
 | `BeneficiaryService` | bank directory + NIP name enquiry; saved beneficiaries |
 | `TransferService` | fee quote, limits, idempotency key, execution, final status (incl. pending/reversal) |
 | `AirtimeService` | biller/network APIs, limits |
-| `AuthorizationService` | real biometric (e.g. `local_auth`) **bound to the server-side transaction** + PIN fallback using Rex's secure PIN pad; token passed to the payment call |
+| `SavingsService` | RexSave products, rates, plan rules (e.g. seasonal plans), deposit API |
+| `VaultService` | lock periods, rates, maturity/interest rules, lock API |
+| `BillsService` | biller directory, customer validation (meter/smartcard/account), packages, payment API, token delivery |
+| `AuthorizationService` | real biometric (e.g. `local_auth`) **bound to the server-side transaction**, and `authorizeWithPin` backed by Rex's secure PIN verification (encrypted transport, server-side check, lockout). The demo `PinPad` UI can be reused, but the mock verification must not be |
 | `TransactionHistoryService` / `ReceiptService` | history API, receipt API / PDF share |
 | Analytics, feature flags, localisation, accessibility review | not implemented |
 

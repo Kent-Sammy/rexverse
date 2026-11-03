@@ -6,6 +6,9 @@ enum ConversationStage {
   idle,
   awaitingTransferDetails,
   awaitingAirtimeDetails,
+  awaitingSavingsDetails,
+  awaitingVaultDetails,
+  awaitingBillDetails,
   awaitingPaymentConfirmation,
   awaitingAuthorization,
 }

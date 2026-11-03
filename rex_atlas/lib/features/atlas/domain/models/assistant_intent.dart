@@ -1,3 +1,5 @@
+import 'products.dart';
+
 /// What the AI service understood from a user utterance.
 ///
 /// The AI layer only *interprets*; it never executes payments or reports
@@ -25,6 +27,35 @@ class StartAirtimeIntent extends AssistantIntent {
   final String? phoneNumber;
   final String? network;
   bool get isComplete => amountKobo != null && phoneNumber != null;
+}
+
+class StartSavingsIntent extends AssistantIntent {
+  const StartSavingsIntent({this.amountKobo, this.plan});
+  final int? amountKobo;
+  final SavingsPlan? plan;
+}
+
+class StartVaultIntent extends AssistantIntent {
+  const StartVaultIntent({this.amountKobo, this.tenorDays});
+  final int? amountKobo;
+  final int? tenorDays;
+}
+
+class StartBillIntent extends AssistantIntent {
+  const StartBillIntent({
+    this.category,
+    this.billerQuery,
+    this.customerId,
+    this.amountKobo,
+    this.packageQuery,
+  });
+  final BillCategory? category;
+  final String? billerQuery;
+  final String? customerId;
+  final int? amountKobo;
+
+  /// Raw text to match against the biller's package names.
+  final String? packageQuery;
 }
 
 class ChangeAmountIntent extends AssistantIntent {

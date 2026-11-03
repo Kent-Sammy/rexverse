@@ -10,9 +10,13 @@ class AtlasSheetRoute extends PopupRoute<void> {
     required this.atlas,
     this.now,
     this.resumeConversation = false,
+    this.initialMessage,
   });
 
   final bool resumeConversation;
+
+  /// Sent as soon as Atlas opens (home service tiles).
+  final String? initialMessage;
 
   final AtlasController atlas;
   final DateTime? now;
@@ -42,6 +46,7 @@ class AtlasSheetRoute extends PopupRoute<void> {
       controller: atlas,
       now: now,
       resumeConversation: resumeConversation,
+      initialMessage: initialMessage,
     );
   }
 

@@ -11,7 +11,10 @@ All mocks live in `lib/features/atlas/data/mock/` and implement the interfaces i
 | `BeneficiaryService` | `MockBeneficiaryService` | bank aliases (GTB, Access, Zenith, UBA, First Bank, Fidelity, Wema, Kuda, OPay, Moniepoint). GTB 0004218716 → ODELEYE OLAYINKA ANTHONY. Other 10-digit numbers → a demo name. Numbers starting `000000` → "not found" |
 | `TransferService` | `MockTransferService` | fee ₦0. 1.5 s processing. **> ₦5,000,000 fails** (limit). Successful transfers are added to history |
 | `AirtimeService` | `MockAirtimeService` | network detected from prefix (MTN/Airtel/Glo/9mobile). ₦50–₦50,000 allowed |
-| `AuthorizationService` | `MockAuthorizationService` | returns a `demo-…` token after 500 ms. **Not a security control** |
+| `AuthorizationService` | `MockAuthorizationService` | Fingerprint: returns a `demo-…` token after 500 ms. PIN: any 4 digits pass except `0000` (wrong PIN); 3 wrong attempts lock PIN entry for the session. The PIN is compared in memory and never stored or logged. **Not a security control** |
+| `SavingsService` | `MockSavingsService` | RexSave 12% p.a. (min ₦100, withdraw any time). Rexy December gives a 5% upfront bonus, is locked until Dec 31, min ₦1,000 |
+| `VaultService` | `MockVaultService` | RexVault locks: 30 days 14%, 90 days 16%, 180 days 18%, 1 year 20% p.a.; min ₦10,000; interest = amount × rate × days/365 |
+| `BillsService` | `MockBillsService` | Electricity (IKEDC, EKEDC, AEDC, IBEDC, PHED, EEDC; ₦1,000–₦500,000, 11–13 digit meter, returns a 20-digit token + units), Cable TV (DStv, GOtv, StarTimes packages), Internet (Spectranet, Smile). Numbers starting `0000` fail validation. **Prices are illustrative, not live tariffs** |
 | `TransactionHistoryService` | `MockTransactionHistoryService` | seeded with the Figma rows; in-memory |
 | `ReceiptService` | `MockReceiptService` | builds receipts in the Figma "Transaction Details" row order, flagged `isSimulated` |
 
@@ -41,3 +44,16 @@ The UI shows demo labels whenever that flag is set.
 | `Buy ₦500 airtime for 08031234567` | airtime flow |
 | `simulate error` | AI outage state with **Try again** |
 | `pay bills`, `save`, `rexy december` | "not available in this prototype" |
+
+## Savings, vault, bills and PIN
+
+| Type or tap this | What happens |
+|---|---|
+| **Save Money** (or the home RexSave tile) → `₦10,000` | RexSave deposit review → fingerprint → "Savings Successful!" |
+| `Get Started With Rexy December` → `20000` | 5% upfront bonus, locked until Dec 31 |
+| **Lock funds in RexVault** (or the home RexVault tile) → `₦100,000` → `90 days · 16% p.a.` | expected interest and maturity date |
+| **Pay Bills** → Electricity → IKEDC → `45031234567` → `₦5,000` | result card shows the 20-digit token with copy |
+| `Pay IKEDC prepaid meter 45031234567 ₦5,000` | the same in one message |
+| `Renew my DStv` → `1234567890` → `Compact · ₦19,000` | package price; amount changes are refused |
+| On the fingerprint sheet: **Use PIN instead** → `0000` | "Incorrect PIN. 2 attempts left." |
+| …then any other 4 digits | payment completes |

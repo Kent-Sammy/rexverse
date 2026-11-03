@@ -52,17 +52,42 @@ void main() {
     expect(i.phoneNumber, '08031234567');
   });
 
-  test(
-    'pay bills and save are recognised as unsupported, not transfers',
-    () async {
-      expect(await ask('Pay Bills'), isA<UnsupportedFeatureIntent>());
-      expect(await ask('Save ₦50,000'), isA<UnsupportedFeatureIntent>());
-      expect(
-        await ask('Get Started With Rexy December'),
-        isA<UnsupportedFeatureIntent>(),
-      );
-    },
-  );
+  test('bills, savings and vault are recognised (not transfers)', () async {
+    final bill = await ask('Pay Bills');
+    expect(bill, isA<StartBillIntent>());
+    final save = await ask('Save ₦50,000') as StartSavingsIntent;
+    expect(save.amountKobo, 5000000);
+    expect(save.plan, SavingsPlan.rexSave);
+    final rexy =
+        await ask('Get Started With Rexy December') as StartSavingsIntent;
+    expect(rexy.plan, SavingsPlan.rexyDecember);
+    final vault =
+        await ask('Lock ₦100,000 in RexVault for 90 days') as StartVaultIntent;
+    expect(vault.amountKobo, 10000000);
+    expect(vault.tenorDays, 90);
+  });
+
+  test('a full electricity request is parsed in one go', () async {
+    final i = await ask(
+      'Pay IKEDC prepaid meter 45031234567 ₦5,000',
+    ) as StartBillIntent;
+    expect(i.category, BillCategory.electricity);
+    expect(i.billerQuery, 'ikedc');
+    expect(i.customerId, '45031234567');
+    expect(i.amountKobo, 500000);
+  });
+
+  test('short replies stay in the current flow', () async {
+    const vaultStage = ConversationStage.awaitingVaultDetails;
+    final t = await ask('1 year · 20% p.a.', vaultStage) as StartVaultIntent;
+    expect(t.tenorDays, 365);
+    expect(t.amountKobo, isNull);
+    const billStage = ConversationStage.awaitingBillDetails;
+    final pkg = await ask('Compact · ₦19,000', billStage) as StartBillIntent;
+    expect(pkg.packageQuery, 'Compact · ₦19,000');
+    final id = await ask('1234567890', billStage) as StartBillIntent;
+    expect(id.customerId, '1234567890');
+  });
 
   test('transactions intent', () async {
     expect(

@@ -9,6 +9,7 @@ import 'atlas_brand.dart';
 import 'attachment_bubble.dart';
 import 'chat_bubble.dart';
 import 'payment_confirmation_card.dart';
+import 'payment_parties.dart';
 import 'payment_result_card.dart';
 import 'payment_review_card.dart';
 import 'suggestion_tile.dart';
@@ -114,9 +115,9 @@ class ChatMessageTile extends StatelessWidget {
           onViewReceipt: () => controller.viewReceipt(result.reference),
           onRepeat: controller.isBusy
               ? () {}
-              : (result.draft.kind == PaymentKind.transfer
-                    ? controller.makeAnotherTransfer
-                    : () => controller.send('Buy more airtime')),
+              : () => controller.send(
+                  RecipientInfo.of(result.draft).repeatUtterance,
+                ),
           onCopied: (label) => onNotice('$label copied'),
         ),
       ),

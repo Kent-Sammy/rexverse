@@ -60,4 +60,29 @@ class MockAuthorizationService implements AuthorizationService {
       isSimulated: true,
     );
   }
+
+  /// Demo rule: any 4 digits are accepted except "0000", which shows the
+  /// wrong-PIN state. 3 wrong attempts lock PIN entry for the session.
+  /// The PIN is only compared here and never stored or logged.
+  static const maxAttempts = 3;
+  int _failures = 0;
+
+  @override
+  Future<AuthorizationToken> authorizeWithPin({
+    required String pin,
+    required String purpose,
+  }) async {
+    await Future<void>.delayed(latency);
+    if (_failures >= maxAttempts) throw const PinLockedException();
+    if (pin.length != 4 || pin == '0000') {
+      _failures++;
+      if (_failures >= maxAttempts) throw const PinLockedException();
+      throw IncorrectPinException(maxAttempts - _failures);
+    }
+    _failures = 0;
+    return AuthorizationToken(
+      value: 'demo-pin-${DateTime.now().microsecondsSinceEpoch}',
+      isSimulated: true,
+    );
+  }
 }

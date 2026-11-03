@@ -14,6 +14,7 @@ import '../screens/atlas_receipt_screen.dart';
 import '../screens/atlas_welcome_view.dart';
 import '../widgets/attachment_options_sheet.dart';
 import '../widgets/biometric_prompt_sheet.dart';
+import '../widgets/payment_parties.dart';
 
 enum AtlasSheetMode { collapsed, expanded, fullscreen }
 
@@ -25,10 +26,14 @@ class AtlasSheet extends StatefulWidget {
     required this.controller,
     this.now,
     this.resumeConversation = false,
+    this.initialMessage,
   });
 
   /// Open straight into the chat (design scenes only).
   final bool resumeConversation;
+
+  /// Started immediately (e.g. tapping the RexSave tile sends "Save Money").
+  final String? initialMessage;
 
   final AtlasController controller;
   final DateTime? now;
@@ -71,6 +76,12 @@ class AtlasSheetState extends State<AtlasSheet>
     _seenIds = widget.controller.messages.map((m) => m.id).toSet();
     widget.controller.addListener(_onControllerChange);
     _events = widget.controller.events.listen(_onEvent);
+    final start = widget.initialMessage;
+    if (start != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) widget.controller.send(start);
+      });
+    }
     // Reopened while a payment waits for authorisation: ask again.
     final pending = widget.controller.pendingPayment;
     if (pending != null &&
@@ -181,8 +192,9 @@ class AtlasSheetState extends State<AtlasSheet>
         final ok = await BiometricPromptSheet.show(
           context,
           onAuthorize: widget.controller.authorizeWithBiometrics,
+          onAuthorizePin: widget.controller.authorizeWithPin,
           isDemo: widget.controller.deps.isDemo,
-          purpose: draft.kind == PaymentKind.transfer ? 'transfer' : 'purchase',
+          purpose: RecipientInfo.of(draft).purpose,
         );
         if (!ok) widget.controller.authorizationDismissed();
       case OpenReceiptEvent(:final reference):

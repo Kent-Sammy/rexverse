@@ -127,11 +127,9 @@ void main() {
 
     await t.tap(find.byKey(const Key('biometric-use-pin')));
     await t.pump();
-    expect(find.text('PIN authorisation'), findsOneWidget);
-    expect(
-      find.byType(TextField),
-      findsOneWidget,
-    ); // only the composer – no PIN field
+    expect(find.text('Enter your transaction PIN'), findsOneWidget);
+    // On-screen keypad only: the PIN never goes through a text field / IME.
+    expect(find.byType(TextField), findsOneWidget); // the composer
     await t.tap(find.byKey(const Key('biometric-back')));
     await t.pump();
 
