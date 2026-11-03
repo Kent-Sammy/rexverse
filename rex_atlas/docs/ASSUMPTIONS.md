@@ -78,7 +78,7 @@ These go **beyond** the Figma frames on purpose, at the product owner's request 
 | Change | Detail |
 |---|---|
 | RexSave / Rexy December | Rates and bonus are demo values. Rexy December follows the Figma suggestion copy "Get 5% upfront on deposits" |
-| RexVault | Fixed lock periods and rates are demo values. Early withdrawal isn't offered |
+| RexVault | Worded as saving ("How much do you want to save?"). Flat 22% p.a. and RexSave 16% p.a. per the product owner; 1/3/6/12-month periods are demo values. Atlas works out the earnings for each period. Early withdrawal isn't offered |
 | Bills | Providers are real Nigerian billers, but **prices, packages and tokens are illustrative**. Electricity tokens are random 20-digit numbers. TV/internet amounts come from the chosen package and can't be changed |
 | Home tiles | RexSave, RexVault, Electricity and Airtime open Atlas and start that flow. Data, Budgets and RexFlex still show the "part of the main Rex app" notice |
 | PIN pad | See the "Use PIN instead" row above |

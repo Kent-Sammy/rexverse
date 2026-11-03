@@ -448,7 +448,7 @@ class _ServicesGrid extends StatelessWidget {
                 'RexVault',
                 RexColors.tileCyan,
                 const RexSvgIcon(RexSvg.briefcase, size: 24),
-                onTap: () => onAsk('Lock funds in RexVault'),
+                onTap: () => onAsk('Save in RexVault'),
                 key: const Key('home-rexvault-tile'),
               ),
               gap,

@@ -119,16 +119,17 @@ class MockVaultService implements VaultService {
     history.record(
       TransactionRecord(
         reference: ref,
-        title: 'RexVault lock (${draft.tenorDays} days)',
+        title: 'RexVault savings (${_period(draft.tenorDays)})',
         category: TransactionCategory.vault,
         amountKobo: draft.amountKobo,
         timestamp: now,
         status: TransactionStatus.successful,
-        channel: '${draft.tenorDays} days',
+        channel: _period(draft.tenorDays),
         details: {
-          'Lock Period': '${draft.tenorDays} days',
+          'Saving Period': _period(draft.tenorDays),
           'Interest Rate': '${draft.annualRatePct.toStringAsFixed(0)}% p.a.',
-          'Expected Interest': _naira(draft.interestKobo),
+          'Interest Earned': _naira(draft.interestKobo),
+          'Total at Maturity': _naira(draft.amountKobo + draft.interestKobo),
           'Maturity Date': _date(draft.maturity),
         },
       ),
@@ -282,3 +283,9 @@ String _date(DateTime t) {
   ];
   return '${m[t.month - 1]} ${t.day}, ${t.year}';
 }
+
+String _period(int days) => switch (days) {
+  365 => '1 year',
+  30 => '1 month',
+  _ => '${days ~/ 30} months',
+};

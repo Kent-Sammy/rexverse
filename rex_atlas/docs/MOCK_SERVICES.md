@@ -12,8 +12,8 @@ All mocks live in `lib/features/atlas/data/mock/` and implement the interfaces i
 | `TransferService` | `MockTransferService` | fee ₦0. 1.5 s processing. **> ₦5,000,000 fails** (limit). Successful transfers are added to history |
 | `AirtimeService` | `MockAirtimeService` | network detected from prefix (MTN/Airtel/Glo/9mobile). ₦50–₦50,000 allowed |
 | `AuthorizationService` | `MockAuthorizationService` | Fingerprint: returns a `demo-…` token after 500 ms. PIN: any 4 digits pass except `0000` (wrong PIN); 3 wrong attempts lock PIN entry for the session. The PIN is compared in memory and never stored or logged. **Not a security control** |
-| `SavingsService` | `MockSavingsService` | RexSave 12% p.a. (min ₦100, withdraw any time). Rexy December gives a 5% upfront bonus, is locked until Dec 31, min ₦1,000 |
-| `VaultService` | `MockVaultService` | RexVault locks: 30 days 14%, 90 days 16%, 180 days 18%, 1 year 20% p.a.; min ₦10,000; interest = amount × rate × days/365 |
+| `SavingsService` | `MockSavingsService` | RexSave **16% p.a.** (min ₦100, withdraw any time; review shows estimated monthly and yearly interest). Rexy December gives a 5% upfront bonus, is locked until Dec 31, min ₦1,000 |
+| `VaultService` | `MockVaultService` | RexVault savings at a flat **22% p.a.**, locked for 1, 3 or 6 months or 1 year; min ₦10,000. Interest = amount × 22% × days/365, shown for every period before you choose, plus the total you get back and the unlock date |
 | `BillsService` | `MockBillsService` | Electricity (IKEDC, EKEDC, AEDC, IBEDC, PHED, EEDC; ₦1,000–₦500,000, 11–13 digit meter, returns a 20-digit token + units), Cable TV (DStv, GOtv, StarTimes packages), Internet (Spectranet, Smile). Numbers starting `0000` fail validation. **Prices are illustrative, not live tariffs** |
 | `TransactionHistoryService` | `MockTransactionHistoryService` | seeded with the Figma rows; in-memory |
 | `ReceiptService` | `MockReceiptService` | builds receipts in the Figma "Transaction Details" row order, flagged `isSimulated` |
@@ -51,7 +51,7 @@ The UI shows demo labels whenever that flag is set.
 |---|---|
 | **Save Money** (or the home RexSave tile) → `₦10,000` | RexSave deposit review → fingerprint → "Savings Successful!" |
 | `Get Started With Rexy December` → `20000` | 5% upfront bonus, locked until Dec 31 |
-| **Lock funds in RexVault** (or the home RexVault tile) → `₦100,000` → `90 days · 16% p.a.` | expected interest and maturity date |
+| **Save in RexVault** (or the home RexVault tile) → `₦100,000` → `3 months · earn ₦5,425` | interest, total back (₦105,424.66) and unlock date |
 | **Pay Bills** → Electricity → IKEDC → `45031234567` → `₦5,000` | result card shows the 20-digit token with copy |
 | `Pay IKEDC prepaid meter 45031234567 ₦5,000` | the same in one message |
 | `Renew my DStv` → `1234567890` → `Compact · ₦19,000` | package price; amount changes are refused |

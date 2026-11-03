@@ -26,7 +26,9 @@ abstract final class Naira {
       '$symbol${_group(kobo ~/ 100)}.${_two(kobo % 100)}';
 
   /// `₦50,000` – grouped without decimals.
-  static String groupedWhole(int kobo) => '$symbol${_group(kobo ~/ 100)}';
+  /// Rounded to the nearest naira (₦5,424.66 → ₦5,425).
+  static String groupedWhole(int kobo) =>
+      '$symbol${_group((kobo + 50) ~/ 100)}';
 
   static String _two(int v) => v.toString().padLeft(2, '0');
 

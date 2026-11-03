@@ -86,7 +86,7 @@ abstract final class MockReceiptBuilder {
             'Card payment | ${r.channel ?? ''}',
           TransactionCategory.savings => 'Deposit from ${sender.holderName}',
           TransactionCategory.vault =>
-            'RexVault lock from ${sender.holderName}',
+            'RexVault savings from ${sender.holderName}',
           TransactionCategory.bill => '${r.title} | ${sender.holderName}',
           _ => 'Transfer from ${sender.holderName} | ${sender.accountNumber}',
         }),

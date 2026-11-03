@@ -79,7 +79,8 @@ void main() {
 
   test('short replies stay in the current flow', () async {
     const vaultStage = ConversationStage.awaitingVaultDetails;
-    final t = await ask('1 year · 20% p.a.', vaultStage) as StartVaultIntent;
+    final t =
+        await ask('1 year · earn ₦22,000', vaultStage) as StartVaultIntent;
     expect(t.tenorDays, 365);
     expect(t.amountKobo, isNull);
     const billStage = ConversationStage.awaitingBillDetails;

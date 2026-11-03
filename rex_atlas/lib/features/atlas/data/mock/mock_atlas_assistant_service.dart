@@ -122,7 +122,7 @@ class MockAtlasAssistantService implements AtlasAssistantService {
       'good evening',
     ])) {
       return ReplyIntent(
-        'Hi ${MockData.user.firstName}! I can send money, buy airtime, pay bills, save with RexSave, lock funds in RexVault or show your recent transactions.',
+        'Hi ${MockData.user.firstName}! I can send money, buy airtime, pay bills, save with RexSave or RexVault, or show your recent transactions.',
       );
     }
     if (_has(text, ['thank'])) {
@@ -131,7 +131,7 @@ class MockAtlasAssistantService implements AtlasAssistantService {
       );
     }
     return const ReplyIntent(
-      "Sorry, I can't help with that yet. I can send money, buy airtime, pay bills, save with RexSave, lock funds in RexVault or show your recent transactions.",
+      "Sorry, I can't help with that yet. I can send money, buy airtime, pay bills, save with RexSave or RexVault, or show your recent transactions.",
     );
   }
 
@@ -305,6 +305,11 @@ class MockAtlasAssistantService implements AtlasAssistantService {
     final m = _tenor.firstMatch(text);
     int? days;
     var rest = raw.replaceAll(RegExp(r'\d+(\.\d+)?\s*%'), ' ');
+    // Option chips read "3 months · earn ₦5,425": the earnings aren't the amount.
+    rest = rest.replaceAll(
+      RegExp(r'earn\s*₦?\s*[\d,]+(\.\d+)?', caseSensitive: false),
+      ' ',
+    );
     if (m != null) {
       final n = int.tryParse(m.group(1)!) ?? 1;
       final unit = m.group(2)!.toLowerCase();

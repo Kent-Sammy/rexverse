@@ -300,12 +300,14 @@ abstract final class MockData {
   static const billCustomerAddress = '14 Admiralty Way, Lekki, Lagos';
 
   // -------------------------------------------------------- savings/vault
-  static const rexSaveRatePct = 12.0;
+  // Rates from the product owner: RexSave 16% p.a., RexVault 22% p.a.
+  static const rexSaveRatePct = 16.0;
   static const rexyDecemberBonusPct = 5.0;
+  static const vaultRatePct = 22.0;
   static const vaultRates = <int, double>{
-    30: 14.0,
-    90: 16.0,
-    180: 18.0,
-    365: 20.0,
+    30: vaultRatePct,
+    90: vaultRatePct,
+    180: vaultRatePct,
+    365: vaultRatePct,
   };
 }

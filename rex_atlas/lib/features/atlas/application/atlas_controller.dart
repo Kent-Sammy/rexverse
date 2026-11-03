@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
+import '../../../core/formatting/dates.dart';
 import '../../../core/formatting/naira.dart';
 import '../domain/models/models.dart';
 import '../domain/services/services.dart';
@@ -236,8 +237,8 @@ class AtlasController extends ChangeNotifier {
       case UnsupportedFeatureIntent(:final featureName):
         _say(
           "$featureName through Atlas isn't available in this prototype yet. "
-          'I can send money, buy airtime, pay bills, save with RexSave, lock '
-          'funds in RexVault or show your recent transactions.',
+          'I can send money, buy airtime, pay bills, save with RexSave or '
+          'RexVault, or show your recent transactions.',
         );
       case ReplyIntent(:final text):
         _say(text);
@@ -407,7 +408,11 @@ class AtlasController extends ChangeNotifier {
 
   // ----------------------------------------------------------------- vault
 
-  static String _tenorLabel(int days) => days == 365 ? '1 year' : '$days days';
+  static String _tenorLabel(int days) => switch (days) {
+    365 => '1 year',
+    30 => '1 month',
+    _ => '${days ~/ 30} months',
+  };
 
   Future<void> _handleVault(StartVaultIntent i) async {
     if (_stage != ConversationStage.awaitingVaultDetails) {
@@ -418,9 +423,11 @@ class AtlasController extends ChangeNotifier {
     _stage = ConversationStage.awaitingVaultDetails;
     final s = _vault;
     final v = deps.vault;
+    final rate = v.rates.values.first.toStringAsFixed(0);
     if (s.amountKobo == null) {
       _say(
-        'How much would you like to lock in RexVault? The minimum is '
+        'How much do you want to save in RexVault? Your savings earn $rate% '
+        'a year and stay locked until the date you choose. The minimum is '
         '${Naira.groupedWhole(v.minLockKobo)}.',
         quickReplies: const ['₦50,000', '₦100,000', '₦500,000'],
       );
@@ -429,22 +436,28 @@ class AtlasController extends ChangeNotifier {
     if (s.amountKobo! < v.minLockKobo) {
       s.amountKobo = null;
       _say(
-        'The minimum RexVault lock is ${Naira.groupedWhole(v.minLockKobo)}. '
-        'How much would you like to lock?',
+        'The minimum RexVault savings is ${Naira.groupedWhole(v.minLockKobo)}. '
+        'How much do you want to save?',
       );
       return;
     }
     if (s.tenorDays != null && !v.rates.containsKey(s.tenorDays)) {
       s.tenorDays = null;
-      _say("I can lock funds for 30, 90 or 180 days, or 1 year.");
+      _say('You can save in RexVault for 1, 3 or 6 months, or 1 year.');
     }
     if (s.tenorDays == null) {
+      // Work out the earnings for every period so the user can compare.
+      final options = <String>[];
+      for (final days in v.rates.keys) {
+        final q = await v.quote(amountKobo: s.amountKobo!, tenorDays: days);
+        options.add(
+          '${_tenorLabel(days)} · earn ${Naira.groupedWhole(q.interestKobo)}',
+        );
+      }
       _say(
-        'For how long? Longer locks earn more interest.',
-        quickReplies: [
-          for (final e in v.rates.entries)
-            '${_tenorLabel(e.key)} · ${e.value.toStringAsFixed(0)}% p.a.',
-        ],
+        'At $rate% a year, here is what ${Naira.groupedWhole(s.amountKobo!)} '
+        'would earn. How long do you want to save for?',
+        quickReplies: options,
       );
       return;
     }
@@ -460,8 +473,9 @@ class AtlasController extends ChangeNotifier {
         source: await _sourceAccount(),
       ),
       intro:
-          'Here are the details of your RexVault lock. Locked funds can\'t '
-          'be withdrawn before the maturity date.',
+          "Here's your RexVault savings plan. You'll get back "
+          '${Naira.grouped(s.amountKobo! + q.interestKobo)} on '
+          '${RexDates.short(q.maturity)}. The money stays locked until then.',
     );
   }
 
@@ -714,7 +728,8 @@ class AtlasController extends ChangeNotifier {
           "Okay, I've cancelled the airtime purchase. Nothing was charged.",
         PaymentKind.savings =>
           "Okay, I've cancelled the deposit. Nothing was moved.",
-        PaymentKind.vault => "Okay, I've cancelled. No funds were locked.",
+        PaymentKind.vault =>
+          "Okay, I've cancelled. Nothing was saved to RexVault.",
         PaymentKind.bill =>
           "Okay, I've cancelled the bill payment. Nothing was charged.",
       });

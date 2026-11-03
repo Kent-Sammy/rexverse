@@ -34,7 +34,7 @@ void main() {
       () async {
         final c = newController();
         await c.send('Save Money');
-        expect(lastAsk(c).text, contains('RexSave earns 12% a year'));
+        expect(lastAsk(c).text, contains('RexSave earns 16% a year'));
         expect(lastAsk(c).quickReplies, contains('₦10,000'));
         await c.send('₦10,000');
         final d =
@@ -42,6 +42,7 @@ void main() {
                 as SavingsDraft;
         expect(d.amountKobo, 1000000);
         expect(d.plan, SavingsPlan.rexSave);
+        expect(d.annualRatePct, 16);
         final r = await confirmAndAuthorise(c);
         expect(r.result.isSuccessful, isTrue);
         expect(r.receipt!.rows.map((e) => e.label), contains('Savings Plan'));
@@ -74,33 +75,52 @@ void main() {
 
   group('RexVault', () {
     test(
-      'collects amount and lock period, quotes interest and maturity',
+      'asks how much to save and works out earnings at 22% for each period',
       () async {
         final c = newController();
-        await c.send('Lock funds in RexVault');
+        await c.send('Save in RexVault');
+        expect(
+          lastAsk(c).text,
+          contains('How much do you want to save in RexVault?'),
+        );
         await c.send('₦100,000');
-        expect(lastAsk(c).quickReplies, contains('90 days · 16% p.a.'));
-        await c.send('90 days · 16% p.a.');
+        expect(lastAsk(c).text, contains('At 22% a year'));
+        expect(lastAsk(c).quickReplies, [
+          '1 month · earn ₦1,808',
+          '3 months · earn ₦5,425',
+          '6 months · earn ₦10,849',
+          '1 year · earn ₦22,000',
+        ]);
+        await c.send('3 months · earn ₦5,425');
         final d =
             c.messages.whereType<PaymentReviewMessage>().single.draft
                 as VaultDraft;
+        expect(
+          d.amountKobo,
+          10000000,
+        ); // the earnings in the chip aren't the amount
         expect(d.tenorDays, 90);
-        expect(d.annualRatePct, 16);
-        expect(d.interestKobo, 394521); // ₦100,000 × 16% × 90/365
+        expect(d.annualRatePct, 22);
+        expect(d.interestKobo, 542466); // ₦100,000 × 22% × 90/365
         expect(d.maturity.difference(DateTime.now()).inDays, closeTo(90, 1));
         final r = await confirmAndAuthorise(c);
         expect(r.result.isSuccessful, isTrue);
         expect(
           r.receipt!.rows.map((e) => e.label),
-          containsAll(['Lock Period', 'Maturity Date']),
+          containsAll([
+            'Saving Period',
+            'Interest Earned',
+            'Total at Maturity',
+            'Maturity Date',
+          ]),
         );
       },
     );
 
     test('amounts below ₦10,000 are refused', () async {
       final c = newController();
-      await c.send('lock 5000 in my vault');
-      expect(texts(c).last, contains('minimum RexVault lock is ₦10,000'));
+      await c.send('save 5000 in my vault');
+      expect(texts(c).last, contains('minimum RexVault savings is ₦10,000'));
     });
   });
 
@@ -272,7 +292,7 @@ void main() {
       await pumpFor(t, 1500);
       expect(find.byType(AtlasSheet), findsOneWidget);
       expect(
-        find.textContaining('How much would you like to lock in RexVault?'),
+        find.textContaining('How much do you want to save in RexVault?'),
         findsOneWidget,
       );
     });

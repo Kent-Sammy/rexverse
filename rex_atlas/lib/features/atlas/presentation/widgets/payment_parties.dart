@@ -133,44 +133,54 @@ class RecipientInfo {
       successTitle: 'Savings Successful!',
       failureTitle: 'Savings Failed',
       successSuffix: d.bonusKobo > 0
-          ? ' has been added to ${plan.displayName}, plus a ${Naira.fixed(d.bonusKobo)} bonus.'
+          ? ' has been added to ${plan.displayName}, plus a ${Naira.grouped(d.bonusKobo)} bonus.'
           : ' has been added to your ${plan.displayName}.',
       repeatLabel: 'Save more',
       repeatUtterance: 'Save Money',
       purpose: 'deposit',
       feeLabel: 'Fee',
       rows: [
-        if (d.annualRatePct > 0)
-          ('Interest', '${d.annualRatePct.toStringAsFixed(0)}% p.a.'),
+        if (d.annualRatePct > 0) ...[
+          ('Interest rate', '${d.annualRatePct.toStringAsFixed(0)}% p.a.'),
+          (
+            'Est. monthly interest',
+            Naira.grouped((d.amountKobo * d.annualRatePct / 100 / 12).round()),
+          ),
+          (
+            'Est. yearly interest',
+            Naira.grouped((d.amountKobo * d.annualRatePct / 100).round()),
+          ),
+        ],
         if (d.lockedUntil == null) ('Withdrawals', 'Any time'),
-        if (d.bonusKobo > 0) ('Upfront bonus', Naira.fixed(d.bonusKobo)),
+        if (d.bonusKobo > 0) ('Upfront bonus', Naira.grouped(d.bonusKobo)),
         if (d.lockedUntil != null)
           ('Locked until', RexDates.short(d.lockedUntil!)),
       ],
     ),
     VaultDraft() => RecipientInfo(
       name: 'RexVault',
-      subtitle:
-          'Fixed lock · ${d.tenorDays == 365 ? '1 year' : '${d.tenorDays} days'}',
+      subtitle: 'Locked savings · ${_period(d.tenorDays)}',
       avatar: _disc(
         const RexSvgIcon(RexSvg.briefcase, size: 20),
         RexColors.tileCyan,
       ),
       institution: 'RexVault',
-      caption: 'Lock Funds',
-      successTitle: 'Funds Locked!',
-      failureTitle: 'Lock Failed',
+      caption: 'Save in RexVault',
+      successTitle: 'Saved to RexVault!',
+      failureTitle: 'RexVault Savings Failed',
       successSuffix:
-          ' is locked in RexVault until ${RexDates.short(d.maturity)}. '
-          "You'll earn about ${Naira.fixed(d.interestKobo)}.",
-      repeatLabel: 'Lock more funds',
-      repeatUtterance: 'Lock funds in RexVault',
-      purpose: 'lock',
+          ' is saved in RexVault until ${RexDates.short(d.maturity)}. '
+          "You'll get back ${Naira.grouped(d.amountKobo + d.interestKobo)}.",
+      repeatLabel: 'Save more in RexVault',
+      repeatUtterance: 'Save in RexVault',
+      purpose: 'deposit',
       feeLabel: 'Fee',
       rows: [
         ('Interest rate', '${d.annualRatePct.toStringAsFixed(0)}% p.a.'),
-        ('Expected interest', Naira.fixed(d.interestKobo)),
-        ('Matures on', RexDates.short(d.maturity)),
+        ('Saving period', _period(d.tenorDays)),
+        ('Interest earned', Naira.grouped(d.interestKobo)),
+        ('You get back', Naira.grouped(d.amountKobo + d.interestKobo)),
+        ('Unlocks on', RexDates.short(d.maturity)),
       ],
     ),
     BillDraft(:final biller, :final package) => RecipientInfo(
@@ -199,6 +209,12 @@ class RecipientInfo {
         if (d.customer.address != null) ('Address', d.customer.address!),
       ],
     ),
+  };
+
+  static String _period(int days) => switch (days) {
+    365 => '1 year',
+    30 => '1 month',
+    _ => '${days ~/ 30} months',
   };
 
   static Widget _billLogo(BillCategory c, double size) {
