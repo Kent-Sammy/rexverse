@@ -1259,7 +1259,6 @@ const _levelColors = [
   (Color(0xFFE2F7E8), Color(0xFF1E8E45)),
   (Color(0xFFF0E8FF), Color(0xFF7A2BD6)),
 ];
-const _levelShort = ['Build', 'Grow', 'Max'];
 
 /// Navy → blue banner. The hands illustration is large and runs off the
 /// right and bottom edges, so its cropped sleeves disappear into the card.
@@ -1303,7 +1302,7 @@ class _JourneyHero extends StatelessWidget {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(18, 18, 136, 20),
+              padding: const EdgeInsets.fromLTRB(20, 24, 136, 26),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -1331,56 +1330,6 @@ class _JourneyHero extends StatelessWidget {
                       13,
                       weight: FontWeight.w500,
                       color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Semantics(
-                    label:
-                        'Level ${tier + 1} of ${flexTiers.length}: '
-                        '${flexTiers[tier].name}',
-                    child: ExcludeSemantics(
-                      child: Row(
-                        children: [
-                          for (var i = 0; i < flexTiers.length; i++) ...[
-                            if (i > 0) const SizedBox(width: 5),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  TweenAnimationBuilder<double>(
-                                    tween: Tween(end: i <= tier ? 1 : 0),
-                                    duration: Duration(
-                                      milliseconds: 500 + 200 * i,
-                                    ),
-                                    curve: Curves.easeOutCubic,
-                                    builder: (_, v, _) => ClipRRect(
-                                      borderRadius: BorderRadius.circular(3),
-                                      child: LinearProgressIndicator(
-                                        value: v,
-                                        minHeight: 4,
-                                        backgroundColor: Colors.white
-                                            .withValues(alpha: 0.22),
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 6),
-                                  Text(
-                                    _levelShort[i],
-                                    style: RexTypography.host(
-                                      11,
-                                      weight: i == tier
-                                          ? FontWeight.w700
-                                          : FontWeight.w500,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
                     ),
                   ),
                 ],

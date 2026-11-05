@@ -29,7 +29,7 @@ Built from the Figma section "rexflex" (node `25300:45094`, 30 frames).
    - "Take Another Loan" (here and on the dashboard) pops up "Check Your Eligibility" over the current screen. It does not go back to the intro.
    - Also available: Transaction History (All / Repayments / Disbursement), Your Flex Journey and How Progression Works.
 7. **Your Flex Journey (premium layout).**
-   - The banner shows "LEVEL 2 OF 3", the current level's name as the title, one line of copy and a Build / Grow / Max track.
+   - The banner shows "LEVEL 2 OF 3", the current level's name as the title and one line of copy. The progress track was removed at the product owner's request.
    - The hands illustration is large and runs off the banner's right and bottom edges, so its cropped sleeves blend in.
    - "Your levels" is one grouped white panel. Each level row has its icon tile, name, range and a single status line.
    - Icon tiles are joined by a continuous rail.
