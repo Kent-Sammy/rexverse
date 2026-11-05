@@ -34,6 +34,15 @@ class RexFlexController extends ChangeNotifier {
   static const demoAccountBalanceKobo = 50056367000;
 
   final List<FlexLoan> _loans = [];
+  final _approvals = StreamController<FlexLoan>.broadcast();
+
+  /// Fires when a pending application is approved (used for the in-app
+  /// notification).
+  Stream<FlexLoan> get approvals => _approvals.stream;
+
+  /// Loan whose status the customer is looking at right now; the app skips
+  /// the approval notification for it because the screen already shows it.
+  String? watchingLoanId;
   SourceAccount? _account;
   int _seq = 0;
 
@@ -86,29 +95,41 @@ class RexFlexController extends ChangeNotifier {
   ];
 
   /// Submits [term]. The returned loan is pending; [onStage] reports each
-  /// review step and the loan becomes active (and is "disbursed") after the
-  /// last one. The application keeps going if the sheet is closed.
+  /// review step as it starts and the loan becomes active (and is
+  /// "disbursed") after the last one. The review keeps running in the
+  /// background wherever the customer goes.
   FlexLoan apply(LoanTerm term, {void Function(ApplicationStage)? onStage}) {
+    final applied = now;
     final loan = FlexLoan(
       id: 'RF${(++_seq).toString().padLeft(4, '0')}',
       term: term,
-      appliedAt: now,
+      appliedAt: applied,
     );
+    loan
+      ..stage = ApplicationStage.values[1]
+      ..stageDone[ApplicationStage.received] = applied;
     _loans.add(loan);
     notifyListeners();
     service
         .apply(term)
         .listen(
           (stage) {
+            for (final s in ApplicationStage.values.take(stage.index)) {
+              loan.stageDone.putIfAbsent(s, () => now);
+            }
             loan.stage = stage;
             onStage?.call(stage);
             notifyListeners();
           },
           onDone: () {
             final start = now;
+            for (final s in ApplicationStage.values) {
+              loan.stageDone.putIfAbsent(s, () => start);
+            }
             loan
               ..status = LoanStatus.active
               ..stage = null
+              ..approvedAt = start
               ..startDate = start
               ..dueDate = start.add(Duration(days: term.days))
               ..transactions.add(
@@ -120,9 +141,16 @@ class RexFlexController extends ChangeNotifier {
                 ),
               );
             notifyListeners();
+            _approvals.add(loan);
           },
         );
     return loan;
+  }
+
+  @override
+  void dispose() {
+    _approvals.close();
+    super.dispose();
   }
 
   /// Checks the transaction PIN (simulated). Throws

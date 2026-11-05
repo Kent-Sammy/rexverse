@@ -270,8 +270,9 @@ class _EligibilitySheetState extends State<EligibilitySheet> {
 // Application: "Application Received" timeline → "Loan Approved!"
 // ---------------------------------------------------------------------------
 
-/// Pops `true` when the customer taps "View Loan".
-class ApplicationSheet extends StatelessWidget {
+/// Pops `true` when the customer taps "View Loan" (shown if the review
+/// finishes while the sheet is open), `false` for "Got it".
+class ApplicationSheet extends StatefulWidget {
   const ApplicationSheet({
     super.key,
     required this.controller,
@@ -281,9 +282,30 @@ class ApplicationSheet extends StatelessWidget {
   final FlexLoan loan;
 
   @override
+  State<ApplicationSheet> createState() => _ApplicationSheetState();
+}
+
+class _ApplicationSheetState extends State<ApplicationSheet> {
+  FlexLoan get loan => widget.loan;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.controller.watchingLoanId = loan.id;
+  }
+
+  @override
+  void dispose() {
+    if (widget.controller.watchingLoanId == loan.id) {
+      widget.controller.watchingLoanId = null;
+    }
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
-      listenable: controller,
+      listenable: widget.controller,
       builder: (context, _) => AnimatedSize(
         duration: const Duration(milliseconds: 280),
         curve: Curves.easeOutCubic,
@@ -292,14 +314,19 @@ class ApplicationSheet extends StatelessWidget {
           duration: const Duration(milliseconds: 260),
           child: loan.status == LoanStatus.pending
               ? _received(context)
-              : _approved(context),
+              : FlexSheet(
+                  key: const ValueKey('approved'),
+                  child: FlexApprovedContent(
+                    loan: loan,
+                    onViewLoan: () => Navigator.of(context).pop(true),
+                  ),
+                ),
         ),
       ),
     );
   }
 
   Widget _received(BuildContext context) {
-    final current = loan.stage?.index ?? 0;
     return FlexSheet(
       key: const ValueKey('received'),
       child: Column(
@@ -309,7 +336,7 @@ class ApplicationSheet extends StatelessWidget {
             child: Text(
               '⏳',
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 56),
+              style: TextStyle(fontSize: 52),
             ),
           ),
           const SizedBox(height: 10),
@@ -327,64 +354,101 @@ class ApplicationSheet extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Text(
-            "We're processing your application. You'll get an update shortly.",
+            "We're reviewing your application. This usually takes about a "
+            "minute. You can close this, we'll let you know once it's "
+            'approved.',
             textAlign: TextAlign.center,
             style: RexTypography.host(13, color: FlexColors.navy),
           ),
           const SizedBox(height: 18),
-          Container(
-            padding: const EdgeInsets.fromLTRB(14, 14, 14, 6),
-            decoration: BoxDecoration(
-              color: FlexColors.panel,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Column(
-              children: [
-                for (final stage in ApplicationStage.values)
-                  _StageRow(
-                    stage: stage,
-                    done: stage.index <= current,
-                    last: stage == ApplicationStage.values.last,
-                  ),
-              ],
-            ),
+          FlexApplicationTimeline(loan: loan),
+          const SizedBox(height: 18),
+          FlexButton(
+            key: const Key('flex-application-got-it'),
+            label: 'Got it',
+            onTap: () => Navigator.of(context).pop(false),
           ),
           const FlexDemoLabel(text: 'Demo review · no real credit check runs'),
         ],
       ),
     );
   }
+}
 
-  Widget _approved(BuildContext context) {
+/// "Loan Approved!" header, loan details and a "View Loan" button. Shared
+/// by the application sheet and the Loan Status page.
+class FlexApprovedContent extends StatelessWidget {
+  const FlexApprovedContent({
+    super.key,
+    required this.loan,
+    required this.onViewLoan,
+  });
+  final FlexLoan loan;
+  final VoidCallback onViewLoan;
+
+  @override
+  Widget build(BuildContext context) {
     final start = loan.startDate!;
-    return FlexSheet(
-      key: const ValueKey('approved'),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const FlexSuccessHeader(
+          title: 'Loan Approved!',
+          subtitle: 'Your loan has been disbursed to your Rex account',
+        ),
+        const SizedBox(height: 18),
+        FlexDetailBox(
+          title: 'Loan Details',
+          rows: [
+            ('Loan Amount', Naira.grouped(loan.principalKobo)),
+            ('Total to Repay', Naira.grouped(loan.totalKobo)),
+            (_interestLabel(), Naira.plain(loan.interestKobo)),
+            ('Tenor', _days(loan.term.days)),
+            ('Start Date', RexDates.dayMonthYear(start)),
+            ('Due Date', RexDates.dayMonthYear(loan.dueDate!)),
+          ],
+        ),
+        const SizedBox(height: 20),
+        FlexButton(
+          key: const Key('flex-view-loan'),
+          label: 'View Loan',
+          onTap: onViewLoan,
+        ),
+        const FlexDemoLabel(),
+      ],
+    );
+  }
+}
+
+enum _StepState { done, active, waiting }
+
+/// Live review timeline: completed steps show their time, the current step
+/// pulses, later steps wait.
+class FlexApplicationTimeline extends StatelessWidget {
+  const FlexApplicationTimeline({super.key, required this.loan});
+  final FlexLoan loan;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(14, 14, 14, 4),
+      decoration: BoxDecoration(
+        color: FlexColors.panel,
+        borderRadius: BorderRadius.circular(12),
+      ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const FlexSuccessHeader(
-            title: 'Loan Approved!',
-            subtitle: 'Your loan has been disbursed to your Rex account',
-          ),
-          const SizedBox(height: 18),
-          FlexDetailBox(
-            title: 'Loan Details',
-            rows: [
-              ('Loan Amount', Naira.grouped(loan.principalKobo)),
-              ('Total to Repay', Naira.grouped(loan.totalKobo)),
-              (_interestLabel(), Naira.plain(loan.interestKobo)),
-              ('Tenor', _days(loan.term.days)),
-              ('Start Date', RexDates.dayMonthYear(start)),
-              ('Due Date', RexDates.dayMonthYear(loan.dueDate!)),
-            ],
-          ),
-          const SizedBox(height: 20),
-          FlexButton(
-            key: const Key('flex-view-loan'),
-            label: 'View Loan',
-            onTap: () => Navigator.of(context).pop(true),
-          ),
-          const FlexDemoLabel(),
+          for (final stage in ApplicationStage.values)
+            _StageRow(
+              stage: stage,
+              state: loan.stageDone.containsKey(stage)
+                  ? _StepState.done
+                  : stage == loan.stage
+                  ? _StepState.active
+                  : _StepState.waiting,
+              doneAt: loan.stageDone[stage],
+              last: stage == ApplicationStage.values.last,
+            ),
         ],
       ),
     );
@@ -394,17 +458,27 @@ class ApplicationSheet extends StatelessWidget {
 class _StageRow extends StatelessWidget {
   const _StageRow({
     required this.stage,
-    required this.done,
+    required this.state,
+    required this.doneAt,
     required this.last,
   });
   final ApplicationStage stage;
-  final bool done;
+  final _StepState state;
+  final DateTime? doneAt;
   final bool last;
 
   @override
   Widget build(BuildContext context) {
+    final done = state == _StepState.done;
+    final active = state == _StepState.active;
+    final statusText = done
+        ? 'Done · ${RexDates.clock(doneAt!)}'
+        : active
+        ? 'In progress'
+        : 'Waiting';
     return Semantics(
-      label: '${stage.title}, ${done ? 'complete' : 'waiting'}',
+      label: '${stage.title}, $statusText',
+      liveRegion: active,
       child: ExcludeSemantics(
         child: IntrinsicHeight(
           child: Row(
@@ -412,27 +486,11 @@ class _StageRow extends StatelessWidget {
             children: [
               Column(
                 children: [
-                  AnimatedContainer(
-                    duration: const Duration(milliseconds: 300),
-                    width: 26,
-                    height: 26,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: done ? const Color(0xFF3D6FE8) : Colors.white,
-                      border: Border.all(
-                        color: done
-                            ? const Color(0xFFBFD2FF)
-                            : const Color(0xFFD5E1F7),
-                        width: 3,
-                      ),
-                    ),
-                    child: done
-                        ? const Icon(Icons.check, size: 13, color: Colors.white)
-                        : null,
-                  ),
+                  _StepDot(state: state),
                   if (!last)
                     Expanded(
-                      child: Container(
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 400),
                         width: 2,
                         color: done
                             ? const Color(0xFFBFD2FF)
@@ -448,13 +506,31 @@ class _StageRow extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        stage.title,
-                        style: RexTypography.host(
-                          13,
-                          weight: FontWeight.w600,
-                          color: RexColors.textStrong,
-                        ),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              stage.title,
+                              style: RexTypography.host(
+                                13,
+                                weight: FontWeight.w600,
+                                color: RexColors.textStrong,
+                              ),
+                            ),
+                          ),
+                          Text(
+                            statusText,
+                            style: RexTypography.host(
+                              11,
+                              weight: FontWeight.w600,
+                              color: done
+                                  ? FlexColors.green
+                                  : active
+                                  ? FlexColors.navy
+                                  : FlexColors.label,
+                            ),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 2),
                       Text(
@@ -472,6 +548,118 @@ class _StageRow extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Step marker: blue check (done), pulsing ring (active), empty (waiting).
+class _StepDot extends StatefulWidget {
+  const _StepDot({required this.state});
+  final _StepState state;
+
+  @override
+  State<_StepDot> createState() => _StepDotState();
+}
+
+class _StepDotState extends State<_StepDot>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1300),
+  );
+
+  void _sync() {
+    final reduce = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+    if (widget.state == _StepState.active && !reduce) {
+      if (!_c.isAnimating) _c.repeat();
+    } else {
+      _c.stop();
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _sync();
+  }
+
+  @override
+  void didUpdateWidget(_StepDot old) {
+    super.didUpdateWidget(old);
+    _sync();
+  }
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    const blue = Color(0xFF3D6FE8);
+    return SizedBox(
+      width: 26,
+      height: 26,
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 300),
+        transitionBuilder: (child, a) =>
+            ScaleTransition(scale: a, child: child),
+        child: switch (widget.state) {
+          _StepState.done => Container(
+            key: const ValueKey('done'),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: blue,
+              border: Border.all(color: const Color(0xFFBFD2FF), width: 3),
+            ),
+            child: const Icon(Icons.check, size: 13, color: Colors.white),
+          ),
+          _StepState.active => AnimatedBuilder(
+            key: const ValueKey('active'),
+            animation: _c,
+            builder: (_, _) => Stack(
+              alignment: Alignment.center,
+              children: [
+                Container(
+                  width: 16 + 10 * _c.value,
+                  height: 16 + 10 * _c.value,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: blue.withValues(alpha: 0.3 * (1 - _c.value)),
+                  ),
+                ),
+                Container(
+                  width: 18,
+                  height: 18,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white,
+                    border: Border.all(color: blue, width: 2.5),
+                  ),
+                  alignment: Alignment.center,
+                  child: Container(
+                    width: 7,
+                    height: 7,
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: blue,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          _StepState.waiting => Container(
+            key: const ValueKey('waiting'),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white,
+              border: Border.all(color: const Color(0xFFD5E1F7), width: 3),
+            ),
+          ),
+        },
       ),
     );
   }

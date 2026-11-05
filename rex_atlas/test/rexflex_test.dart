@@ -25,7 +25,13 @@ RexFlexController controller({DateTime? now}) {
   );
 }
 
-Future<void> openHome(WidgetTester t, {double textScale = 1}) async {
+/// [realistic] keeps the app's default one-minute background review;
+/// otherwise the review is shortened to ~3 s to keep flow tests quick.
+Future<void> openHome(
+  WidgetTester t, {
+  double textScale = 1,
+  bool realistic = false,
+}) async {
   t.view.physicalSize = const Size(402, 874);
   t.view.devicePixelRatio = 1;
   t.platformDispatcher.textScaleFactorTestValue = textScale;
@@ -35,9 +41,28 @@ Future<void> openHome(WidgetTester t, {double textScale = 1}) async {
     RexAtlasDemoApp(
       dependencies: AtlasDependencies.mock(latency: Duration.zero),
       now: DateTime(2026, 11, 20, 9),
+      rexflexService: realistic
+          ? null
+          : MockRexFlexService(stageDelay: const Duration(milliseconds: 1100)),
     ),
   );
   await t.pump();
+}
+
+Future<void> pumpSeconds(WidgetTester t, int seconds) async {
+  for (var i = 0; i < seconds * 4; i++) {
+    await t.pump(const Duration(milliseconds: 250));
+  }
+}
+
+Future<void> applyForLoan(WidgetTester t) async {
+  await tapKey(t, 'home-rexflex-tile');
+  await tapKey(t, 'flex-get-started');
+  await tapKey(t, 'flex-check-eligibility', ms: 1500);
+  await tapKey(t, 'flex-eligible-continue');
+  await tapKey(t, 'flex-term-continue');
+  await tapKey(t, 'flex-consent');
+  await tapKey(t, 'flex-confirm-application', ms: 600);
 }
 
 Future<void> tapKey(WidgetTester t, String key, {int ms = 600}) async {
@@ -86,7 +111,9 @@ void main() {
       expect(loan.status, LoanStatus.pending);
       expect(c.outstandingKobo, 0);
       await pumpEventQueue();
-      expect(stages, ApplicationStage.values);
+      expect(stages, ApplicationStage.values.skip(1));
+      expect(loan.stageDone.keys, ApplicationStage.values);
+      expect(loan.approvedAt, isNotNull);
       expect(loan.status, LoanStatus.active);
       expect(loan.startDate, DateTime(2026, 11, 20, 9));
       expect(loan.dueDate, DateTime(2026, 12, 4, 9));
@@ -262,6 +289,12 @@ void main() {
     expect(find.text('Application under review'), findsOneWidget);
     await pumpFor(t, 5000);
     expect(find.text('Active'), findsOneWidget);
+    // Approved off-screen → the in-app notice; let it time out.
+    expect(
+      find.text('Your RexFlex loan of ₦3,000 was approved'),
+      findsOneWidget,
+    );
+    await pumpSeconds(t, 7);
 
     // Back home; the Borrow tab now opens the dashboard directly.
     await tapKey(t, 'flex-back');
@@ -308,4 +341,66 @@ void main() {
       expect(t.takeException(), isNull);
     });
   }
+
+  group('pending loan (realistic one-minute review)', () {
+    testWidgets('leave, come back, follow progress, then approval notice', (
+      t,
+    ) async {
+      await openHome(t, realistic: true);
+      await applyForLoan(t);
+      expect(find.text('Application Received'), findsWidgets);
+      expect(find.text('In progress'), findsOneWidget);
+
+      // "Got it" → dashboard shows the pending application.
+      await tapKey(t, 'flex-application-got-it', ms: 800);
+      expect(find.text('Pending'), findsWidgets);
+      expect(find.text('Under review · Step 2 of 4'), findsOneWidget);
+      expect(find.text('Application under review'), findsOneWidget);
+
+      // Open it: Loan Status with the live timeline.
+      await tapKey(t, 'flex-loan-RF0001', ms: 800);
+      expect(find.text('Loan Status'), findsOneWidget);
+      expect(
+        find.text('Step 2 of 4 · Eligibility & Risk Checks'),
+        findsOneWidget,
+      );
+      await pumpSeconds(t, 21);
+      expect(find.text('Step 3 of 4 · Final Decisions'), findsOneWidget);
+
+      // Leave RexFlex entirely; the review keeps running.
+      await tapKey(t, 'flex-back');
+      await tapKey(t, 'flex-back');
+      expect(find.text('Loan Status'), findsNothing);
+      await pumpSeconds(t, 41);
+
+      // Approved while on the home screen → notice with "View".
+      expect(
+        find.text('Your RexFlex loan of ₦3,000 was approved'),
+        findsOneWidget,
+      );
+      await t.tap(find.text('View'));
+      await pumpFor(t, 1200);
+      expect(find.text('RexFlex Loan'), findsOneWidget);
+      expect(find.byKey(const Key('flex-repay-loan')), findsOneWidget);
+      expect(t.takeException(), isNull);
+    });
+
+    testWidgets('approval while watching switches the status page in place', (
+      t,
+    ) async {
+      await openHome(t, realistic: true);
+      await applyForLoan(t);
+      await tapKey(t, 'flex-application-got-it', ms: 800);
+      await tapKey(t, 'flex-loan-RF0001', ms: 800);
+      await pumpSeconds(t, 61);
+      expect(find.text('Loan Approved!'), findsOneWidget);
+      // No duplicate notice for the loan already on screen.
+      expect(
+        find.text('Your RexFlex loan of ₦3,000 was approved'),
+        findsNothing,
+      );
+      await tapKey(t, 'flex-view-loan', ms: 1000);
+      expect(find.byKey(const Key('flex-repay-loan')), findsOneWidget);
+    });
+  });
 }

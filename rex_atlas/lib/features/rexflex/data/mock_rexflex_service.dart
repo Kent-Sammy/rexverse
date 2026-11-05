@@ -4,12 +4,13 @@ import '../domain/rexflex_models.dart';
 import '../domain/rexflex_service.dart';
 
 /// Simulated lender: always eligible, approves every application after a
-/// short staged review, and accepts any repayment up to the balance.
-/// Nothing leaves the device and no money moves.
+/// realistic background review (3 steps × [stageDelay], about a minute by
+/// default), and accepts any repayment up to the balance. Nothing leaves the
+/// device and no money moves.
 class MockRexFlexService implements RexFlexService {
   MockRexFlexService({
     this.latency = const Duration(milliseconds: 900),
-    this.stageDelay = const Duration(milliseconds: 1100),
+    this.stageDelay = const Duration(seconds: 20),
   });
 
   final Duration latency;
@@ -45,7 +46,7 @@ class MockRexFlexService implements RexFlexService {
 
   @override
   Stream<ApplicationStage> apply(LoanTerm term) async* {
-    for (final stage in ApplicationStage.values) {
+    for (final stage in ApplicationStage.values.skip(1)) {
       yield stage;
       await Future<void>.delayed(stageDelay);
     }

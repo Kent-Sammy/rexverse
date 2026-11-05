@@ -1,7 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../core/design_system/design_system.dart';
+import '../core/formatting/naira.dart';
 import '../features/atlas/atlas.dart';
+import '../features/atlas/device/device_services.dart' show ChatSound;
 import '../features/host/presentation/rex_home_screen.dart';
 import '../features/rexflex/rexflex.dart';
 import 'demo_device_frame.dart';
@@ -13,7 +18,12 @@ class RexAtlasDemoApp extends StatefulWidget {
     this.now,
     this.controller,
     this.openAtlasOnStart = false,
+    this.rexflexService,
   });
+
+  /// Defaults to [MockRexFlexService] (about a minute of background review).
+  /// Tests inject a faster one.
+  final RexFlexService? rexflexService;
 
   /// Defaults to [AtlasDependencies.mock]. Tests inject faster mocks.
   final AtlasDependencies? dependencies;
@@ -34,8 +44,10 @@ class _RexAtlasDemoAppState extends State<RexAtlasDemoApp> {
       widget.controller ??
       AtlasController(widget.dependencies ?? AtlasDependencies.mock());
   final _navigator = GlobalKey<NavigatorState>();
+  final _messenger = GlobalKey<ScaffoldMessengerState>();
+  StreamSubscription<FlexLoan>? _approvals;
   late final RexFlexController _rexflex = RexFlexController(
-    service: MockRexFlexService(),
+    service: widget.rexflexService ?? MockRexFlexService(),
     authorization: _atlas.deps.authorization,
     accounts: _atlas.deps.accounts,
     clock: widget.now == null ? null : () => widget.now!,
@@ -44,6 +56,7 @@ class _RexAtlasDemoAppState extends State<RexAtlasDemoApp> {
   @override
   void initState() {
     super.initState();
+    _approvals = _rexflex.approvals.listen(_onLoanApproved);
     if (widget.openAtlasOnStart) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         final ctx = _navigator.currentContext;
@@ -59,8 +72,59 @@ class _RexAtlasDemoAppState extends State<RexAtlasDemoApp> {
     }
   }
 
+  /// A RexFlex review finished in the background: tell the customer
+  /// wherever they are (unless they're already watching that loan).
+  void _onLoanApproved(FlexLoan loan) {
+    if (_rexflex.watchingLoanId == loan.id) return;
+    HapticFeedback.mediumImpact();
+    _atlas.deps.sounds.play(ChatSound.success);
+    _messenger.currentState
+      ?..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          key: const Key('rexflex-approved-notice'),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: RexColors.navy,
+          duration: const Duration(seconds: 6),
+          persist: false,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          content: Row(
+            children: [
+              const Icon(
+                Icons.check_circle_rounded,
+                color: Color(0xFF4DCA7C),
+                size: 22,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Your RexFlex loan of '
+                  '${Naira.groupedWhole(loan.principalKobo)} was approved',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          action: SnackBarAction(
+            label: 'View',
+            textColor: const Color(0xFFB9D0FF),
+            onPressed: () {
+              final nav = _navigator.currentState;
+              if (nav != null) openRexFlexLoan(nav, _rexflex, loan);
+            },
+          ),
+        ),
+      );
+  }
+
   @override
   void dispose() {
+    _approvals?.cancel();
     _rexflex.dispose();
     _atlas.dispose();
     super.dispose();
@@ -70,6 +134,7 @@ class _RexAtlasDemoAppState extends State<RexAtlasDemoApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       navigatorKey: _navigator,
+      scaffoldMessengerKey: _messenger,
       title: 'Rex Atlas Prototype',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(

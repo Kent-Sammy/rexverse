@@ -532,14 +532,7 @@ class _RexFlexDashboardState extends State<RexFlexDashboard> {
   void _open(FlexLoan loan) {
     final c = widget.controller;
     if (loan.status == LoanStatus.pending) {
-      showFlexSheet<bool>(
-        context,
-        (_) => ApplicationSheet(controller: c, loan: loan),
-      ).then((view) {
-        if (view == true && mounted) {
-          _push(context, LoanDetailsScreen(controller: c, loan: loan));
-        }
-      });
+      _push(context, LoanStatusScreen(controller: c, loan: loan));
     } else {
       _push(context, LoanDetailsScreen(controller: c, loan: loan));
     }
@@ -631,7 +624,8 @@ class _LoanRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final (line1, line2) = switch (loan.status) {
       LoanStatus.pending => (
-        'Proposed Due Date: ${RexDates.dayMonthYear(loan.proposedDueDate)}',
+        'Under review · Step ${loan.stepNumber} of '
+            '${ApplicationStage.values.length}',
         'Proposed Total Repayment: ${Naira.grouped(loan.totalKobo)}',
       ),
       LoanStatus.active => (
@@ -709,6 +703,223 @@ class _LoanRow extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Loan Status (pending application)
+// ---------------------------------------------------------------------------
+
+/// From anywhere (the approval notification's "View"): Home → RexFlex →
+/// the loan.
+void openRexFlexLoan(NavigatorState nav, RexFlexController c, FlexLoan loan) {
+  nav.popUntil((r) => r.isFirst);
+  nav.push(
+    MaterialPageRoute<void>(builder: (_) => RexFlexDashboard(controller: c)),
+  );
+  nav.push(
+    MaterialPageRoute<void>(
+      builder: (_) => LoanDetailsScreen(controller: c, loan: loan),
+    ),
+  );
+}
+
+/// Where a customer checks a pending application: what they applied for and
+/// the live review timeline. Switches to "Loan Approved!" in place when the
+/// (background) review finishes.
+class LoanStatusScreen extends StatefulWidget {
+  const LoanStatusScreen({
+    super.key,
+    required this.controller,
+    required this.loan,
+  });
+  final RexFlexController controller;
+  final FlexLoan loan;
+
+  @override
+  State<LoanStatusScreen> createState() => _LoanStatusScreenState();
+}
+
+class _LoanStatusScreenState extends State<LoanStatusScreen> {
+  RexFlexController get c => widget.controller;
+  FlexLoan get loan => widget.loan;
+
+  @override
+  void initState() {
+    super.initState();
+    c.watchingLoanId = loan.id;
+  }
+
+  @override
+  void dispose() {
+    if (c.watchingLoanId == loan.id) c.watchingLoanId = null;
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ListenableBuilder(
+      listenable: c,
+      builder: (context, _) {
+        final pending = loan.status == LoanStatus.pending;
+        return FlexScaffold(
+          title: 'Loan Status',
+          centeredTitle: true,
+          children: [
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 350),
+              child: pending
+                  ? Column(
+                      key: const ValueKey('pending'),
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _StatusHeader(loan: loan),
+                        const SizedBox(height: 12),
+                        FlexDetailBox(
+                          title: 'Your Application',
+                          rows: [
+                            ('Loan Amount', Naira.grouped(loan.principalKobo)),
+                            ('Tenor', '${loan.term.days} days'),
+                            (
+                              'Interest (${RexFlexPricing.ratePer30DaysPct}%)',
+                              Naira.grouped(loan.interestKobo),
+                            ),
+                            ('Total to Repay', Naira.grouped(loan.totalKobo)),
+                            ('Applied', RexDates.dateTime(loan.appliedAt)),
+                            (
+                              'Proposed Due Date',
+                              RexDates.dayMonthYear(loan.proposedDueDate),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        Padding(
+                          padding: const EdgeInsets.only(left: 2, bottom: 10),
+                          child: Semantics(
+                            header: true,
+                            child: Text(
+                              'Review progress',
+                              style: RexTypography.host(
+                                15,
+                                weight: FontWeight.w600,
+                                color: RexColors.textStrong,
+                              ),
+                            ),
+                          ),
+                        ),
+                        FlexApplicationTimeline(loan: loan),
+                        const SizedBox(height: 12),
+                        const FlexNote(
+                          "You can leave this page. We'll notify you as soon "
+                          "as it's approved.",
+                        ),
+                        const FlexDemoLabel(
+                          text: 'Demo review · approves in about a minute',
+                        ),
+                      ],
+                    )
+                  : FlexCard(
+                      key: const ValueKey('approved'),
+                      padding: const EdgeInsets.fromLTRB(18, 22, 18, 18),
+                      child: FlexApprovedContent(
+                        loan: loan,
+                        onViewLoan: () => Navigator.of(context).pushReplacement(
+                          MaterialPageRoute<void>(
+                            builder: (_) =>
+                                LoanDetailsScreen(controller: c, loan: loan),
+                          ),
+                        ),
+                      ),
+                    ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+/// "Under review · Step 2 of 4" card with a gentle hourglass.
+class _StatusHeader extends StatelessWidget {
+  const _StatusHeader({required this.loan});
+  final FlexLoan loan;
+
+  @override
+  Widget build(BuildContext context) {
+    final steps = ApplicationStage.values.length;
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [RexColors.userGradientStart, RexColors.userGradientEnd],
+        ),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.16),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            alignment: Alignment.center,
+            child: const ExcludeSemantics(
+              child: Text('⏳', style: TextStyle(fontSize: 24)),
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Under review',
+                  style: RexTypography.host(
+                    18,
+                    weight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Semantics(
+                  liveRegion: true,
+                  child: Text(
+                    'Step ${loan.stepNumber} of $steps · '
+                    '${loan.stage?.title ?? 'Finishing up'}',
+                    style: RexTypography.host(
+                      12,
+                      weight: FontWeight.w500,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                ExcludeSemantics(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(3),
+                    child: TweenAnimationBuilder<double>(
+                      tween: Tween(end: loan.stageDone.length / steps),
+                      duration: const Duration(milliseconds: 600),
+                      curve: Curves.easeOutCubic,
+                      builder: (_, v, _) => LinearProgressIndicator(
+                        value: v,
+                        minHeight: 4,
+                        backgroundColor: Colors.white.withValues(alpha: 0.22),
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

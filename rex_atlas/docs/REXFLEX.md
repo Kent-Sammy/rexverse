@@ -14,9 +14,17 @@ Built from the Figma section "rexflex" (node `25300:45094`, 30 frames).
 2. **Choose a Repayment Term → Review Your Offer.**
    - Key terms open in a sheet.
    - The consent checkbox must be ticked before "Confirm Application" works.
-3. **Application Received.**
-   - The four review steps tick off one by one, then "Loan Approved!" appears.
-   - Closing the sheet early leaves the loan as Pending on the dashboard until the review finishes.
+3. **Application Received → pending → approved (realistic, about 1 minute).**
+   - The review runs in the background in three 20-second steps: Eligibility & Risk Checks, Final Decisions, Disbursement. Each step records when it finished.
+   - The sheet shows the live timeline (done ✓ with time / in progress with a pulsing dot / waiting) and "This usually takes about a minute… we'll let you know". **Got it** closes it and opens the dashboard.
+   - The dashboard shows the loan as **Pending**, "Under review · Step 2 of 4", updating live.
+   - Tapping it opens **Loan Status**:
+     - an "Under review · Step n of 4" header with a progress bar;
+     - the application summary (amount, tenor, interest, total, applied time, proposed due date);
+     - the live timeline and a "you can leave this page" note.
+   - When the review finishes:
+     - On Loan Status or the sheet: that view switches in place to "Loan Approved!" with **View Loan**.
+     - Anywhere else (even the home screen): a notice slides up, "Your RexFlex loan of ₦3,000 was approved", with a success sound, a haptic and **View**, which opens the loan. It dismisses itself after 6 seconds.
 4. **RexFlex Loan.**
    - Shows the balance card, amount repaid, total, progress bar, days remaining and the latest transactions.
    - Support rows: Loan Information, Loan Agreement and Get Help.
@@ -50,7 +58,7 @@ Built from the Figma section "rexflex" (node `25300:45094`, 30 frames).
 | First offer | ₦3,000 |
 | Next offer | 2× the highest fully repaid principal, capped at ₦100,000. After repaying ₦3,000 the next offer is ₦6,000. |
 | Eligibility | Always eligible (demo) |
-| Review | Four stages, about 1.1 s each |
+| Review | About 60 s in the background: received at once, then 3 steps × 20 s (`MockRexFlexService.stageDelay`) |
 | PIN | Any 4 digits; `0000` is wrong; locked after 3 failures. The PIN is never stored. |
 | Dates | Start is "now". Due is start + tenor. |
 

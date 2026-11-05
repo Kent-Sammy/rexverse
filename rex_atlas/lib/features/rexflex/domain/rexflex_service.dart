@@ -10,7 +10,9 @@ abstract interface class RexFlexService {
   /// sheet. [nextOfferKobo] is the amount earned through progression.
   Future<EligibilityResult> checkEligibility({required int nextOfferKobo});
 
-  /// Submits an application and reports each review stage as it completes.
+  /// Submits an application. "Application Received" is complete straight
+  /// away; the stream then reports each review step as it *starts*, and
+  /// closes when the loan is approved and disbursed.
   Stream<ApplicationStage> apply(LoanTerm term);
 
   /// Repays [amountKobo] from the customer's Rex account.

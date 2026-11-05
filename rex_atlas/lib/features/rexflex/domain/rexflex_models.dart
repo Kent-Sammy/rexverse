@@ -103,8 +103,17 @@ class FlexLoan {
   final DateTime appliedAt;
   LoanStatus status = LoanStatus.pending;
 
-  /// Current review step while [status] is pending.
+  /// Review step in progress while [status] is pending (earlier steps are
+  /// complete).
   ApplicationStage? stage;
+
+  /// When each review step completed.
+  final Map<ApplicationStage, DateTime> stageDone = {};
+  DateTime? approvedAt;
+
+  /// 1-based step number shown as "Step 2 of 4".
+  int get stepNumber =>
+      (stage?.index ?? ApplicationStage.values.length - 1) + 1;
   DateTime? startDate;
   DateTime? dueDate;
   DateTime? settledAt;
