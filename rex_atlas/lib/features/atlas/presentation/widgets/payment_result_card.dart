@@ -4,8 +4,8 @@ import 'package:flutter/services.dart';
 import '../../../../core/design_system/design_system.dart';
 import '../../../../core/formatting/naira.dart';
 import '../../../../core/widgets/pressable.dart';
+import '../../../../core/widgets/success_badge.dart';
 import '../../domain/models/models.dart';
-import 'atlas_brand.dart';
 import 'payment_confirmation_card.dart';
 import 'payment_parties.dart';
 import 'transaction_details_panel.dart';
@@ -171,13 +171,9 @@ class _StatusBadgeState extends State<_StatusBadge>
   Widget build(BuildContext context) {
     final Widget badge;
     if (widget.success) {
-      // Figma layer "https://lottiefiles.com/95088-success" (62.8 × 59.1).
-      badge = Image.asset(
-        AtlasAssets.successBadge,
-        excludeFromSemantics: true,
-        width: 62.8,
-        height: 59.1,
-      );
+      // Figma layer "https://lottiefiles.com/95088-success" (62.8 × 59.1),
+      // animated: halo, pop, tick draw and confetti.
+      badge = const SuccessBadge(size: 62.8);
     } else {
       // Failure state is not designed; mirrors the success badge's shape.
       badge = Container(

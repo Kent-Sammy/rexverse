@@ -163,7 +163,8 @@ void main() {
 
     // Choose a term → Review → consent gates Confirm.
     expect(find.text('Choose a Repayment Term'), findsOneWidget);
-    expect(find.text('(₦3,000 + ₦112 interest)'), findsOneWidget);
+    expect(find.text('+₦112 interest'), findsOneWidget);
+    expect(find.text('Repay ₦3,112.00 by 04 Dec 2026'), findsOneWidget);
     await tapKey(t, 'flex-term-continue');
     expect(find.text('Review Your Offer'), findsOneWidget);
     expect(find.text('04 Dec 2026'), findsOneWidget); // due date

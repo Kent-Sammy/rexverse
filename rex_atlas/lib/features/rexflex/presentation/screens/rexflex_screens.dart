@@ -297,7 +297,7 @@ class _RepaymentTermScreenState extends State<RepaymentTermScreen> {
         FlexBalanceCard(
           label: 'Available loan amount',
           amountKobo: widget.offerKobo,
-          caption: 'Choose a repayment term that works for you',
+          caption: 'Pick a term that suits you',
           tiltedCash: true,
         ),
         const SizedBox(height: 12),
@@ -306,12 +306,11 @@ class _RepaymentTermScreenState extends State<RepaymentTermScreen> {
             padding: const EdgeInsets.only(bottom: 10),
             child: FlexOptionCard(
               key: Key('flex-term-${_terms[i].days}'),
-              title:
-                  '${Naira.grouped(_terms[i].principalKobo)}  for ${_terms[i].days} days',
-              subtitle: 'Repay ${Naira.grouped(_terms[i].totalKobo)}',
-              detail:
-                  '(${Naira.groupedWhole(_terms[i].principalKobo)} + '
-                  '${Naira.groupedWhole(_terms[i].interestKobo)} interest)',
+              title: '${_terms[i].days} days',
+              subtitle:
+                  'Repay ${Naira.grouped(_terms[i].totalKobo)} by '
+                  '${RexDates.dayMonthYear(widget.controller.now.add(Duration(days: _terms[i].days)))}',
+              detail: '+${Naira.groupedWhole(_terms[i].interestKobo)} interest',
               selected: _selected == i,
               onTap: () => setState(() => _selected = i),
             ),
@@ -677,7 +676,7 @@ class _LoanRow extends StatelessWidget {
                   Text(
                     line1,
                     style: RexTypography.host(
-                      10,
+                      11,
                       weight: FontWeight.w500,
                       color: FlexColors.label,
                     ),
@@ -685,7 +684,7 @@ class _LoanRow extends StatelessWidget {
                   Text(
                     line2,
                     style: RexTypography.host(
-                      10,
+                      11,
                       weight: FontWeight.w500,
                       color: FlexColors.label,
                     ),
@@ -1047,7 +1046,7 @@ class _Stat extends StatelessWidget {
               Text(
                 label,
                 style: RexTypography.host(
-                  10,
+                  11,
                   weight: FontWeight.w500,
                   color: FlexColors.label,
                 ),
@@ -1275,83 +1274,81 @@ class _JourneyHero extends StatelessWidget {
         ),
         child: Stack(
           children: [
-            // Soft decorative glows.
             Positioned(
-              right: -40,
-              top: -50,
-              child: _Glow(size: 170, alpha: 0.16),
+              right: -30,
+              top: -40,
+              child: _Glow(size: 190, alpha: 0.18),
             ),
             Positioned(
-              left: -30,
-              bottom: -70,
-              child: _Glow(size: 140, alpha: 0.10),
-            ),
-            // Figma banner: the hands illustration in the top-right corner.
-            const Positioned(
-              right: 0,
-              top: 0,
-              child: ExcludeSemantics(
-                child: Image(
-                  image: AssetImage(FlexAssets.journey),
-                  width: 118,
-                  filterQuality: FilterQuality.high,
-                ),
-              ),
+              left: -40,
+              bottom: -80,
+              child: _Glow(size: 150, alpha: 0.10),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
+              padding: const EdgeInsets.fromLTRB(18, 18, 14, 18),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.16),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.28),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.16),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: Colors.white.withValues(alpha: 0.3),
+                                ),
+                              ),
+                              child: Text(
+                                'LEVEL ${tier + 1} OF ${flexTiers.length}',
+                                style: RexTypography.host(
+                                  11,
+                                  weight: FontWeight.w700,
+                                  color: Colors.white,
+                                ).copyWith(letterSpacing: 0.8),
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              'Your credit journey',
+                              style: RexTypography.host(
+                                18,
+                                weight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Repay on time to unlock more',
+                              style: RexTypography.host(
+                                13,
+                                weight: FontWeight.w500,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    child: Text(
-                      'LEVEL ${tier + 1} OF ${flexTiers.length}',
-                      style: RexTypography.host(
-                        10,
-                        weight: FontWeight.w700,
-                        color: Colors.white,
-                      ).copyWith(letterSpacing: 0.8),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Padding(
-                    padding: const EdgeInsets.only(right: 104),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Your credit journey on RexFlex',
-                          style: RexTypography.host(
-                            17,
-                            weight: FontWeight.w700,
-                            color: Colors.white,
-                          ),
+                      const SizedBox(width: 8),
+                      // The hands illustration, shown whole (419 × 303 export).
+                      const ExcludeSemantics(
+                        child: Image(
+                          image: AssetImage(FlexAssets.journey),
+                          width: 124,
+                          filterQuality: FilterQuality.high,
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Repay on time, build a strong record and unlock '
-                          'higher amounts',
-                          style: RexTypography.host(
-                            12,
-                            weight: FontWeight.w500,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 18),
+                  const SizedBox(height: 16),
                   Semantics(
                     label:
                         'Level ${tier + 1} of ${flexTiers.length}: '
@@ -1386,7 +1383,7 @@ class _JourneyHero extends StatelessWidget {
                                   Text(
                                     _levelShort[i],
                                     style: RexTypography.host(
-                                      11,
+                                      12,
                                       weight: i == tier
                                           ? FontWeight.w700
                                           : FontWeight.w500,

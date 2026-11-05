@@ -7,7 +7,7 @@ import '../../../../core/design_system/design_system.dart';
 import '../../../../core/formatting/dates.dart';
 import '../../../../core/formatting/naira.dart';
 import '../../../../core/widgets/pressable.dart';
-import '../../../atlas/presentation/widgets/atlas_brand.dart';
+import '../../../../core/widgets/success_badge.dart';
 import '../../domain/rexflex_models.dart';
 
 /// Shared RexFlex building blocks, measured from the "rexflex" Figma
@@ -527,12 +527,22 @@ class FlexOptionCard extends StatelessWidget {
                     ),
                     if (detail != null) ...[
                       const SizedBox(height: 8),
-                      Text(
-                        detail!,
-                        style: RexTypography.host(
-                          12,
-                          weight: FontWeight.w500,
-                          color: FlexColors.green,
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
+                        decoration: BoxDecoration(
+                          color: FlexColors.greenBg,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          detail!,
+                          style: RexTypography.host(
+                            11,
+                            weight: FontWeight.w600,
+                            color: FlexColors.green,
+                          ),
                         ),
                       ),
                     ],
@@ -609,7 +619,7 @@ class FlexPill extends StatelessWidget {
     ),
     child: Text(
       text,
-      style: RexTypography.host(10, weight: FontWeight.w600, color: fg),
+      style: RexTypography.host(11, weight: FontWeight.w600, color: fg),
     ),
   );
 }
@@ -651,7 +661,7 @@ class FlexTxnTile extends StatelessWidget {
                 Text(
                   RexDates.dateTime(txn.at),
                   style: RexTypography.host(
-                    10,
+                    11,
                     weight: FontWeight.w500,
                     color: FlexColors.label,
                   ),
@@ -858,10 +868,7 @@ class FlexSuccessHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Column(
     children: [
-      const ExcludeSemantics(
-        // 189 px export: 64 pt keeps it at 3× density (sharp).
-        child: Image(image: AssetImage(AtlasAssets.successBadge), width: 64),
-      ),
+      const SuccessBadge(size: 72),
       const SizedBox(height: 14),
       Semantics(
         header: true,

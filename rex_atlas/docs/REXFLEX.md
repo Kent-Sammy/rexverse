@@ -36,6 +36,13 @@ Built from the Figma section "rexflex" (node `25300:45094`, 30 frames).
      - Locked: empty dot, with a lock icon on the card.
    - Each level card shows its icon, range and status.
    - The "You're on track!" card was removed at the product owner's request.
+   - The banner copy is trimmed to "Your credit journey" / "Repay on time to unlock more", so the hands illustration shows in full beside it.
+8. **Choose a Repayment Term (summarised).**
+   - The card caption reads "Pick a term that suits you".
+   - Each option shows the tenor ("14 days"), "Repay ₦3,112.00 by <due date>" and a green "+₦112 interest" pill. The principal is already on the card above.
+9. **Success animation.**
+   - Every success badge (Atlas transfers and payments, RexFlex approval and repayments) is an animated vector version of the Figma Lottie badge: the halo blooms, the disc pops, the tick draws and confetti bursts, in about 1.2 s.
+   - It plays once and shows the final frame straight away with "reduce motion".
 
 ## Rules used by the mock
 
