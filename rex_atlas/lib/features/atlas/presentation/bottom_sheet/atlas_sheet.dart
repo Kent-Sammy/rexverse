@@ -73,6 +73,7 @@ class AtlasSheetState extends State<AtlasSheet>
   @override
   void initState() {
     super.initState();
+    widget.controller.sheetVisible = true;
     _seenIds = widget.controller.messages.map((m) => m.id).toSet();
     widget.controller.addListener(_onControllerChange);
     _events = widget.controller.events.listen(_onEvent);
@@ -94,6 +95,7 @@ class AtlasSheetState extends State<AtlasSheet>
 
   @override
   void dispose() {
+    widget.controller.sheetVisible = false;
     widget.controller.removeListener(_onControllerChange);
     _events?.cancel();
     _noticeTimer?.cancel();
@@ -206,6 +208,14 @@ class AtlasSheetState extends State<AtlasSheet>
             ),
           ),
         );
+      case OpenRexFlexEvent(:final destination):
+        final open = widget.controller.onOpenRexFlex;
+        _close();
+        if (open != null) {
+          WidgetsBinding.instance.addPostFrameCallback(
+            (_) => open(destination),
+          );
+        }
       case NoticeEvent(:final message):
         showNotice(message);
     }

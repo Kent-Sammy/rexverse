@@ -213,6 +213,12 @@ const _rowTwo = [
     Color(0xFF8FB6FF),
   ),
   _Action(
+    'Get a Loan',
+    'Get a RexFlex loan',
+    RexSvgIcon(RexSvg.ticket, size: 16, color: _ink),
+    Color(0xFF9BE7B4),
+  ),
+  _Action(
     'Recent Activity',
     'Show my recent transactions',
     Icon(Icons.receipt_long_rounded, size: 16, color: _ink),
@@ -339,6 +345,13 @@ const _suggestions = [
     utterance: 'Save Money',
     icon: RexSvgIcon(RexSvg.piggyBank, size: 24, color: Colors.white),
     colors: [Color(0xFFFFB15C), Color(0xFFE0670F)],
+  ),
+  _Suggestion(
+    title: 'RexFlex: borrow from ₦3k',
+    body: 'Repay in 14 or 30 days',
+    utterance: 'Tell me about RexFlex',
+    icon: RexSvgIcon(RexSvg.ticket, size: 24, color: Colors.white),
+    colors: [Color(0xFF2AD49A), Color(0xFF0F8F6B)],
   ),
   _Suggestion(
     title: 'Electricity in seconds',

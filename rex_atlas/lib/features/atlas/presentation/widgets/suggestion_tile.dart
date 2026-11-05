@@ -15,7 +15,7 @@ class SuggestionTile extends StatelessWidget {
   final Suggestion suggestion;
   final VoidCallback onTap;
 
-  (RexSvg, Color) get _icon => switch (suggestion.action) {
+  (RexSvg, Color?) get _icon => switch (suggestion.action) {
     SuggestionAction.save => (RexSvg.piggyBank, RexColors.accentOrange),
     SuggestionAction.payBill => (RexSvg.banknotes, RexColors.accentCyan),
     SuggestionAction.rexyDecember => (
@@ -24,6 +24,8 @@ class SuggestionTile extends StatelessWidget {
     ),
     SuggestionAction.sendMoney => (RexSvg.sendAltFilled, RexColors.accentGreen),
     SuggestionAction.buyAirtime => (RexSvg.phoneCall, RexColors.accentGreen),
+    SuggestionAction.rexflexStart => (RexSvg.ticket, null),
+    SuggestionAction.rexflexViewLoan => (RexSvg.ticket, null),
   };
 
   @override

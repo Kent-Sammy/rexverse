@@ -30,8 +30,26 @@ class MockAtlasAssistantService implements AtlasAssistantService {
 
     final stage = request.stage;
 
-    if (_isCancel(text) && stage != ConversationStage.idle) {
+    if (_isCancel(text) &&
+        stage != ConversationStage.idle &&
+        stage != ConversationStage.discussingRexFlex) {
       return const CancelIntent();
+    }
+
+    // Getting a RexFlex loan in the chat.
+    if (stage == ConversationStage.awaitingLoanConsent) {
+      final days = _loanDays(text);
+      if (_has(text, ['change', 'different', 'other', 'switch'])) {
+        return ChooseLoanTermIntent(days ?? 0);
+      }
+      if (days != null) return ChooseLoanTermIntent(days);
+      if (_isAffirmative(text) || _has(text, ['apply', 'submit', 'accept'])) {
+        return const ConfirmIntent();
+      }
+    }
+    if (stage == ConversationStage.awaitingLoanTerm) {
+      final days = _loanDays(text);
+      if (days != null) return ChooseLoanTermIntent(days);
     }
 
     if (stage == ConversationStage.awaitingPaymentConfirmation) {
@@ -50,6 +68,12 @@ class MockAtlasAssistantService implements AtlasAssistantService {
         _isAffirmative(text)) {
       return const ConfirmIntent();
     }
+
+    final flex = _rexflexTopic(
+      text,
+      inContext: stage == ConversationStage.discussingRexFlex,
+    );
+    if (flex != null) return RexFlexIntent(flex);
 
     if (_has(text, ['transaction', 'history', 'statement', 'recent'])) {
       return const ShowTransactionsIntent();
@@ -122,7 +146,7 @@ class MockAtlasAssistantService implements AtlasAssistantService {
       'good evening',
     ])) {
       return ReplyIntent(
-        'Hi ${MockData.user.firstName}! I can send money, buy airtime, pay bills, save with RexSave or RexVault, or show your recent transactions.',
+        'Hi ${MockData.user.firstName}! I can send money, buy airtime, pay bills, save with RexSave or RexVault, get you a RexFlex loan, or show your recent transactions.',
       );
     }
     if (_has(text, ['thank'])) {
@@ -131,8 +155,115 @@ class MockAtlasAssistantService implements AtlasAssistantService {
       );
     }
     return const ReplyIntent(
-      "Sorry, I can't help with that yet. I can send money, buy airtime, pay bills, save with RexSave or RexVault, or show your recent transactions.",
+      "Sorry, I can't help with that yet. I can send money, buy airtime, pay bills, save with RexSave or RexVault, help with RexFlex loans, or show your recent transactions.",
     );
+  }
+
+  /// RexFlex questions ("what is RexFlex", "can I borrow ₦5k", "is my loan
+  /// approved", "how do I repay"), or null when the message isn't about it.
+  ///
+  /// [inContext]: the previous answer was about RexFlex, so a follow-up that
+  /// names a RexFlex topic ("How much does it cost?") counts even without
+  /// the word "loan".
+  RexFlexTopic? _rexflexTopic(String t, {bool inContext = false}) {
+    final about =
+        t.contains('rexflex') ||
+        t.contains('rex flex') ||
+        _has(t, ['loan', 'loans', 'borrow', 'borrowing', 'lend', 'flex']);
+    if (!about) {
+      if (!inContext) return null;
+      // Only clear RexFlex questions; "I want to send money" must still
+      // start a transfer.
+      final followUp = _rexflexTopic('loan $t');
+      return switch (followUp) {
+        RexFlexTopic.eligibility ||
+        RexFlexTopic.pricing ||
+        RexFlexTopic.limits ||
+        RexFlexTopic.repay ||
+        RexFlexTopic.status => followUp,
+        _ => null,
+      };
+    }
+    if (_has(t, [
+      'repay',
+      'repayment',
+      'pay back',
+      'payback',
+      'owe',
+      'outstanding',
+      'due',
+    ])) {
+      return RexFlexTopic.repay;
+    }
+    if (_has(t, [
+      'status',
+      'approved',
+      'approve',
+      'pending',
+      'review',
+      'application',
+      'my loan',
+    ])) {
+      return RexFlexTopic.status;
+    }
+    if (_has(t, [
+      'eligible',
+      'eligibility',
+      'qualify',
+      'requirement',
+      'requirements',
+    ])) {
+      return RexFlexTopic.eligibility;
+    }
+    if (_has(t, [
+      'interest',
+      'rate',
+      'cost',
+      'charge',
+      'charges',
+      'fee',
+      'fees',
+    ])) {
+      return RexFlexTopic.pricing;
+    }
+    if (_has(t, [
+      'limit',
+      'maximum',
+      'max',
+      'increase',
+      'higher',
+      'how much can',
+      'level',
+      'journey',
+    ])) {
+      return RexFlexTopic.limits;
+    }
+    if (_has(t, [
+      'apply',
+      'get started',
+      'start',
+      'take',
+      'need',
+      'want',
+      'get a',
+      'get me',
+      'request',
+    ])) {
+      return RexFlexTopic.getStarted;
+    }
+    return RexFlexTopic.overview;
+  }
+
+  /// "14 days", "30", "two weeks", "a month" → tenor in days.
+  int? _loanDays(String t) {
+    final m = RegExp(r'\b(\d{1,3})\s*(?:days?|d)?\b').firstMatch(t);
+    if (m != null) {
+      final n = int.parse(m.group(1)!);
+      if (n == 14 || n == 30) return n;
+    }
+    if (_has(t, ['two weeks', '2 weeks', 'fortnight'])) return 14;
+    if (_has(t, ['a month', 'one month', '1 month', 'month'])) return 30;
+    return null;
   }
 
   bool _looksLikeTransfer(String t) =>

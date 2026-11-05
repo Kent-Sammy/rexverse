@@ -782,8 +782,8 @@ class _Meta extends StatelessWidget {
 // Loan Status (pending application)
 // ---------------------------------------------------------------------------
 
-/// From anywhere (the approval notification's "View"): Home → RexFlex →
-/// the loan.
+/// From anywhere (the approval notification's "View", Atlas): Home →
+/// RexFlex → the loan (its Loan Status page while it's under review).
 void openRexFlexLoan(NavigatorState nav, RexFlexController c, FlexLoan loan) {
   nav.popUntil((r) => r.isFirst);
   nav.push(
@@ -791,7 +791,45 @@ void openRexFlexLoan(NavigatorState nav, RexFlexController c, FlexLoan loan) {
   );
   nav.push(
     MaterialPageRoute<void>(
-      builder: (_) => LoanDetailsScreen(controller: c, loan: loan),
+      builder: (_) => loan.status == LoanStatus.pending
+          ? LoanStatusScreen(controller: c, loan: loan)
+          : LoanDetailsScreen(controller: c, loan: loan),
+    ),
+  );
+}
+
+/// Atlas "Get started with RexFlex": first-timers see the "Earn your flex"
+/// intro; returning customers get the eligibility check over the dashboard.
+void startRexFlexFromAtlas(NavigatorState nav, RexFlexController c) {
+  nav.popUntil((r) => r.isFirst);
+  if (!c.hasHistory) {
+    nav.push(
+      MaterialPageRoute<void>(builder: (_) => RexFlexOpener(controller: c)),
+    );
+    return;
+  }
+  nav.push(
+    MaterialPageRoute<void>(builder: (_) => RexFlexDashboard(controller: c)),
+  );
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    final ctx = nav.context;
+    if (ctx.mounted) startNewLoan(ctx, c);
+  });
+}
+
+/// Atlas "View my loan": the current loan, or RexFlex's home if none.
+void viewRexFlexLoanFromAtlas(NavigatorState nav, RexFlexController c) {
+  final loan = c.currentLoan;
+  if (loan != null) {
+    openRexFlexLoan(nav, c, loan);
+    return;
+  }
+  nav.popUntil((r) => r.isFirst);
+  nav.push(
+    MaterialPageRoute<void>(
+      builder: (_) => c.hasHistory
+          ? RexFlexDashboard(controller: c)
+          : RexFlexOpener(controller: c),
     ),
   );
 }

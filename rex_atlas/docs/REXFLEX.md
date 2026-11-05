@@ -87,3 +87,29 @@ The Figma export quota was used up. These two images were cut from the section s
 
 - `assets/images/rexflex/rexflex_hero.png`: the hand-to-hand cash illustration (intro).
 - `assets/images/rexflex/rexflex_cash.png`: the cash stack (balance cards), with a transparent background.
+
+## RexFlex in Atlas
+
+Atlas knows RexFlex and can take a loan entirely in the chat.
+
+- **Questions** (`RexFlexIntent`). Atlas recognises "loan", "borrow", "RexFlex" and similar words, and answers:
+  - what RexFlex is;
+  - eligibility (the three requirements);
+  - cost (8% per 30 days, worked out for 14 and 30 days on the customer's offer);
+  - limits (start at ₦3,000, up to 2× the highest repaid loan, ₦100,000 maximum);
+  - how to repay;
+  - status, from the live loan: "under review: step 2 of 4", or "₦X left to repay by <date>".
+- **Follow-ups.** Right after a RexFlex answer (`ConversationStage.discussingRexFlex`), short follow-ups such as "How much does it cost?", "Am I eligible?" or "How do I repay?" stay on RexFlex. Other requests ("send money") still work.
+- **Getting a loan in the chat.** "Get a RexFlex loan", the welcome **Get a Loan** pill, or the RexFlex hero slide all start it:
+  1. Atlas runs the eligibility check, then shows the offer with **14 days · repay ₦3,112** / **30 days · repay ₦3,240**. Typed replies such as "two weeks" or "a month" also work.
+  2. A **RexFlex offer card** shows the amount, interest, due date and total to repay. Consent copy follows, with **Yes, apply / Change term / Cancel**.
+  3. Applying submits the loan through the same RexFlex controller, so it appears on the RexFlex dashboard as Pending. Atlas says "Application received…" with a **View my loan** card.
+  4. When the background review finishes, Atlas posts "🎉 Great news! Your RexFlex loan of ₦3,000 was approved…" in the chat. The app-wide notice is skipped while Atlas is open.
+- **Cards.**
+  - **Get started with RexFlex**: opens the intro for first-timers, or the eligibility check over the dashboard for returning customers.
+  - **View my loan**: opens the loan, or its Loan Status page while pending.
+  - Both close Atlas first.
+- **Architecture.**
+  - Atlas depends only on `LoanOverviewService` (snapshot, eligibility, apply, approvals) in its own domain layer.
+  - `RexFlexLoanOverview` adapts the RexFlex controller to it.
+  - The host app wires both together (`AtlasController.loans`, `onOpenRexFlex`).

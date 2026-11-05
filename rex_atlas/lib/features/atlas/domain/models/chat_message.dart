@@ -73,7 +73,17 @@ class PaymentResultMessage extends ChatMessage {
   final Receipt? receipt;
 }
 
-enum SuggestionAction { save, payBill, rexyDecember, buyAirtime, sendMoney }
+enum SuggestionAction {
+  save,
+  payBill,
+  rexyDecember,
+  buyAirtime,
+  sendMoney,
+
+  /// Open RexFlex: start a loan / view the current loan.
+  rexflexStart,
+  rexflexViewLoan,
+}
 
 class Suggestion {
   const Suggestion({
@@ -87,6 +97,27 @@ class Suggestion {
   final String title; // "Save "
   final String? boldSuffix; // "₦50,000"
   final String subtitle;
+}
+
+/// RexFlex offer shown in the chat before the customer applies.
+class LoanOfferMessage extends ChatMessage {
+  LoanOfferMessage({
+    required super.id,
+    required this.principalKobo,
+    required this.days,
+    required this.interestKobo,
+    required this.dueDate,
+    this.isActive = true,
+  }) : super(author: ChatAuthor.assistant);
+  final int principalKobo;
+  final int days;
+  final int interestKobo;
+  final DateTime dueDate;
+
+  /// Dimmed once the customer applies, changes term or cancels.
+  bool isActive;
+
+  int get totalKobo => principalKobo + interestKobo;
 }
 
 class SuggestionsMessage extends ChatMessage {

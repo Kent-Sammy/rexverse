@@ -86,6 +86,29 @@ class UnsupportedFeatureIntent extends AssistantIntent {
   final String featureName;
 }
 
+/// What the customer asked about RexFlex (short-term loans).
+enum RexFlexTopic {
+  overview,
+  getStarted,
+  eligibility,
+  pricing,
+  limits,
+  repay,
+  status,
+}
+
+class RexFlexIntent extends AssistantIntent {
+  const RexFlexIntent(this.topic);
+  final RexFlexTopic topic;
+}
+
+/// The customer picked a RexFlex tenor in the chat ("14 days"). `0` means
+/// "show me the options again".
+class ChooseLoanTermIntent extends AssistantIntent {
+  const ChooseLoanTermIntent(this.days);
+  final int days;
+}
+
 /// Free-form reply (greetings, help, fallback).
 class ReplyIntent extends AssistantIntent {
   const ReplyIntent(this.text);

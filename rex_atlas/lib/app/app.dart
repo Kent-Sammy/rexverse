@@ -57,6 +57,19 @@ class _RexAtlasDemoAppState extends State<RexAtlasDemoApp> {
   void initState() {
     super.initState();
     _approvals = _rexflex.approvals.listen(_onLoanApproved);
+    // Atlas knows about the customer's RexFlex loan and can open RexFlex.
+    _atlas
+      ..loans = RexFlexLoanOverview(_rexflex)
+      ..onOpenRexFlex = (destination) {
+        final nav = _navigator.currentState;
+        if (nav == null) return;
+        switch (destination) {
+          case RexFlexDestination.start:
+            startRexFlexFromAtlas(nav, _rexflex);
+          case RexFlexDestination.loan:
+            viewRexFlexLoanFromAtlas(nav, _rexflex);
+        }
+      };
     if (widget.openAtlasOnStart) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         final ctx = _navigator.currentContext;
@@ -75,7 +88,9 @@ class _RexAtlasDemoAppState extends State<RexAtlasDemoApp> {
   /// A RexFlex review finished in the background: tell the customer
   /// wherever they are (unless they're already watching that loan).
   void _onLoanApproved(FlexLoan loan) {
-    if (_rexflex.watchingLoanId == loan.id) return;
+    // Already on screen: the loan's own page, or Atlas (which posts the
+    // approval in the chat).
+    if (_rexflex.watchingLoanId == loan.id || _atlas.sheetVisible) return;
     HapticFeedback.mediumImpact();
     _atlas.deps.sounds.play(ChatSound.success);
     _messenger.currentState

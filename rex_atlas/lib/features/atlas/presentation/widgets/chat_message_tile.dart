@@ -11,6 +11,7 @@ import 'chat_bubble.dart';
 import 'payment_confirmation_card.dart';
 import 'payment_parties.dart';
 import 'payment_result_card.dart';
+import 'loan_offer_card.dart';
 import 'payment_review_card.dart';
 import 'suggestion_tile.dart';
 import 'transactions_card.dart';
@@ -53,7 +54,8 @@ class ChatMessageTile extends StatelessWidget {
         message is PaymentConfirmationMessage ||
         message is PaymentResultMessage ||
         message is SuggestionsMessage ||
-        message is TransactionsMessage;
+        message is TransactionsMessage ||
+        message is LoanOfferMessage;
     return isCard ? Padding(padding: _cardInsets, child: content) : content;
   }
 
@@ -103,6 +105,11 @@ class ChatMessageTile extends StatelessWidget {
       PaymentReviewMessage(:final draft, :final isActive) => PaymentReviewCard(
         draft: draft,
         isActive: isActive,
+      ),
+      LoanOfferMessage() => Semantics(
+        container: true,
+        label: 'RexFlex loan offer',
+        child: LoanOfferCard(offer: m),
       ),
       PaymentConfirmationMessage(:final draft) => PaymentConfirmationCard(
         draft: draft,
