@@ -718,20 +718,24 @@ class _LoanRow extends StatelessWidget {
             const SizedBox(height: 14),
             const Divider(height: 1, color: RexColors.divider),
             const SizedBox(height: 12),
-            // Three even, left-aligned columns across the full card width.
+            // Three left-aligned columns sized to their text, spread so the
+            // gaps between them are equal: flush with both card edges.
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
+                Flexible(
                   child: _Meta(
                     label: 'Amount',
                     value: Naira.grouped(loan.principalKobo),
                   ),
                 ),
-                Expanded(
+                const SizedBox(width: 12),
+                Flexible(
                   child: _Meta(label: k1, value: v1),
                 ),
-                Expanded(
+                const SizedBox(width: 12),
+                Flexible(
                   child: _Meta(label: k2, value: v2),
                 ),
               ],
