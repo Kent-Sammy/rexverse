@@ -56,3 +56,29 @@ They fall back to a coloured disc with initials.
 The quick-action and sheet icons (`carbon:send-alt-filled`, `fa7-solid:piggy-bank`, `wpf:banknotes`,
 `bxs:phone-call`, `bi:fingerprint`, `boxicons:maximize-filled`, `coolicons:close`, `bi:arrow-left`)
 come from Iconify, using the exact icon names in the Figma layer names.
+
+## Image sharpness audit (RexFlex update)
+
+Phones draw at about 3× density. A raster image needs at least 3× its on-screen width in pixels.
+
+| Asset | Pixels | Shown at | Ratio | Status |
+| --- | --- | --- | --- | --- |
+| `atlas_assistant_avatar.png` / `_chat.png` | 428 | 92 / 33 pt | 4.6× / 13× | ✅ sharp |
+| `coin_stack.png` | 444 | 148 pt | 3.0× | ✅ |
+| `party_popper.png` | 234 | 78 pt | 3.0× | ✅ |
+| `success_badge.png` | 189 | 62.8 pt (Atlas), 64 pt (RexFlex) | 3.0× | ✅ (RexFlex was 72 pt, now 64) |
+| `rexflex/rexflex_hero.png` | 876 (from a 292 px source) | 402 pt | **0.7×** | ❌ needs a Figma export |
+| `rexflex/rexflex_cash.png` | 358 (from a 68 px source) | 64–84 pt | **0.8×** | ❌ needs a Figma export |
+| Icons, logos, bank logos (SVG) | vector | any | ∞ | ✅ |
+
+### Exports needed (Figma file `bGSrbvtXmV2kBDiwzraoy1`, section "rexflex")
+
+1. **`rexflex_hero.png`**
+   - Layer: `Gemini_Generated_Image_k5s8a7k5s8a7k5s8 1` (`25263:52579`) in the first "Rexflex Opener" frame.
+   - Export as PNG at 3×.
+   - The app shows it in a fixed 296:210 box with cover-fit, so any crop drops in without moving the layout.
+2. **`rexflex_cash.png`**
+   - Layer: `Money` (for example `25282:62435`) on a balance card.
+   - Export as PNG at 3× with a transparent background.
+
+Upload both to `rex_atlas/assets/images/rexflex/`, replacing the files with the same names.

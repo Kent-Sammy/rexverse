@@ -137,9 +137,15 @@ class RexFlexOpener extends StatelessWidget {
                       child: Appear(
                         offset: 20,
                         fromScale: 0.96,
-                        child: Image(
-                          image: AssetImage(FlexAssets.hero),
-                          fit: BoxFit.fitWidth,
+                        // Fixed 296:210 frame (as in Figma); any export of
+                        // the illustration fills it without moving layout.
+                        child: AspectRatio(
+                          aspectRatio: 296 / 210,
+                          child: Image(
+                            image: AssetImage(FlexAssets.hero),
+                            fit: BoxFit.cover,
+                            filterQuality: FilterQuality.high,
+                          ),
                         ),
                       ),
                     ),

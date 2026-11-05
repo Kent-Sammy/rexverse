@@ -828,7 +828,8 @@ class FlexSuccessHeader extends StatelessWidget {
   Widget build(BuildContext context) => Column(
     children: [
       const ExcludeSemantics(
-        child: Image(image: AssetImage(AtlasAssets.successBadge), width: 72),
+        // 189 px export: 64 pt keeps it at 3× density (sharp).
+        child: Image(image: AssetImage(AtlasAssets.successBadge), width: 64),
       ),
       const SizedBox(height: 14),
       Semantics(

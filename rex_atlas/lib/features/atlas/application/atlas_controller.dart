@@ -74,7 +74,7 @@ class AtlasController extends ChangeNotifier {
       action: SuggestionAction.save,
       title: 'Save ',
       boldSuffix: '₦50,000',
-      subtitle: 'Grow  your money with RexSave',
+      subtitle: 'Grow your money with RexSave',
     ),
     Suggestion(
       action: SuggestionAction.payBill,

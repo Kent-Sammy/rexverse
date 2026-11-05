@@ -82,28 +82,31 @@ class PaymentResultCard extends StatelessWidget {
             ),
           ],
           const SizedBox(height: 17),
-          Row(
-            children: [
-              if (ok) ...[
+          IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (ok) ...[
+                  Expanded(
+                    child: _SmallButton(
+                      label: 'View Receipt',
+                      background: RexColors.softBlue,
+                      foreground: RexColors.navy,
+                      onTap: onViewReceipt,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                ],
                 Expanded(
                   child: _SmallButton(
-                    label: 'View Receipt',
-                    background: RexColors.softBlue,
-                    foreground: RexColors.navy,
-                    onTap: onViewReceipt,
+                    label: repeatLabel,
+                    background: RexColors.navy,
+                    foreground: Colors.white,
+                    onTap: onRepeat,
                   ),
                 ),
-                const SizedBox(width: 8),
               ],
-              Expanded(
-                child: _SmallButton(
-                  label: repeatLabel,
-                  background: RexColors.navy,
-                  foreground: Colors.white,
-                  onTap: onRepeat,
-                ),
-              ),
-            ],
+            ),
           ),
           if (ok) ...[
             const SizedBox(height: 15),
@@ -232,13 +235,14 @@ class _SmallButton extends StatelessWidget {
           color: background,
           borderRadius: BorderRadius.circular(4),
         ),
-        child: FittedBox(
-          fit: BoxFit.scaleDown,
-          child: Text(
-            label,
-            maxLines: 1,
-            style: RexTypography.smallButton.copyWith(color: foreground),
-          ),
+        // Same text size on both buttons; long labels wrap instead of
+        // shrinking.
+        child: Text(
+          label,
+          maxLines: 2,
+          textAlign: TextAlign.center,
+          overflow: TextOverflow.ellipsis,
+          style: RexTypography.smallButton.copyWith(color: foreground),
         ),
       ),
     );
