@@ -71,6 +71,7 @@ Phones draw at about 3× density. A raster image needs at least 3× its on-scree
 | `rexflex/rexflex_cash.png` | 246 (Figma export) | 80 pt | 3.1× | ✅ |
 | `rexflex/rexflex_cash_tilt.png` | 258 (Figma export) | 86 / 70 pt | 3.0× / 3.7× | ✅ |
 | `rexflex/rexflex_journey.png` | 419 (Figma export) | 118 pt | 3.6× | ✅ |
+| `rexflex/rexflex_empty.png` | 167×206 (from the uploaded `16656-empty-state.png`, trimmed) | 108 pt tall | ~1.9× | ⚠️ slightly soft; a 3× export or the Lottie JSON would make it crisp |
 | `icons/flex_money_*.svg`, `icons/flex_safe_lock.svg` | vector (Figma export) | 18–22 pt | ∞ | ✅ |
 | Icons, logos, bank logos (SVG) | vector | any | ∞ | ✅ |
 
@@ -84,6 +85,7 @@ The design owner exported the RexFlex illustrations and icons. They were uploade
 | `rexflex_cash.png` | `Frame 2147235173.png` |
 | `rexflex_cash_tilt.png` | `Money.png` |
 | `rexflex_journey.png` | `Gemini_Generated00.png` |
+| `rexflex_empty.png` | `16656-empty-state.png` (second upload) |
 | `icons/flex_money_repaid.svg` | `money.svg` |
 | `icons/flex_money_total.svg` | `money-1.svg` |
 | `icons/flex_safe_lock.svg` | `mingcute_safe-lock-fill.svg` |

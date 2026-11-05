@@ -36,6 +36,7 @@ abstract final class FlexAssets {
   static const cash = 'assets/images/rexflex/rexflex_cash.png'; // 246×124
   static const cashTilt = 'assets/images/rexflex/rexflex_cash_tilt.png';
   static const journey = 'assets/images/rexflex/rexflex_journey.png';
+  static const empty = 'assets/images/rexflex/rexflex_empty.png'; // 167×206
 }
 
 /// `₦ 3,112.00` – the balance-card style with a space after the sign.
@@ -1016,26 +1017,20 @@ Future<T?> showFlexSheet<T>(
   builder: builder,
 );
 
-/// Empty-state placeholder: a soft ringed icon, a title, one helpful line
-/// and an optional action.
+/// Empty-state placeholder: the design owner's folder illustration
+/// (gently floating), a title, one helpful line and an optional action.
 class FlexEmptyState extends StatelessWidget {
   const FlexEmptyState({
     super.key,
-    required this.icon,
     required this.title,
     required this.message,
-    this.tint = const Color(0xFFE6EEFF),
-    this.accent = const Color(0xFF2F6BEA),
     this.actionLabel,
     this.onAction,
     this.compact = false,
   });
 
-  final IconData icon;
   final String title;
   final String message;
-  final Color tint;
-  final Color accent;
   final String? actionLabel;
   final VoidCallback? onAction;
 
@@ -1044,7 +1039,6 @@ class FlexEmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final disc = compact ? 52.0 : 76.0;
     return Semantics(
       container: true,
       child: FlexCard(
@@ -1056,26 +1050,7 @@ class FlexEmptyState extends StatelessWidget {
         ),
         child: Column(
           children: [
-            ExcludeSemantics(
-              child: Container(
-                width: disc + 20,
-                height: disc + 20,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: tint.withValues(alpha: 0.45),
-                ),
-                alignment: Alignment.center,
-                child: Container(
-                  width: disc,
-                  height: disc,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: tint,
-                  ),
-                  child: Icon(icon, size: disc * 0.44, color: accent),
-                ),
-              ),
-            ),
+            _FloatingIllustration(height: compact ? 72 : 108),
             SizedBox(height: compact ? 10 : 14),
             Text(
               title,
@@ -1122,6 +1097,59 @@ class FlexEmptyState extends StatelessWidget {
               ),
             ],
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// The empty-state illustration, bobbing softly like the original Lottie
+/// (still when the OS asks for reduced motion).
+class _FloatingIllustration extends StatefulWidget {
+  const _FloatingIllustration({required this.height});
+  final double height;
+
+  @override
+  State<_FloatingIllustration> createState() => _FloatingIllustrationState();
+}
+
+class _FloatingIllustrationState extends State<_FloatingIllustration>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 2600),
+  );
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final reduce = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+    if (reduce) {
+      _c.stop();
+    } else if (!_c.isAnimating) {
+      _c.repeat(reverse: true);
+    }
+  }
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ExcludeSemantics(
+      child: AnimatedBuilder(
+        animation: _c,
+        builder: (_, child) => Transform.translate(
+          offset: Offset(0, -4 * Curves.easeInOut.transform(_c.value)),
+          child: child,
+        ),
+        child: Image(
+          image: const AssetImage(FlexAssets.empty),
+          height: widget.height,
+          filterQuality: FilterQuality.high,
         ),
       ),
     );
