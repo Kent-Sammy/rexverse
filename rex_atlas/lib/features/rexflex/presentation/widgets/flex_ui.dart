@@ -828,6 +828,7 @@ class FlexTabs extends StatelessWidget {
             child: Semantics(
               selected: i == index,
               child: Pressable(
+                key: Key('flex-tab-${tabs[i]}'),
                 semanticLabel: '${tabs[i]} tab',
                 onTap: () => onChanged(i),
                 child: AnimatedContainer(

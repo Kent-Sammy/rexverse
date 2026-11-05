@@ -548,8 +548,9 @@ class _RexFlexDashboardState extends State<RexFlexDashboard> {
         final loans = c.loans
             .where(
               (l) => switch (_tab) {
-                1 => l.status != LoanStatus.settled,
-                2 => l.status == LoanStatus.settled,
+                1 => l.status == LoanStatus.pending,
+                2 => l.status == LoanStatus.active,
+                3 => l.status == LoanStatus.settled,
                 _ => true,
               },
             )
@@ -589,7 +590,7 @@ class _RexFlexDashboardState extends State<RexFlexDashboard> {
             ),
             const SizedBox(height: 12),
             FlexTabs(
-              tabs: const ['All', 'Pending', 'Settled'],
+              tabs: const ['All', 'Pending', 'Active', 'Settled'],
               index: _tab,
               onChanged: (i) => setState(() => _tab = i),
             ),
@@ -598,7 +599,12 @@ class _RexFlexDashboardState extends State<RexFlexDashboard> {
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 30),
                 child: Text(
-                  'No loans here yet',
+                  switch (_tab) {
+                    1 => 'No loans under review',
+                    2 => 'No active loans',
+                    3 => 'No settled loans yet',
+                    _ => 'No loans yet',
+                  },
                   textAlign: TextAlign.center,
                   style: RexTypography.host(13, color: FlexColors.label),
                 ),

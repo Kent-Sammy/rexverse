@@ -287,8 +287,18 @@ void main() {
     expect(find.text('RexFlex'), findsOneWidget);
     expect(find.text('Pending'), findsWidgets);
     expect(find.text('Application under review'), findsOneWidget);
+    // Pending tab holds the application while it's under review.
+    await tapKey(t, 'flex-tab-Pending', ms: 300);
+    expect(find.byKey(const Key('flex-loan-RF0001')), findsOneWidget);
     await pumpFor(t, 5000);
-    expect(find.text('Active'), findsOneWidget);
+    // Once approved it moves from Pending to Active.
+    expect(find.byKey(const Key('flex-loan-RF0001')), findsNothing);
+    expect(find.text('No loans under review'), findsOneWidget);
+    await tapKey(t, 'flex-tab-Active', ms: 300);
+    expect(find.byKey(const Key('flex-loan-RF0001')), findsOneWidget);
+    await tapKey(t, 'flex-tab-Settled', ms: 300);
+    expect(find.text('No settled loans yet'), findsOneWidget);
+    await tapKey(t, 'flex-tab-All', ms: 300);
     // Approved off-screen → the in-app notice; let it time out.
     expect(
       find.text('Your RexFlex loan of ₦3,000 was approved'),
