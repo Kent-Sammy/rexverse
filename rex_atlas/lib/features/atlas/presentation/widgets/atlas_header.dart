@@ -4,7 +4,7 @@ import '../../../../core/design_system/design_system.dart';
 import '../../../../core/widgets/pressable.dart';
 import 'atlas_brand.dart';
 
-/// "Rex Atlas / Your AI banking assistant" header with expand + close.
+/// "Rex Atlas / Your AI agent" header with expand + close.
 class AtlasHeader extends StatelessWidget {
   const AtlasHeader({
     super.key,
@@ -42,7 +42,7 @@ class AtlasHeader extends StatelessWidget {
                   child: Text('Rex Atlas', style: RexTypography.headerTitle),
                 ),
                 Text(
-                  'Your AI banking assistant',
+                  'Your AI agent',
                   style: RexTypography.headerSubtitle,
                 ),
               ],

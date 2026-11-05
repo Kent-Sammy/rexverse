@@ -29,7 +29,7 @@ Figma variables could **not** be read (MCP plan limit, see `FIGMA_INSPECTION.md`
 | `textPrimary` | `#313131` | bubble text, review rows |
 | `textStrong` | `#130F26` | confirmation amount, fingerprint title, history titles |
 | `textSecondary` | `#838383` | "GTBank **** 8716", suggestion subtitles |
-| `textMuted` | `#696666` | "Your AI banking assistant" |
+| `textMuted` | `#696666` | "Your AI agent" |
 | `textPlaceholder` | `#969696` | "Ask Rex Atlas..." |
 | `textSubtle` | `#797979` | fingerprint body |
 | `textBody` | `#646464` | result body |
