@@ -41,10 +41,7 @@ class AtlasHeader extends StatelessWidget {
                   header: true,
                   child: Text('Rex Atlas', style: RexTypography.headerTitle),
                 ),
-                Text(
-                  'Your AI agent',
-                  style: RexTypography.headerSubtitle,
-                ),
+                Text('Your AI agent', style: RexTypography.headerSubtitle),
               ],
             ),
           ),

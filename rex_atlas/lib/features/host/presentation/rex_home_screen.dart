@@ -7,6 +7,7 @@ import '../../../core/widgets/initials_avatar.dart';
 import '../../../core/widgets/pressable.dart';
 import '../../atlas/atlas.dart';
 import '../../atlas/presentation/widgets/atlas_brand.dart';
+import '../../rexflex/rexflex.dart';
 
 /// Stand-in for the existing Rex home screen (Figma frame 1, 25217:40957).
 ///
@@ -14,9 +15,15 @@ import '../../atlas/presentation/widgets/atlas_brand.dart';
 /// points ("Ask RexAtlas....." and the RexAtlas service tile). It is not a
 /// reimplementation of the Rex app; other controls show an explanatory notice.
 class RexHomeScreen extends StatefulWidget {
-  const RexHomeScreen({super.key, required this.atlas, this.now});
+  const RexHomeScreen({
+    super.key,
+    required this.atlas,
+    required this.rexflex,
+    this.now,
+  });
 
   final AtlasController atlas;
+  final RexFlexController rexflex;
   final DateTime? now;
 
   @override
@@ -30,6 +37,8 @@ class _RexHomeScreenState extends State<RexHomeScreen> {
     now: widget.now,
     initialMessage: startWith,
   );
+
+  void _openRexFlex() => openRexFlex(context, widget.rexflex);
 
   void _notInPrototype(String what) {
     ScaffoldMessenger.of(context)
@@ -71,6 +80,7 @@ class _RexHomeScreenState extends State<RexHomeScreen> {
                     const SizedBox(height: 10),
                     _ServicesGrid(
                       onAtlas: _openAtlas,
+                      onRexFlex: _openRexFlex,
                       onAsk: _openAtlas,
                       onOther: _notInPrototype,
                     ),
@@ -98,7 +108,10 @@ class _RexHomeScreenState extends State<RexHomeScreen> {
                   ],
                 ),
               ),
-              _BottomNav(onTap: _notInPrototype),
+              _BottomNav(
+                onTap: (label) =>
+                    label == 'Borrow' ? _openRexFlex() : _notInPrototype(label),
+              ),
             ],
           ),
           if (DemoDeviceFrame.showsStatusBar(context))
@@ -349,10 +362,12 @@ class _BalanceCard extends StatelessWidget {
 class _ServicesGrid extends StatelessWidget {
   const _ServicesGrid({
     required this.onAtlas,
+    required this.onRexFlex,
     required this.onAsk,
     required this.onOther,
   });
   final VoidCallback onAtlas;
+  final VoidCallback onRexFlex;
 
   /// Opens Atlas and starts a flow (e.g. "Save Money").
   final ValueChanged<String> onAsk;
@@ -456,6 +471,8 @@ class _ServicesGrid extends StatelessWidget {
                 'RexFlex',
                 RexColors.tileGreen,
                 const RexSvgIcon(RexSvg.ticket, size: 24),
+                onTap: onRexFlex,
+                key: const Key('home-rexflex-tile'),
               ),
               gap,
               tile(
@@ -814,7 +831,18 @@ class _BottomNav extends StatelessWidget {
 
     return Container(
       color: Colors.white,
-      padding: EdgeInsets.fromLTRB(29, 11, 29, bottom > 0 ? bottom - 24 : 10),
+      padding: EdgeInsets.fromLTRB(
+        29,
+        11,
+        29,
+        // Thin home indicators (≤ 34) keep the Figma spacing; taller system
+        // bars (Android three-button nav) push the labels above them.
+        bottom > 34
+            ? bottom + 6
+            : bottom > 0
+            ? bottom - 24
+            : 10,
+      ),
       child: Row(
         children: [
           item(RexSvg.navHome, 'Home', active: true),

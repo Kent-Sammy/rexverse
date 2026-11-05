@@ -55,6 +55,7 @@ See `docs/VALIDATION.md`.
 | Recent transactions (frame 9) → receipt | ✅ |
 | Airtime purchase | ✅ (flow assumed, built from designed components) |
 | RexSave (incl. Rexy December), RexVault, bills (electricity with token, cable TV, internet) | ✅ (flows assumed; demo prices) |
+| RexFlex short-term loans: eligibility, offer, application, loan page, full/partial repayment with PIN, Flex Journey (Figma section `rexflex`) | ✅ (simulated lender; see `docs/REXFLEX.md`) |
 | Fingerprint or demo PIN pad authorisation | ✅ (PIN never stored; see `docs/ASSUMPTIONS.md`) |
 | Error states (AI outage + retry, unknown account, failed payment) | ✅ (not designed) |
 | Voice input (speech-to-text), photo/document upload, chat sounds with mute | ✅ (see `docs/ASSUMPTIONS.md`) |
@@ -104,6 +105,7 @@ bottom sheet and the receipt is a pushed page.
 - [`docs/MOCK_SERVICES.md`](docs/MOCK_SERVICES.md): mock behaviour and a step-by-step demo script
 - [`docs/INTEGRATION.md`](docs/INTEGRATION.md): moving Atlas into the Rex app; backend work still needed
 - [`docs/VALIDATION.md`](docs/VALIDATION.md): checks run, screenshot comparisons, known gaps
+- [`docs/REXFLEX.md`](docs/REXFLEX.md): RexFlex loan flow, mock rules and Figma deviations
 - [`docs/ACCESSIBILITY.md`](docs/ACCESSIBILITY.md): WCAG 2.0 AA contrast table and accessibility measures
 
 ## Known limitations

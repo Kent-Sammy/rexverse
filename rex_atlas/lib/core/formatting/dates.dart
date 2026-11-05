@@ -45,6 +45,17 @@ abstract final class RexDates {
     return '$h:${_two(t.minute)} ${t.hour < 12 ? 'AM' : 'PM'}';
   }
 
+  /// `04 Dec 2026` (RexFlex loan dates).
+  static String dayMonthYear(DateTime t) =>
+      '${_two(t.day)} ${_months[t.month - 1]} ${t.year}';
+
+  /// `23 Oct 2026 · 09:15 AM` (RexFlex transaction rows).
+  static String dateTime(DateTime t) {
+    final h = t.hour % 12 == 0 ? 12 : t.hour % 12;
+    return '${dayMonthYear(t)} · ${_two(h)}:${_two(t.minute)} '
+        '${t.hour < 12 ? 'AM' : 'PM'}';
+  }
+
   static String greeting(DateTime now) {
     final h = now.hour;
     if (h < 12) return 'Good morning,';

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../core/design_system/design_system.dart';
 import '../features/atlas/atlas.dart';
 import '../features/host/presentation/rex_home_screen.dart';
+import '../features/rexflex/rexflex.dart';
 import 'demo_device_frame.dart';
 
 class RexAtlasDemoApp extends StatefulWidget {
@@ -33,6 +34,12 @@ class _RexAtlasDemoAppState extends State<RexAtlasDemoApp> {
       widget.controller ??
       AtlasController(widget.dependencies ?? AtlasDependencies.mock());
   final _navigator = GlobalKey<NavigatorState>();
+  late final RexFlexController _rexflex = RexFlexController(
+    service: MockRexFlexService(),
+    authorization: _atlas.deps.authorization,
+    accounts: _atlas.deps.accounts,
+    clock: widget.now == null ? null : () => widget.now!,
+  );
 
   @override
   void initState() {
@@ -54,6 +61,7 @@ class _RexAtlasDemoAppState extends State<RexAtlasDemoApp> {
 
   @override
   void dispose() {
+    _rexflex.dispose();
     _atlas.dispose();
     super.dispose();
   }
@@ -77,7 +85,7 @@ class _RexAtlasDemoAppState extends State<RexAtlasDemoApp> {
         ),
       ),
       builder: (context, child) => DemoDeviceFrame(child: child!),
-      home: RexHomeScreen(atlas: _atlas, now: widget.now),
+      home: RexHomeScreen(atlas: _atlas, rexflex: _rexflex, now: widget.now),
     );
   }
 }

@@ -26,6 +26,7 @@ flutter:
     - assets/icons/
     - assets/images/
     - assets/images/banks/
+    - assets/images/rexflex/
     - assets/sounds/
 
   fonts:
