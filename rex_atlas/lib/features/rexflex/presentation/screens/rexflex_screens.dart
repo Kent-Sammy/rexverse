@@ -647,28 +647,34 @@ class _LoanRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final (line1, line2) = switch (loan.status) {
+    final (k1, v1, k2, v2) = switch (loan.status) {
       LoanStatus.pending => (
-        'Under review · Step ${loan.stepNumber} of '
-            '${ApplicationStage.values.length}',
-        'Proposed Total Repayment: ${Naira.grouped(loan.totalKobo)}',
+        'STATUS',
+        'Step ${loan.stepNumber} of ${ApplicationStage.values.length}',
+        'TO REPAY',
+        Naira.grouped(loan.totalKobo),
       ),
       LoanStatus.active => (
-        'Due Date: ${RexDates.dayMonthYear(loan.dueDate!)}',
-        'Outstanding: ${Naira.grouped(loan.outstandingKobo)}',
+        'DUE DATE',
+        RexDates.dayMonthYear(loan.dueDate!),
+        'OUTSTANDING',
+        Naira.grouped(loan.outstandingKobo),
       ),
       LoanStatus.settled => (
-        'Settled: ${RexDates.dayMonthYear(loan.settledAt!)}',
-        'Total Repayment: ${Naira.grouped(loan.totalKobo)}',
+        'SETTLED ON',
+        RexDates.dayMonthYear(loan.settledAt!),
+        'TOTAL REPAID',
+        Naira.grouped(loan.totalKobo),
       ),
     };
     return Pressable(
       key: Key('flex-loan-${loan.id}'),
       semanticLabel:
           'RexFlex Loan ${Naira.grouped(loan.principalKobo)}, '
-          '${loan.status.name}',
+          '${loan.status.name}. $k1 $v1. $k2 $v2',
       onTap: onTap,
       child: FlexCard(
+        padding: const EdgeInsets.fromLTRB(14, 14, 16, 14),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -676,61 +682,104 @@ class _LoanRow extends StatelessWidget {
               icon: Icons.work_rounded,
               bg: FlexColors.purpleBg,
               fg: FlexColors.purple,
-              size: 34,
+              size: 40,
             ),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text(
-                    'RexFlex Loan',
-                    style: RexTypography.host(
-                      13,
-                      weight: FontWeight.w600,
-                      color: RexColors.textStrong,
-                    ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'RexFlex Loan',
+                          style: RexTypography.host(
+                            14,
+                            weight: FontWeight.w600,
+                            color: RexColors.textStrong,
+                          ),
+                        ),
+                      ),
+                      Text(
+                        Naira.grouped(loan.principalKobo),
+                        style: RexTypography.host(
+                          14,
+                          weight: FontWeight.w700,
+                          color: RexColors.textStrong,
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    line1,
-                    style: RexTypography.host(
-                      11,
-                      weight: FontWeight.w500,
-                      color: FlexColors.label,
-                    ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          '${loan.term.days}-day loan',
+                          style: RexTypography.host(
+                            11,
+                            weight: FontWeight.w500,
+                            color: FlexColors.label,
+                          ),
+                        ),
+                      ),
+                      FlexPill.forStatus(loan.status),
+                    ],
                   ),
-                  Text(
-                    line2,
-                    style: RexTypography.host(
-                      11,
-                      weight: FontWeight.w500,
-                      color: FlexColors.label,
-                    ),
+                  const SizedBox(height: 12),
+                  const Divider(height: 1, color: RexColors.divider),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _Meta(label: k1, value: v1),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _Meta(label: k2, value: v2),
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  Naira.grouped(loan.principalKobo),
-                  style: RexTypography.host(
-                    13,
-                    weight: FontWeight.w600,
-                    color: RexColors.textStrong,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                FlexPill.forStatus(loan.status),
-              ],
             ),
           ],
         ),
       ),
     );
   }
+}
+
+/// Small caps label over a bold value ("DUE DATE / 05 Dec 2026").
+class _Meta extends StatelessWidget {
+  const _Meta({required this.label, required this.value});
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        label,
+        style: RexTypography.host(
+          11,
+          weight: FontWeight.w600,
+          color: FlexColors.label,
+        ).copyWith(letterSpacing: 0.6),
+      ),
+      const SizedBox(height: 3),
+      Text(
+        value,
+        style: RexTypography.host(
+          13,
+          weight: FontWeight.w600,
+          color: RexColors.textStrong,
+        ),
+      ),
+    ],
+  );
 }
 
 // ---------------------------------------------------------------------------

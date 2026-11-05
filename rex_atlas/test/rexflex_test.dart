@@ -364,7 +364,7 @@ void main() {
       // "Got it" → dashboard shows the pending application.
       await tapKey(t, 'flex-application-got-it', ms: 800);
       expect(find.text('Pending'), findsWidgets);
-      expect(find.text('Under review · Step 2 of 4'), findsOneWidget);
+      expect(find.text('Step 2 of 4'), findsOneWidget);
       expect(find.text('Application under review'), findsOneWidget);
 
       // Open it: Loan Status with the live timeline.

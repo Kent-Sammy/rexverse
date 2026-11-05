@@ -76,6 +76,7 @@ class SuggestionTile extends StatelessWidget {
                       style: RexTypography.suggestionTitle,
                     ),
                   ),
+                  const SizedBox(height: 3),
                   Text(
                     suggestion.subtitle,
                     style: RexTypography.suggestionSub,

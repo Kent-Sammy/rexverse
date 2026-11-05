@@ -634,7 +634,7 @@ class FlexTxnTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final credit = txn.isCredit;
     return FlexCard(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      padding: const EdgeInsets.fromLTRB(14, 14, 16, 14),
       child: Row(
         children: [
           FlexIconBubble(
@@ -643,7 +643,7 @@ class FlexTxnTile extends StatelessWidget {
                 : Icons.arrow_outward_rounded,
             bg: credit ? FlexColors.purpleBg : FlexColors.greenBg,
             fg: credit ? FlexColors.purple : FlexColors.green,
-            size: 32,
+            size: 40,
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -653,12 +653,12 @@ class FlexTxnTile extends StatelessWidget {
                 Text(
                   txn.title,
                   style: RexTypography.host(
-                    13,
-                    weight: FontWeight.w500,
+                    14,
+                    weight: FontWeight.w600,
                     color: RexColors.textStrong,
                   ),
                 ),
-                const SizedBox(height: 3),
+                const SizedBox(height: 4),
                 Text(
                   RexDates.dateTime(txn.at),
                   style: RexTypography.host(
@@ -676,12 +676,12 @@ class FlexTxnTile extends StatelessWidget {
               Text(
                 '${credit ? '+' : '-'} ${Naira.grouped(txn.amountKobo)}',
                 style: RexTypography.host(
-                  13,
-                  weight: FontWeight.w600,
+                  14,
+                  weight: FontWeight.w700,
                   color: RexColors.textStrong,
                 ),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 6),
               FlexPill.successful(),
             ],
           ),
@@ -714,10 +714,10 @@ class FlexMenuRow extends StatelessWidget {
     semanticLabel: title,
     onTap: onTap,
     child: FlexCard(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      padding: const EdgeInsets.fromLTRB(14, 14, 12, 14),
       child: Row(
         children: [
-          FlexIconBubble(icon: icon, bg: bg, fg: fg, size: 34),
+          FlexIconBubble(icon: icon, bg: bg, fg: fg, size: 40),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -726,12 +726,12 @@ class FlexMenuRow extends StatelessWidget {
                 Text(
                   title,
                   style: RexTypography.host(
-                    13,
-                    weight: FontWeight.w500,
+                    14,
+                    weight: FontWeight.w600,
                     color: RexColors.textStrong,
                   ),
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: 3),
                 Text(
                   subtitle,
                   style: RexTypography.host(
