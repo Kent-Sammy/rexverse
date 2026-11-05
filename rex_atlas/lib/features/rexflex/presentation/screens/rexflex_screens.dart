@@ -649,21 +649,21 @@ class _LoanRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final (k1, v1, k2, v2) = switch (loan.status) {
       LoanStatus.pending => (
-        'STATUS',
+        'Review progress',
         'Step ${loan.stepNumber} of ${ApplicationStage.values.length}',
-        'TO REPAY',
+        'To repay',
         Naira.grouped(loan.totalKobo),
       ),
       LoanStatus.active => (
-        'DUE DATE',
+        'Due date',
         RexDates.dayMonthYear(loan.dueDate!),
-        'OUTSTANDING',
+        'Outstanding',
         Naira.grouped(loan.outstandingKobo),
       ),
       LoanStatus.settled => (
-        'SETTLED ON',
+        'Settled on',
         RexDates.dayMonthYear(loan.settledAt!),
-        'TOTAL REPAID',
+        'Total repaid',
         Naira.grouped(loan.totalKobo),
       ),
     };
@@ -751,7 +751,7 @@ class _LoanRow extends StatelessWidget {
   }
 }
 
-/// Small caps label over a bold value ("DUE DATE / 05 Dec 2026").
+/// Soft grey label over a bold value ("Due date / 05 Dec 2026").
 class _Meta extends StatelessWidget {
   const _Meta({required this.label, required this.value});
   final String label;
@@ -764,12 +764,12 @@ class _Meta extends StatelessWidget {
       Text(
         label,
         style: RexTypography.host(
-          11,
-          weight: FontWeight.w600,
+          12,
+          weight: FontWeight.w500,
           color: FlexColors.label,
-        ).copyWith(letterSpacing: 0.6),
+        ),
       ),
-      const SizedBox(height: 3),
+      const SizedBox(height: 2),
       Text(
         value,
         style: RexTypography.host(
@@ -1599,12 +1599,12 @@ class _JourneyHero extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'LEVEL ${tier + 1} OF ${flexTiers.length}',
+                    'Level ${tier + 1} of ${flexTiers.length}',
                     style: RexTypography.host(
-                      11,
-                      weight: FontWeight.w700,
+                      13,
+                      weight: FontWeight.w600,
                       color: Colors.white,
-                    ).copyWith(letterSpacing: 1.2),
+                    ),
                   ),
                   const SizedBox(height: 6),
                   Text(

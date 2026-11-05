@@ -266,7 +266,7 @@ void main() {
     await tapKey(t, 'flex-loan-journey');
     expect(find.text('Your Flex Journey'), findsOneWidget);
     expect(find.text('₦3,000 repaid on time'), findsOneWidget);
-    expect(find.text('LEVEL 2 OF 3'), findsOneWidget);
+    expect(find.text('Level 2 of 3'), findsOneWidget);
     expect(find.text("You're on track!"), findsNothing);
     await tapKey(t, 'flex-how-progression');
     expect(find.text('How Progression Works'), findsOneWidget);
