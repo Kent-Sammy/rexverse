@@ -1015,3 +1015,115 @@ Future<T?> showFlexSheet<T>(
   barrierColor: const Color(0x99141A2E),
   builder: builder,
 );
+
+/// Empty-state placeholder: a soft ringed icon, a title, one helpful line
+/// and an optional action.
+class FlexEmptyState extends StatelessWidget {
+  const FlexEmptyState({
+    super.key,
+    required this.icon,
+    required this.title,
+    required this.message,
+    this.tint = const Color(0xFFE6EEFF),
+    this.accent = const Color(0xFF2F6BEA),
+    this.actionLabel,
+    this.onAction,
+    this.compact = false,
+  });
+
+  final IconData icon;
+  final String title;
+  final String message;
+  final Color tint;
+  final Color accent;
+  final String? actionLabel;
+  final VoidCallback? onAction;
+
+  /// Smaller version for inline sections (e.g. a loan's transactions).
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) {
+    final disc = compact ? 52.0 : 76.0;
+    return Semantics(
+      container: true,
+      child: FlexCard(
+        padding: EdgeInsets.fromLTRB(
+          24,
+          compact ? 18 : 28,
+          24,
+          compact ? 18 : 24,
+        ),
+        child: Column(
+          children: [
+            ExcludeSemantics(
+              child: Container(
+                width: disc + 20,
+                height: disc + 20,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: tint.withValues(alpha: 0.45),
+                ),
+                alignment: Alignment.center,
+                child: Container(
+                  width: disc,
+                  height: disc,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: tint,
+                  ),
+                  child: Icon(icon, size: disc * 0.44, color: accent),
+                ),
+              ),
+            ),
+            SizedBox(height: compact ? 10 : 14),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: RexTypography.host(
+                compact ? 14 : 16,
+                weight: FontWeight.w700,
+                color: RexColors.textStrong,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: RexTypography.host(
+                12,
+                weight: FontWeight.w500,
+                color: FlexColors.label,
+              ),
+            ),
+            if (actionLabel != null && onAction != null) ...[
+              const SizedBox(height: 16),
+              Pressable(
+                semanticLabel: actionLabel!,
+                onTap: onAction,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 18,
+                    vertical: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    color: FlexColors.navy,
+                    borderRadius: BorderRadius.circular(22),
+                  ),
+                  child: Text(
+                    actionLabel!,
+                    style: RexTypography.host(
+                      13,
+                      weight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}

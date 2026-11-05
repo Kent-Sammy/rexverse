@@ -413,4 +413,28 @@ void main() {
       expect(find.byKey(const Key('flex-repay-loan')), findsOneWidget);
     });
   });
+
+  testWidgets('empty states: placeholders with contrast and labels', (t) async {
+    final handle = t.ensureSemantics();
+    await openHome(t);
+    await applyForLoan(t);
+    await tapKey(t, 'flex-application-got-it', ms: 1200);
+    await tapKey(t, 'flex-tab-Settled', ms: 600);
+    expect(find.text('No settled loans yet'), findsOneWidget);
+    expect(
+      find.text(
+        'Loans you repay in full will show here, building your Flex record.',
+      ),
+      findsOneWidget,
+    );
+    await expectLater(t, meetsGuideline(textContrastGuideline));
+    await tapKey(t, 'flex-tab-Active', ms: 600);
+    expect(find.text('No active loans'), findsOneWidget);
+    // A loan is already under review, so no "Get a loan" here.
+    expect(find.text('Get a loan'), findsNothing);
+    await expectLater(t, meetsGuideline(textContrastGuideline));
+    await expectLater(t, meetsGuideline(labeledTapTargetGuideline));
+    await pumpSeconds(t, 5);
+    handle.dispose();
+  });
 }

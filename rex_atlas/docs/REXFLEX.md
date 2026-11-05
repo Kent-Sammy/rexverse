@@ -18,7 +18,8 @@ Built from the Figma section "rexflex" (node `25300:45094`, 30 frames).
    - The review runs in the background in three 20-second steps: Eligibility & Risk Checks, Final Decisions, Disbursement. Each step records when it finished.
    - The sheet shows the live timeline (done ✓ with time / in progress with a pulsing dot / waiting) and "This usually takes about a minute… we'll let you know". **Got it** closes it and opens the dashboard.
    - The dashboard shows the loan as **Pending**, "Under review · Step 2 of 4", updating live.
-   - Dashboard tabs are **All · Pending · Active · Settled**. Each loan sits in exactly one: Pending while under review, Active once approved, Settled once repaid. Each empty tab has its own message.
+   - Dashboard tabs are **All · Pending · Active · Settled**. Each loan sits in exactly one: Pending while under review, Active once approved, Settled once repaid.
+   - Empty tabs show a placeholder (`FlexEmptyState`: ringed icon, title, one helpful line). "All" and "Active" offer **Get a loan** when nothing is in progress. Transaction History tabs (All / Repayments / Disbursement) and a loan's empty Transactions section use the same placeholder.
    - Tapping it opens **Loan Status**:
      - an "Under review · Step n of 4" header with a progress bar;
      - the application summary (amount, tenor, interest, total, applied time, proposed due date);

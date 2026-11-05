@@ -596,18 +596,45 @@ class _RexFlexDashboardState extends State<RexFlexDashboard> {
             ),
             const SizedBox(height: 12),
             if (loans.isEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 30),
-                child: Text(
-                  switch (_tab) {
-                    1 => 'No loans under review',
-                    2 => 'No active loans',
-                    3 => 'No settled loans yet',
-                    _ => 'No loans yet',
-                  },
-                  textAlign: TextAlign.center,
-                  style: RexTypography.host(13, color: FlexColors.label),
-                ),
+              Appear(
+                key: ValueKey('empty-$_tab'),
+                offset: 10,
+                child: switch (_tab) {
+                  1 => const FlexEmptyState(
+                    icon: Icons.hourglass_empty_rounded,
+                    tint: Color(0xFFF1E6FF),
+                    accent: FlexColors.purple,
+                    title: 'No loans under review',
+                    message:
+                        "Applications you submit show here while we review "
+                        "them.",
+                  ),
+                  2 => FlexEmptyState(
+                    icon: Icons.account_balance_wallet_outlined,
+                    title: 'No active loans',
+                    message: "Approved loans you're repaying will appear here.",
+                    actionLabel: current == null ? 'Get a loan' : null,
+                    onAction: current == null
+                        ? () => startNewLoan(context, c)
+                        : null,
+                  ),
+                  3 => const FlexEmptyState(
+                    icon: Icons.verified_outlined,
+                    tint: Color(0xFFE2F7E8),
+                    accent: Color(0xFF1E8E45),
+                    title: 'No settled loans yet',
+                    message:
+                        'Loans you repay in full will show here, building '
+                        'your Flex record.',
+                  ),
+                  _ => FlexEmptyState(
+                    icon: Icons.payments_outlined,
+                    title: 'No loans yet',
+                    message: 'Start small from ₦3,000 and grow your credit.',
+                    actionLabel: 'Get a loan',
+                    onAction: () => startNewLoan(context, c),
+                  ),
+                },
               ),
             for (final loan in loans)
               Padding(
@@ -1154,13 +1181,11 @@ class _LoanDetailsScreenState extends State<LoanDetailsScreen> {
                 child: FlexTxnTile(t),
               ),
             if (loan.transactions.isEmpty)
-              Text(
-                'Your disbursement will appear here once approved.',
-                style: RexTypography.host(
-                  12,
-                  weight: FontWeight.w500,
-                  color: FlexColors.label,
-                ),
+              const FlexEmptyState(
+                compact: true,
+                icon: Icons.receipt_long_outlined,
+                title: 'No transactions yet',
+                message: 'Your disbursement will appear here once approved.',
               ),
             const FlexSectionHeader('Support & Information'),
             FlexMenuRow(
@@ -1372,13 +1397,30 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
           const SizedBox(height: 10),
         ],
         if (txns.isEmpty)
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 30),
-            child: Text(
-              'No transactions yet',
-              textAlign: TextAlign.center,
-              style: RexTypography.host(13, color: FlexColors.label),
-            ),
+          Appear(
+            key: ValueKey('empty-$_tab'),
+            offset: 10,
+            child: switch (_tab) {
+              1 => const FlexEmptyState(
+                icon: Icons.arrow_outward_rounded,
+                tint: Color(0xFFE2F7E8),
+                accent: Color(0xFF1E8E45),
+                title: 'No repayments yet',
+                message: 'Your repayments will appear here as you make them.',
+              ),
+              2 => const FlexEmptyState(
+                icon: Icons.arrow_downward_rounded,
+                tint: Color(0xFFF1E6FF),
+                accent: FlexColors.purple,
+                title: 'No disbursement yet',
+                message: 'Your loan will show here once it is approved.',
+              ),
+              _ => const FlexEmptyState(
+                icon: Icons.receipt_long_outlined,
+                title: 'No transactions yet',
+                message: 'Disbursements and repayments will show here.',
+              ),
+            },
           ),
         for (final t in txns)
           Padding(
