@@ -999,10 +999,11 @@ class WellDoneSheet extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              Transform.rotate(
-                angle: -0.5,
-                child: const ExcludeSemantics(
-                  child: Image(image: AssetImage(FlexAssets.cash), width: 64),
+              const ExcludeSemantics(
+                child: Image(
+                  image: AssetImage(FlexAssets.cashTilt),
+                  width: 70,
+                  filterQuality: FilterQuality.high,
                 ),
               ),
             ],

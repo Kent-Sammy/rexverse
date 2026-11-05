@@ -132,15 +132,15 @@ class RexFlexOpener extends StatelessWidget {
                 child: ListView(
                   padding: EdgeInsets.zero,
                   children: [
-                    SizedBox(height: math.max(pad.top, 20) + 26),
+                    SizedBox(height: math.max(pad.top, 20) + 56),
                     const ExcludeSemantics(
                       child: Appear(
                         offset: 20,
                         fromScale: 0.96,
-                        // Fixed 296:210 frame (as in Figma); any export of
-                        // the illustration fills it without moving layout.
+                        // Figma export trimmed to its content (1206 × 681,
+                        // 3× of the 402 pt width).
                         child: AspectRatio(
-                          aspectRatio: 296 / 210,
+                          aspectRatio: 1206 / 681,
                           child: Image(
                             image: AssetImage(FlexAssets.hero),
                             fit: BoxFit.cover,
@@ -149,7 +149,7 @@ class RexFlexOpener extends StatelessWidget {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 26),
+                    const SizedBox(height: 54),
                     Semantics(
                       header: true,
                       child: Text(
@@ -298,6 +298,7 @@ class _RepaymentTermScreenState extends State<RepaymentTermScreen> {
           label: 'Available loan amount',
           amountKobo: widget.offerKobo,
           caption: 'Choose a repayment term that works for you',
+          tiltedCash: true,
         ),
         const SizedBox(height: 12),
         for (var i = 0; i < _terms.length; i++)
@@ -784,9 +785,8 @@ class _LoanDetailsScreenState extends State<LoanDetailsScreen> {
                     child: Row(
                       children: [
                         _Stat(
-                          icon: Icons.account_balance_wallet_rounded,
+                          icon: RexSvg.flexMoneyRepaid,
                           bg: const Color(0xFFFFF4D6),
-                          fg: const Color(0xFFE0A100),
                           label: 'Amount Repaid',
                           value: Naira.grouped(loan.repaidKobo),
                         ),
@@ -795,9 +795,8 @@ class _LoanDetailsScreenState extends State<LoanDetailsScreen> {
                           color: RexColors.divider,
                         ),
                         _Stat(
-                          icon: Icons.account_balance_wallet_rounded,
+                          icon: RexSvg.flexMoneyTotal,
                           bg: const Color(0xFFDDF7E3),
-                          fg: const Color(0xFF22A447),
                           label: 'Total Repayment',
                           value: Naira.grouped(loan.totalKobo),
                         ),
@@ -1018,13 +1017,11 @@ class _Stat extends StatelessWidget {
   const _Stat({
     required this.icon,
     required this.bg,
-    required this.fg,
     required this.label,
     required this.value,
   });
-  final IconData icon;
+  final RexSvg icon;
   final Color bg;
-  final Color fg;
   final String label;
   final String value;
 
@@ -1039,7 +1036,8 @@ class _Stat extends StatelessWidget {
             color: bg,
             borderRadius: BorderRadius.circular(10),
           ),
-          child: Icon(icon, size: 20, color: fg),
+          alignment: Alignment.center,
+          child: RexSvgIcon(icon, size: 22),
         ),
         const SizedBox(width: 10),
         Expanded(
@@ -1288,13 +1286,15 @@ class _JourneyHero extends StatelessWidget {
               bottom: -70,
               child: _Glow(size: 140, alpha: 0.10),
             ),
-            Positioned(
-              right: 10,
-              top: 14,
-              child: Transform.rotate(
-                angle: -0.35,
-                child: const ExcludeSemantics(
-                  child: Image(image: AssetImage(FlexAssets.cash), width: 82),
+            // Figma banner: the hands illustration in the top-right corner.
+            const Positioned(
+              right: 0,
+              top: 0,
+              child: ExcludeSemantics(
+                child: Image(
+                  image: AssetImage(FlexAssets.journey),
+                  width: 118,
+                  filterQuality: FilterQuality.high,
                 ),
               ),
             ),
@@ -1326,7 +1326,7 @@ class _JourneyHero extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   Padding(
-                    padding: const EdgeInsets.only(right: 96),
+                    padding: const EdgeInsets.only(right: 104),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [

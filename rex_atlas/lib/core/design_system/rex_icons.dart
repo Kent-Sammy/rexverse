@@ -37,7 +37,11 @@ enum RexSvg {
   navBorrow('nav_borrow'),
   navMore('nav_more'),
   eye('eye'), // balance visibility ("Show")
-  chevron('chevron'); // Iconly/Light/Arrow - Down 2 (">" chevrons)
+  chevron('chevron'), // Iconly/Light/Arrow - Down 2 (">" chevrons)
+  // RexFlex exports (keep their own colours):
+  flexMoneyRepaid('flex_money_repaid'), // yellow, "Amount Repaid"
+  flexMoneyTotal('flex_money_total'), // green, "Total Repayment"
+  flexSafeLock('flex_safe_lock'); // amber, note boxes
 
   const RexSvg(this.file);
   final String file;

@@ -31,10 +31,11 @@ abstract final class FlexColors {
 }
 
 abstract final class FlexAssets {
-  /// Stand-ins cut from the Figma section screenshot (the MCP export quota
-  /// was used up). Replace with full-resolution exports of the same name.
-  static const hero = 'assets/images/rexflex/rexflex_hero.png';
-  static const cash = 'assets/images/rexflex/rexflex_cash.png';
+  /// Figma exports supplied by the design owner (3×, transparent).
+  static const hero = 'assets/images/rexflex/rexflex_hero.png'; // 1206×681
+  static const cash = 'assets/images/rexflex/rexflex_cash.png'; // 246×124
+  static const cashTilt = 'assets/images/rexflex/rexflex_cash_tilt.png';
+  static const journey = 'assets/images/rexflex/rexflex_journey.png';
 }
 
 /// `₦ 3,112.00` – the balance-card style with a space after the sign.
@@ -251,15 +252,20 @@ class FlexBalanceCard extends StatelessWidget {
     required this.label,
     required this.amountKobo,
     required this.caption,
+    this.tiltedCash = false,
   });
   final String label;
   final int amountKobo;
   final String caption;
 
+  /// The "Available loan amount" card shows the tilted cash bleeding off the
+  /// corner; the balance cards show the flat stack.
+  final bool tiltedCash;
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 16, 12, 16),
+    final body = Container(
+      padding: EdgeInsets.fromLTRB(16, 16, tiltedCash ? 96 : 12, 16),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           colors: [RexColors.userGradientStart, RexColors.userGradientEnd],
@@ -301,8 +307,33 @@ class FlexBalanceCard extends StatelessWidget {
               ],
             ),
           ),
-          const ExcludeSemantics(
-            child: Image(image: AssetImage(FlexAssets.cash), width: 84),
+          if (!tiltedCash)
+            const ExcludeSemantics(
+              child: Image(
+                image: AssetImage(FlexAssets.cash),
+                width: 80,
+                filterQuality: FilterQuality.high,
+              ),
+            ),
+        ],
+      ),
+    );
+    if (!tiltedCash) return body;
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: Stack(
+        children: [
+          body,
+          const Positioned(
+            right: 0,
+            bottom: 0,
+            child: ExcludeSemantics(
+              child: Image(
+                image: AssetImage(FlexAssets.cashTilt),
+                width: 86,
+                filterQuality: FilterQuality.high,
+              ),
+            ),
           ),
         ],
       ),
@@ -388,7 +419,7 @@ class FlexNote extends StatelessWidget {
     ),
     child: Row(
       children: [
-        const Icon(Icons.shield_rounded, size: 16, color: FlexColors.noteIcon),
+        const RexSvgIcon(RexSvg.flexSafeLock, size: 18),
         const SizedBox(width: 8),
         Expanded(
           child: Text(

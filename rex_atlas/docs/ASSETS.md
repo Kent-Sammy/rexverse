@@ -67,18 +67,23 @@ Phones draw at about 3× density. A raster image needs at least 3× its on-scree
 | `coin_stack.png` | 444 | 148 pt | 3.0× | ✅ |
 | `party_popper.png` | 234 | 78 pt | 3.0× | ✅ |
 | `success_badge.png` | 189 | 62.8 pt (Atlas), 64 pt (RexFlex) | 3.0× | ✅ (RexFlex was 72 pt, now 64) |
-| `rexflex/rexflex_hero.png` | 876 (from a 292 px source) | 402 pt | **0.7×** | ❌ needs a Figma export |
-| `rexflex/rexflex_cash.png` | 358 (from a 68 px source) | 64–84 pt | **0.8×** | ❌ needs a Figma export |
+| `rexflex/rexflex_hero.png` | 1206 (Figma export) | 402 pt | 3.0× | ✅ |
+| `rexflex/rexflex_cash.png` | 246 (Figma export) | 80 pt | 3.1× | ✅ |
+| `rexflex/rexflex_cash_tilt.png` | 258 (Figma export) | 86 / 70 pt | 3.0× / 3.7× | ✅ |
+| `rexflex/rexflex_journey.png` | 419 (Figma export) | 118 pt | 3.6× | ✅ |
+| `icons/flex_money_*.svg`, `icons/flex_safe_lock.svg` | vector (Figma export) | 18–22 pt | ∞ | ✅ |
 | Icons, logos, bank logos (SVG) | vector | any | ∞ | ✅ |
 
-### Exports needed (Figma file `bGSrbvtXmV2kBDiwzraoy1`, section "rexflex")
+### RexFlex exports (done)
 
-1. **`rexflex_hero.png`**
-   - Layer: `Gemini_Generated_Image_k5s8a7k5s8a7k5s8 1` (`25263:52579`) in the first "Rexflex Opener" frame.
-   - Export as PNG at 3×.
-   - The app shows it in a fixed 296:210 box with cover-fit, so any crop drops in without moving the layout.
-2. **`rexflex_cash.png`**
-   - Layer: `Money` (for example `25282:62435`) on a balance card.
-   - Export as PNG at 3× with a transparent background.
+The design owner exported the RexFlex illustrations and icons. They were uploaded to another branch's root; copies were trimmed to their visible content and added here:
 
-Upload both to `rex_atlas/assets/images/rexflex/`, replacing the files with the same names.
+| File | Source |
+| --- | --- |
+| `rexflex_hero.png` | `Gemini_Generated_Image_k5s8a7k5s8a7k5s8 1.png` |
+| `rexflex_cash.png` | `Frame 2147235173.png` |
+| `rexflex_cash_tilt.png` | `Money.png` |
+| `rexflex_journey.png` | `Gemini_Generated00.png` |
+| `icons/flex_money_repaid.svg` | `money.svg` |
+| `icons/flex_money_total.svg` | `money-1.svg` |
+| `icons/flex_safe_lock.svg` | `mingcute_safe-lock-fill.svg` |
