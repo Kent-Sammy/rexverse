@@ -28,15 +28,13 @@ Built from the Figma section "rexflex" (node `25300:45094`, 30 frames).
    - The "Well done!" sheet offers See My Flex Journey or Take Another Loan.
    - "Take Another Loan" (here and on the dashboard) pops up "Check Your Eligibility" over the current screen. It does not go back to the intro.
    - Also available: Transaction History (All / Repayments / Disbursement), Your Flex Journey and How Progression Works.
-7. **Your Flex Journey (restyled).**
-   - The banner shows the level ("LEVEL 2 OF 3") and a Build / Grow / Max progress track.
-   - The timeline has one continuous line with the dots centred on each card:
-     - Done: blue check.
-     - Current: pulsing ring, which stops with "reduce motion".
-     - Locked: empty dot, with a lock icon on the card.
-   - Each level card shows its icon, range and status.
+7. **Your Flex Journey (premium layout).**
+   - The banner shows "LEVEL 2 OF 3", the current level's name as the title, one line of copy and a Build / Grow / Max track.
+   - The hands illustration is large and runs off the banner's right and bottom edges, so its cropped sleeves blend in.
+   - "Your levels" is one grouped white panel. Each level row has its icon tile, name, range and a single status line.
+   - Icon tiles are joined by a continuous rail.
+   - Each row has one status marker: a green tick (done), a "● Current" pill with a pulsing dot that stops with reduce motion, or nothing (locked, with a lock tile). The current row has a soft blue highlight.
    - The "You're on track!" card was removed at the product owner's request.
-   - The banner copy is trimmed to "Your credit journey" / "Repay on time to unlock more", so the hands illustration shows in full beside it.
 8. **Choose a Repayment Term (summarised).**
    - The card caption reads "Pick a term that suits you".
    - Each option shows the tenor ("14 days"), "Repay ₦3,112.00 by <due date>" and a green "+₦112 interest" pill. The principal is already on the card above.

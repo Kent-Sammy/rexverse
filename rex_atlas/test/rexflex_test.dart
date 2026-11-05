@@ -238,7 +238,7 @@ void main() {
     // Flex Journey from the settled loan; the "You're on track!" card is gone.
     await tapKey(t, 'flex-loan-journey');
     expect(find.text('Your Flex Journey'), findsOneWidget);
-    expect(find.text('Completed · ₦3,000 repaid'), findsOneWidget);
+    expect(find.text('₦3,000 repaid on time'), findsOneWidget);
     expect(find.text('LEVEL 2 OF 3'), findsOneWidget);
     expect(find.text("You're on track!"), findsNothing);
     await tapKey(t, 'flex-how-progression');

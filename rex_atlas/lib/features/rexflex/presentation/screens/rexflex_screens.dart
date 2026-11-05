@@ -1194,7 +1194,7 @@ class FlexJourneyScreen extends StatelessWidget {
         Appear(offset: 12, child: _JourneyHero(tier: tier)),
         const SizedBox(height: 22),
         Padding(
-          padding: const EdgeInsets.only(left: 2, bottom: 6),
+          padding: const EdgeInsets.only(left: 4, bottom: 10),
           child: Semantics(
             header: true,
             child: Text(
@@ -1207,26 +1207,32 @@ class FlexJourneyScreen extends StatelessWidget {
             ),
           ),
         ),
-        for (var i = 0; i < flexTiers.length; i++)
-          Appear(
-            delay: Duration(milliseconds: 120 + 90 * i),
-            offset: 12,
-            child: _TierStep(
-              tier: flexTiers[i],
-              index: i,
-              state: i < tier
-                  ? _TierState.done
-                  : i == tier
-                  ? _TierState.current
-                  : _TierState.locked,
-              repaidKobo: repaid,
-              first: i == 0,
-              last: i == flexTiers.length - 1,
+        Appear(
+          delay: const Duration(milliseconds: 120),
+          offset: 12,
+          child: FlexCard(
+            padding: const EdgeInsets.all(6),
+            child: Column(
+              children: [
+                for (var i = 0; i < flexTiers.length; i++)
+                  _LevelRow(
+                    tier: flexTiers[i],
+                    index: i,
+                    state: i < tier
+                        ? _TierState.done
+                        : i == tier
+                        ? _TierState.current
+                        : _TierState.locked,
+                    repaidKobo: repaid,
+                    last: i == flexTiers.length - 1,
+                  ),
+              ],
             ),
           ),
-        const SizedBox(height: 14),
+        ),
+        const SizedBox(height: 12),
         Appear(
-          delay: const Duration(milliseconds: 420),
+          delay: const Duration(milliseconds: 240),
           offset: 12,
           child: FlexMenuRow(
             key: const Key('flex-how-progression'),
@@ -1255,7 +1261,8 @@ const _levelColors = [
 ];
 const _levelShort = ['Build', 'Grow', 'Max'];
 
-/// Navy → blue banner with the current level and a 3-step progress track.
+/// Navy → blue banner. The hands illustration is large and runs off the
+/// right and bottom edges, so its cropped sleeves disappear into the card.
 class _JourneyHero extends StatelessWidget {
   const _JourneyHero({required this.tier});
   final int tier;
@@ -1263,8 +1270,8 @@ class _JourneyHero extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
+      borderRadius: BorderRadius.circular(18),
+      child: DecoratedBox(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
@@ -1275,78 +1282,56 @@ class _JourneyHero extends StatelessWidget {
         child: Stack(
           children: [
             Positioned(
-              right: -30,
-              top: -40,
-              child: _Glow(size: 190, alpha: 0.18),
+              right: -40,
+              bottom: -60,
+              child: _Glow(size: 230, alpha: 0.22),
             ),
             Positioned(
-              left: -40,
-              bottom: -80,
-              child: _Glow(size: 150, alpha: 0.10),
+              left: -50,
+              top: -70,
+              child: _Glow(size: 160, alpha: 0.08),
+            ),
+            const Positioned(
+              right: -18,
+              bottom: -16,
+              child: ExcludeSemantics(
+                child: Image(
+                  image: AssetImage(FlexAssets.journey),
+                  width: 156,
+                  filterQuality: FilterQuality.high,
+                ),
+              ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(18, 18, 14, 18),
+              padding: const EdgeInsets.fromLTRB(18, 18, 136, 20),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.16),
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(
-                                  color: Colors.white.withValues(alpha: 0.3),
-                                ),
-                              ),
-                              child: Text(
-                                'LEVEL ${tier + 1} OF ${flexTiers.length}',
-                                style: RexTypography.host(
-                                  11,
-                                  weight: FontWeight.w700,
-                                  color: Colors.white,
-                                ).copyWith(letterSpacing: 0.8),
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            Text(
-                              'Your credit journey',
-                              style: RexTypography.host(
-                                18,
-                                weight: FontWeight.w700,
-                                color: Colors.white,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Repay on time to unlock more',
-                              style: RexTypography.host(
-                                13,
-                                weight: FontWeight.w500,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      // The hands illustration, shown whole (419 × 303 export).
-                      const ExcludeSemantics(
-                        child: Image(
-                          image: AssetImage(FlexAssets.journey),
-                          width: 124,
-                          filterQuality: FilterQuality.high,
-                        ),
-                      ),
-                    ],
+                  Text(
+                    'LEVEL ${tier + 1} OF ${flexTiers.length}',
+                    style: RexTypography.host(
+                      11,
+                      weight: FontWeight.w700,
+                      color: Colors.white,
+                    ).copyWith(letterSpacing: 1.2),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    flexTiers[tier].name,
+                    style: RexTypography.host(
+                      20,
+                      weight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Repay on time to unlock more',
+                    style: RexTypography.host(
+                      13,
+                      weight: FontWeight.w500,
+                      color: Colors.white,
+                    ),
                   ),
                   const SizedBox(height: 16),
                   Semantics(
@@ -1357,7 +1342,7 @@ class _JourneyHero extends StatelessWidget {
                       child: Row(
                         children: [
                           for (var i = 0; i < flexTiers.length; i++) ...[
-                            if (i > 0) const SizedBox(width: 6),
+                            if (i > 0) const SizedBox(width: 5),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1372,7 +1357,7 @@ class _JourneyHero extends StatelessWidget {
                                       borderRadius: BorderRadius.circular(3),
                                       child: LinearProgressIndicator(
                                         value: v,
-                                        minHeight: 5,
+                                        minHeight: 4,
                                         backgroundColor: Colors.white
                                             .withValues(alpha: 0.22),
                                         color: Colors.white,
@@ -1383,7 +1368,7 @@ class _JourneyHero extends StatelessWidget {
                                   Text(
                                     _levelShort[i],
                                     style: RexTypography.host(
-                                      12,
+                                      11,
                                       weight: i == tier
                                           ? FontWeight.w700
                                           : FontWeight.w500,
@@ -1433,183 +1418,162 @@ class _Glow extends StatelessWidget {
 
 enum _TierState { done, current, locked }
 
-/// One level on the timeline: a node centred on a continuous rail, and a
-/// white card with the level's icon, range and status.
-class _TierStep extends StatelessWidget {
-  const _TierStep({
+/// One level inside the grouped panel: icon tile (joined to the next by a
+/// short rail), name, range, one status line and a single status marker.
+class _LevelRow extends StatelessWidget {
+  const _LevelRow({
     required this.tier,
     required this.index,
     required this.state,
     required this.repaidKobo,
-    required this.first,
     required this.last,
   });
   final FlexTier tier;
   final int index;
   final _TierState state;
   final int repaidKobo;
-  final bool first;
   final bool last;
+
+  static const _railDone = Color(0xFF9DB8F2);
+  static const _railTodo = Color(0xFFE3E9F5);
 
   @override
   Widget build(BuildContext context) {
-    const railDone = Color(0xFF3D6FE8);
-    const railTodo = Color(0xFFD5E1F7);
     final (tint, accent) = _levelColors[index];
     final locked = state == _TierState.locked;
     final current = state == _TierState.current;
+    final done = state == _TierState.done;
+    final range =
+        '${Naira.groupedWhole(tier.minKobo)} – ${Naira.groupedWhole(tier.maxKobo)}';
     final status = switch (state) {
       _TierState.done =>
         repaidKobo > 0
-            ? 'Completed · ${Naira.groupedWhole(repaidKobo)} repaid'
+            ? '${Naira.groupedWhole(repaidKobo)} repaid on time'
             : 'Completed',
       _TierState.current =>
         index == 0 && repaidKobo == 0
-            ? 'Repay your first loan on time to grow'
-            : 'You are here',
+            ? 'Repay your first loan on time'
+            : 'Keep repaying on time',
       _TierState.locked => tier.unlock,
     };
-    final range =
-        '${Naira.groupedWhole(tier.minKobo)} – ${Naira.groupedWhole(tier.maxKobo)}';
-
     return Semantics(
       label:
           '${tier.name}, $range, '
-          '${switch (state) {
-            _TierState.done => 'completed',
-            _TierState.current => 'current level',
-            _TierState.locked => 'locked',
-          }}. $status',
+          '${done
+              ? 'completed'
+              : current
+              ? 'current level'
+              : 'locked'}. $status',
       child: ExcludeSemantics(
-        child: IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              SizedBox(
-                width: 34,
-                child: Column(
+        child: Container(
+          decoration: BoxDecoration(
+            color: current ? const Color(0xFFF2F6FF) : Colors.transparent,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          padding: const EdgeInsets.fromLTRB(10, 0, 12, 0),
+          child: IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Column(
                   children: [
-                    Expanded(
-                      child: Container(
-                        width: 2,
-                        color: first
-                            ? Colors.transparent
-                            : (state == _TierState.locked
-                                  ? railTodo
-                                  : railDone),
+                    // Rail in from the previous level (continuous with the
+                    // rail out of it).
+                    Container(
+                      width: 2,
+                      height: 12,
+                      color: index == 0
+                          ? Colors.transparent
+                          : locked
+                          ? _railTodo
+                          : _railDone,
+                    ),
+                    Container(
+                      width: 42,
+                      height: 42,
+                      decoration: BoxDecoration(
+                        color: locked ? const Color(0xFFF0F2F7) : tint,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        locked ? Icons.lock_rounded : _levelIcons[index],
+                        size: 21,
+                        color: locked ? const Color(0xFF8A94A8) : accent,
                       ),
                     ),
-                    _Node(state: state),
                     Expanded(
                       child: Container(
                         width: 2,
                         color: last
                             ? Colors.transparent
-                            : (state == _TierState.done ? railDone : railTodo),
+                            : done
+                            ? _railDone
+                            : _railTodo,
                       ),
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 6),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 250),
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(
-                        color: current ? const Color(0xFF9DB8F2) : Colors.white,
-                        width: 1.5,
-                      ),
-                      boxShadow: current
-                          ? const [
-                              BoxShadow(
-                                color: Color(0x1F1E4FD8),
-                                blurRadius: 18,
-                                offset: Offset(0, 6),
-                              ),
-                            ]
-                          : null,
-                    ),
-                    child: Row(
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 12, bottom: 14),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(
-                          width: 42,
-                          height: 42,
-                          decoration: BoxDecoration(
-                            color: locked ? const Color(0xFFF0F2F7) : tint,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Icon(
-                            locked ? Icons.lock_rounded : _levelIcons[index],
-                            size: 21,
-                            color: locked ? const Color(0xFF8A94A8) : accent,
+                        Text(
+                          tier.name,
+                          style: RexTypography.host(
+                            12,
+                            weight: FontWeight.w600,
+                            color: FlexColors.label,
                           ),
                         ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      tier.name,
-                                      style: RexTypography.host(
-                                        12,
-                                        weight: FontWeight.w600,
-                                        color: FlexColors.label,
-                                      ),
-                                    ),
-                                  ),
-                                  if (state != _TierState.locked)
-                                    FlexPill(
-                                      current ? 'Current' : 'Done',
-                                      fg: current
-                                          ? FlexColors.navy
-                                          : FlexColors.green,
-                                      bg: current
-                                          ? FlexColors.secondaryBg
-                                          : FlexColors.greenBg,
-                                    ),
-                                ],
-                              ),
-                              const SizedBox(height: 3),
-                              Text(
-                                range,
-                                style: RexTypography.host(
-                                  16,
-                                  weight: FontWeight.w700,
-                                  color: locked
-                                      ? const Color(0xFF4A5468)
-                                      : RexColors.textStrong,
-                                ),
-                              ),
-                              const SizedBox(height: 3),
-                              Text(
-                                status,
-                                style: RexTypography.host(
-                                  11,
-                                  weight: FontWeight.w500,
-                                  color: state == _TierState.done
-                                      ? FlexColors.green
-                                      : FlexColors.label,
-                                ),
-                              ),
-                            ],
+                        const SizedBox(height: 2),
+                        Text(
+                          range,
+                          style: RexTypography.host(
+                            16,
+                            weight: FontWeight.w700,
+                            color: locked
+                                ? const Color(0xFF4A5468)
+                                : RexColors.textStrong,
+                          ),
+                        ),
+                        const SizedBox(height: 3),
+                        Text(
+                          status,
+                          style: RexTypography.host(
+                            11,
+                            weight: FontWeight.w500,
+                            color: done ? FlexColors.green : FlexColors.label,
                           ),
                         ),
                       ],
                     ),
                   ),
                 ),
-              ),
-            ],
+                const SizedBox(width: 8),
+                Center(
+                  child: switch (state) {
+                    _TierState.done => Container(
+                      width: 22,
+                      height: 22,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: FlexColors.green,
+                      ),
+                      child: const Icon(
+                        Icons.check_rounded,
+                        size: 15,
+                        color: Colors.white,
+                      ),
+                    ),
+                    _TierState.current => const _CurrentPill(),
+                    _TierState.locked => const SizedBox(width: 22),
+                  },
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -1617,106 +1581,92 @@ class _TierStep extends StatelessWidget {
   }
 }
 
-/// Timeline node: filled check (done), pulsing ring (current), lock (locked).
-class _Node extends StatefulWidget {
-  const _Node({required this.state});
-  final _TierState state;
+/// "● Current" pill with a softly pulsing live dot (still with reduce
+/// motion).
+class _CurrentPill extends StatefulWidget {
+  const _CurrentPill();
 
   @override
-  State<_Node> createState() => _NodeState();
+  State<_CurrentPill> createState() => _CurrentPillState();
 }
 
-class _NodeState extends State<_Node> with SingleTickerProviderStateMixin {
-  late final AnimationController _pulse = AnimationController(
+class _CurrentPillState extends State<_CurrentPill>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(
     vsync: this,
-    duration: const Duration(milliseconds: 1600),
+    duration: const Duration(milliseconds: 1400),
   );
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     final reduce = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
-    if (widget.state == _TierState.current && !reduce) {
-      if (!_pulse.isAnimating) _pulse.repeat();
-    } else {
-      _pulse.stop();
+    if (reduce) {
+      _c.stop();
+    } else if (!_c.isAnimating) {
+      _c.repeat();
     }
   }
 
   @override
   void dispose() {
-    _pulse.dispose();
+    _c.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    const blue = Color(0xFF3D6FE8);
-    return switch (widget.state) {
-      _TierState.done => Container(
-        width: 24,
-        height: 24,
-        decoration: const BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF5B8CFF), Color(0xFF1E4FD8)],
-          ),
-        ),
-        child: const Icon(Icons.check_rounded, size: 15, color: Colors.white),
+    const blue = Color(0xFF2F6BEA);
+    return Container(
+      padding: const EdgeInsets.fromLTRB(8, 4, 10, 4),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFD3E0FB)),
       ),
-      _TierState.current => SizedBox(
-        width: 34,
-        height: 34,
-        child: AnimatedBuilder(
-          animation: _pulse,
-          builder: (_, _) {
-            final t = _pulse.value;
-            return Stack(
-              alignment: Alignment.center,
-              children: [
-                Container(
-                  width: 22 + 12 * t,
-                  height: 22 + 12 * t,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: blue.withValues(alpha: 0.28 * (1 - t)),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(
+            width: 12,
+            height: 12,
+            child: AnimatedBuilder(
+              animation: _c,
+              builder: (_, _) => Stack(
+                alignment: Alignment.center,
+                children: [
+                  Container(
+                    width: 6 + 6 * _c.value,
+                    height: 6 + 6 * _c.value,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: blue.withValues(alpha: 0.35 * (1 - _c.value)),
+                    ),
                   ),
-                ),
-                Container(
-                  width: 22,
-                  height: 22,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white,
-                    border: Border.all(color: blue, width: 2.5),
-                  ),
-                  alignment: Alignment.center,
-                  child: Container(
-                    width: 9,
-                    height: 9,
+                  Container(
+                    width: 6,
+                    height: 6,
                     decoration: const BoxDecoration(
                       shape: BoxShape.circle,
                       color: blue,
                     ),
                   ),
-                ),
-              ],
-            );
-          },
-        ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(width: 5),
+          Text(
+            'Current',
+            style: RexTypography.host(
+              11,
+              weight: FontWeight.w600,
+              color: FlexColors.navy,
+            ),
+          ),
+        ],
       ),
-      _TierState.locked => Container(
-        width: 24,
-        height: 24,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: Colors.white,
-          border: Border.all(color: const Color(0xFFD5E1F7), width: 2),
-        ),
-      ),
-    };
+    );
   }
 }
 
