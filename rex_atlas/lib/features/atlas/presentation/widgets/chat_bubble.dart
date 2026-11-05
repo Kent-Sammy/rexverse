@@ -91,7 +91,7 @@ class AssistantBubble extends StatelessWidget {
   }
 }
 
-/// User bubble (primary blue).
+/// User bubble (navy → Rex blue gradient).
 class UserBubble extends StatelessWidget {
   const UserBubble({super.key, required this.text, this.tail = true});
   final String text;
@@ -103,7 +103,7 @@ class UserBubble extends StatelessWidget {
       constraints: const BoxConstraints(minHeight: 36),
       padding: _bubblePadding,
       decoration: ShapeDecoration(
-        color: RexColors.primary,
+        gradient: RexColors.userGradient,
         shape: ChatBubbleBorder(
           tail: tail ? BubbleTail.right : BubbleTail.none,
         ),

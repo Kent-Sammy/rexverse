@@ -255,7 +255,8 @@ class _AtlasComposerState extends State<AtlasComposer>
             ),
           ),
           const SizedBox(width: 10),
-          // Send: its own round button in solid Rex blue.
+          // Send: its own round button, in the user-bubble gradient on light
+          // backgrounds and white on the blue welcome sheet.
           Pressable(
             key: const Key('atlas-send-button'),
             semanticLabel: 'Send message',
@@ -270,11 +271,12 @@ class _AtlasComposerState extends State<AtlasComposer>
                 height: h,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: dark ? Colors.white : RexColors.primary,
+                  color: dark ? Colors.white : null,
+                  gradient: dark ? null : RexColors.userGradient,
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: (dark ? Colors.black : RexColors.primary)
+                      color: (dark ? Colors.black : RexColors.userGradientEnd)
                           .withValues(alpha: 0.25),
                       blurRadius: 12,
                       offset: const Offset(0, 4),

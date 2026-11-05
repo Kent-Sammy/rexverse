@@ -37,7 +37,7 @@ class AttachmentBubble extends StatelessWidget {
       constraints: const BoxConstraints(maxWidth: 240),
       padding: const EdgeInsets.fromLTRB(10, 10, 14, 10),
       decoration: BoxDecoration(
-        color: RexColors.primary,
+        gradient: RexColors.userGradient,
         borderRadius: BorderRadius.circular(18),
       ),
       child: Row(

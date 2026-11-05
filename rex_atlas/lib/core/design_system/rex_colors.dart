@@ -12,6 +12,16 @@ abstract final class RexColors {
   // Brand
   static const navy = Color(0xFF002766);
   static const primary = Color(0xFF323DFF);
+
+  /// Navy → Rex blue gradient for the user's chat bubbles and the chat send
+  /// button (design update: #002766 at 0%, #004ECC at 100%).
+  static const userGradientStart = Color(0xFF002766);
+  static const userGradientEnd = Color(0xFF004ECC);
+  static const userGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [userGradientStart, userGradientEnd],
+  );
   static const logoNavy = Color(0xFF002D93);
 
   // Surfaces
