@@ -223,10 +223,23 @@ void main() {
     expect(find.text('Repayment Successful!'), findsOneWidget);
     await tapKey(t, 'flex-view-loan-details');
     expect(find.text('Well done!'), findsOneWidget);
-    await tapKey(t, 'flex-see-journey');
+
+    // "Take Another Loan" pops the eligibility check straight up (no intro)
+    // and the doubled ₦6,000 offer appears.
+    await tapKey(t, 'flex-take-another');
+    expect(find.text('Earn your flex'), findsNothing);
+    expect(find.text('Check Your Eligibility'), findsOneWidget);
+    await tapKey(t, 'flex-check-eligibility', ms: 1500);
+    expect(find.text('Your next loan offer'), findsOneWidget);
+    expect(find.text('₦6,000'), findsOneWidget);
+    await tapKey(t, 'flex-sheet-close');
+
+    // Flex Journey from the settled loan; the "You're on track!" card is gone.
+    await tapKey(t, 'flex-loan-journey');
     expect(find.text('Your Flex Journey'), findsOneWidget);
-    expect(find.text('Completed (₦3,000)'), findsOneWidget);
-    expect(find.textContaining('₦6,000'), findsOneWidget);
+    expect(find.text('Completed · ₦3,000 repaid'), findsOneWidget);
+    expect(find.text('LEVEL 2 OF 3'), findsOneWidget);
+    expect(find.text("You're on track!"), findsNothing);
     await tapKey(t, 'flex-how-progression');
     expect(find.text('How Progression Works'), findsOneWidget);
     expect(t.takeException(), isNull);

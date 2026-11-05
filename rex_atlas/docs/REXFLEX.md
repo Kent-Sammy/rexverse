@@ -26,7 +26,16 @@ Built from the Figma section "rexflex" (node `25300:45094`, 30 frames).
    - Download Receipt opens a receipt marked **DEMO**.
 6. **Settled loan.**
    - The "Well done!" sheet offers See My Flex Journey or Take Another Loan.
+   - "Take Another Loan" (here and on the dashboard) pops up "Check Your Eligibility" over the current screen. It does not go back to the intro.
    - Also available: Transaction History (All / Repayments / Disbursement), Your Flex Journey and How Progression Works.
+7. **Your Flex Journey (restyled).**
+   - The banner shows the level ("LEVEL 2 OF 3") and a Build / Grow / Max progress track.
+   - The timeline has one continuous line with the dots centred on each card:
+     - Done: blue check.
+     - Current: pulsing ring, which stops with "reduce motion".
+     - Locked: empty dot, with a lock icon on the card.
+   - Each level card shows its icon, range and status.
+   - The "You're on track!" card was removed at the product owner's request.
 
 ## Rules used by the mock
 

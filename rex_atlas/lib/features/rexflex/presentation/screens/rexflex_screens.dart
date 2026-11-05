@@ -51,6 +51,18 @@ void _showDashboard(
 void _push(BuildContext context, Widget screen) =>
     Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => screen));
 
+/// Starts a new loan from wherever the customer is: pops up "Check Your
+/// Eligibility" over the current screen, then continues to the repayment
+/// term. Used by "Get Started" and "Take Another Loan".
+Future<void> startNewLoan(BuildContext context, RexFlexController c) async {
+  final offer = await showFlexSheet<int>(
+    context,
+    (_) => EligibilitySheet(controller: c),
+  );
+  if (offer == null || !context.mounted) return;
+  _push(context, RepaymentTermScreen(controller: c, offerKobo: offer));
+}
+
 int _daysLeft(DateTime now, DateTime due) {
   final d = DateTime(
     due.year,
@@ -68,17 +80,8 @@ class RexFlexOpener extends StatelessWidget {
   const RexFlexOpener({super.key, required this.controller});
   final RexFlexController controller;
 
-  Future<void> _getStarted(BuildContext context) async {
-    final offer = await showFlexSheet<int>(
-      context,
-      (_) => EligibilitySheet(controller: controller),
-    );
-    if (offer == null || !context.mounted) return;
-    _push(
-      context,
-      RepaymentTermScreen(controller: controller, offerKobo: offer),
-    );
-  }
+  Future<void> _getStarted(BuildContext context) =>
+      startNewLoan(context, controller);
 
   @override
   Widget build(BuildContext context) {
@@ -564,7 +567,7 @@ class _RexFlexDashboardState extends State<RexFlexDashboard> {
                   key: const Key('flex-dashboard-new-loan'),
                   label: 'Take Another Loan',
                   secondary: true,
-                  onTap: () => _push(context, RexFlexOpener(controller: c)),
+                  onTap: () => startNewLoan(context, c),
                 ),
                 const SizedBox(height: 10),
               ],
@@ -742,7 +745,7 @@ class _LoanDetailsScreenState extends State<LoanDetailsScreen> {
       case WellDoneAction.journey:
         _push(context, FlexJourneyScreen(controller: c));
       case WellDoneAction.anotherLoan:
-        _push(context, RexFlexOpener(controller: c));
+        startNewLoan(context, c);
       case null:
         break;
     }
@@ -1181,184 +1184,536 @@ class FlexJourneyScreen extends StatelessWidget {
     final c = controller;
     final tier = c.tierIndex;
     final repaid = c.highestRepaidKobo;
-    String range(FlexTier t) =>
-        '${Naira.groupedWhole(t.minKobo)} – ${Naira.groupedWhole(t.maxKobo)}';
     return FlexScaffold(
       title: 'Your Flex Journey',
       centeredTitle: true,
       children: [
-        Container(
-          padding: const EdgeInsets.fromLTRB(18, 16, 8, 16),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [RexColors.userGradientStart, RexColors.userGradientEnd],
+        Appear(offset: 12, child: _JourneyHero(tier: tier)),
+        const SizedBox(height: 22),
+        Padding(
+          padding: const EdgeInsets.only(left: 2, bottom: 6),
+          child: Semantics(
+            header: true,
+            child: Text(
+              'Your levels',
+              style: RexTypography.host(
+                15,
+                weight: FontWeight.w600,
+                color: RexColors.textStrong,
+              ),
             ),
-            borderRadius: BorderRadius.circular(12),
           ),
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Your credit journey on RexFlex',
-                      style: RexTypography.host(
-                        14,
-                        weight: FontWeight.w600,
-                        color: Colors.white,
+        ),
+        for (var i = 0; i < flexTiers.length; i++)
+          Appear(
+            delay: Duration(milliseconds: 120 + 90 * i),
+            offset: 12,
+            child: _TierStep(
+              tier: flexTiers[i],
+              index: i,
+              state: i < tier
+                  ? _TierState.done
+                  : i == tier
+                  ? _TierState.current
+                  : _TierState.locked,
+              repaidKobo: repaid,
+              first: i == 0,
+              last: i == flexTiers.length - 1,
+            ),
+          ),
+        const SizedBox(height: 14),
+        Appear(
+          delay: const Duration(milliseconds: 420),
+          offset: 12,
+          child: FlexMenuRow(
+            key: const Key('flex-how-progression'),
+            icon: Icons.info_outline_rounded,
+            bg: const Color(0xFFFFF1DC),
+            fg: const Color(0xFFB86E00),
+            title: 'How progression works',
+            subtitle: 'What helps you grow and how offers are assessed',
+            onTap: () => _push(context, const ProgressionScreen()),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+const _levelIcons = [
+  Icons.spa_rounded,
+  Icons.trending_up_rounded,
+  Icons.workspace_premium_rounded,
+];
+const _levelColors = [
+  (Color(0xFFE6EEFF), Color(0xFF2F6BEA)),
+  (Color(0xFFE2F7E8), Color(0xFF1E8E45)),
+  (Color(0xFFF0E8FF), Color(0xFF7A2BD6)),
+];
+const _levelShort = ['Build', 'Grow', 'Max'];
+
+/// Navy → blue banner with the current level and a 3-step progress track.
+class _JourneyHero extends StatelessWidget {
+  const _JourneyHero({required this.tier});
+  final int tier;
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [RexColors.userGradientStart, RexColors.userGradientEnd],
+          ),
+        ),
+        child: Stack(
+          children: [
+            // Soft decorative glows.
+            Positioned(
+              right: -40,
+              top: -50,
+              child: _Glow(size: 170, alpha: 0.16),
+            ),
+            Positioned(
+              left: -30,
+              bottom: -70,
+              child: _Glow(size: 140, alpha: 0.10),
+            ),
+            Positioned(
+              right: 10,
+              top: 14,
+              child: Transform.rotate(
+                angle: -0.35,
+                child: const ExcludeSemantics(
+                  child: Image(image: AssetImage(FlexAssets.cash), width: 82),
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.16),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.28),
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Repay on time, build a strong record and unlock higher amounts',
+                    child: Text(
+                      'LEVEL ${tier + 1} OF ${flexTiers.length}',
                       style: RexTypography.host(
-                        11,
-                        weight: FontWeight.w500,
+                        10,
+                        weight: FontWeight.w700,
                         color: Colors.white,
+                      ).copyWith(letterSpacing: 0.8),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Padding(
+                    padding: const EdgeInsets.only(right: 96),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Your credit journey on RexFlex',
+                          style: RexTypography.host(
+                            17,
+                            weight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Repay on time, build a strong record and unlock '
+                          'higher amounts',
+                          style: RexTypography.host(
+                            12,
+                            weight: FontWeight.w500,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  Semantics(
+                    label:
+                        'Level ${tier + 1} of ${flexTiers.length}: '
+                        '${flexTiers[tier].name}',
+                    child: ExcludeSemantics(
+                      child: Row(
+                        children: [
+                          for (var i = 0; i < flexTiers.length; i++) ...[
+                            if (i > 0) const SizedBox(width: 6),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  TweenAnimationBuilder<double>(
+                                    tween: Tween(end: i <= tier ? 1 : 0),
+                                    duration: Duration(
+                                      milliseconds: 500 + 200 * i,
+                                    ),
+                                    curve: Curves.easeOutCubic,
+                                    builder: (_, v, _) => ClipRRect(
+                                      borderRadius: BorderRadius.circular(3),
+                                      child: LinearProgressIndicator(
+                                        value: v,
+                                        minHeight: 5,
+                                        backgroundColor: Colors.white
+                                            .withValues(alpha: 0.22),
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    _levelShort[i],
+                                    style: RexTypography.host(
+                                      11,
+                                      weight: i == tier
+                                          ? FontWeight.w700
+                                          : FontWeight.w500,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _Glow extends StatelessWidget {
+  const _Glow({required this.size, required this.alpha});
+  final double size;
+  final double alpha;
+
+  @override
+  Widget build(BuildContext context) => IgnorePointer(
+    child: Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: RadialGradient(
+          colors: [
+            Colors.white.withValues(alpha: alpha),
+            Colors.white.withValues(alpha: 0),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
+enum _TierState { done, current, locked }
+
+/// One level on the timeline: a node centred on a continuous rail, and a
+/// white card with the level's icon, range and status.
+class _TierStep extends StatelessWidget {
+  const _TierStep({
+    required this.tier,
+    required this.index,
+    required this.state,
+    required this.repaidKobo,
+    required this.first,
+    required this.last,
+  });
+  final FlexTier tier;
+  final int index;
+  final _TierState state;
+  final int repaidKobo;
+  final bool first;
+  final bool last;
+
+  @override
+  Widget build(BuildContext context) {
+    const railDone = Color(0xFF3D6FE8);
+    const railTodo = Color(0xFFD5E1F7);
+    final (tint, accent) = _levelColors[index];
+    final locked = state == _TierState.locked;
+    final current = state == _TierState.current;
+    final status = switch (state) {
+      _TierState.done =>
+        repaidKobo > 0
+            ? 'Completed · ${Naira.groupedWhole(repaidKobo)} repaid'
+            : 'Completed',
+      _TierState.current =>
+        index == 0 && repaidKobo == 0
+            ? 'Repay your first loan on time to grow'
+            : 'You are here',
+      _TierState.locked => tier.unlock,
+    };
+    final range =
+        '${Naira.groupedWhole(tier.minKobo)} – ${Naira.groupedWhole(tier.maxKobo)}';
+
+    return Semantics(
+      label:
+          '${tier.name}, $range, '
+          '${switch (state) {
+            _TierState.done => 'completed',
+            _TierState.current => 'current level',
+            _TierState.locked => 'locked',
+          }}. $status',
+      child: ExcludeSemantics(
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              SizedBox(
+                width: 34,
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        width: 2,
+                        color: first
+                            ? Colors.transparent
+                            : (state == _TierState.locked
+                                  ? railTodo
+                                  : railDone),
+                      ),
+                    ),
+                    _Node(state: state),
+                    Expanded(
+                      child: Container(
+                        width: 2,
+                        color: last
+                            ? Colors.transparent
+                            : (state == _TierState.done ? railDone : railTodo),
                       ),
                     ),
                   ],
                 ),
               ),
-              Transform.rotate(
-                angle: -0.4,
-                child: const ExcludeSemantics(
-                  child: Image(image: AssetImage(FlexAssets.cash), width: 76),
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 12),
-        FlexCard(
-          child: Column(
-            children: [
-              for (var i = 0; i < flexTiers.length; i++)
-                IntrinsicHeight(
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Column(
-                        children: [
-                          const SizedBox(height: 14),
-                          Container(
-                            width: 22,
-                            height: 22,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: i <= tier
-                                  ? const Color(0xFF3D6FE8)
-                                  : Colors.white,
-                              border: Border.all(
-                                color: i <= tier
-                                    ? const Color(0xFFBFD2FF)
-                                    : const Color(0xFFD5E1F7),
-                                width: 3,
-                              ),
-                            ),
-                            child: i < tier || (i == 0 && repaid > 0)
-                                ? const Icon(
-                                    Icons.check,
-                                    size: 11,
-                                    color: Colors.white,
-                                  )
-                                : null,
-                          ),
-                          if (i < flexTiers.length - 1)
-                            Expanded(
-                              child: Container(
-                                width: 2,
-                                color: i < tier
-                                    ? const Color(0xFFBFD2FF)
-                                    : const Color(0xFFDDE7FA),
-                              ),
-                            ),
-                        ],
+              const SizedBox(width: 10),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 6),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 250),
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: current ? const Color(0xFF9DB8F2) : Colors.white,
+                        width: 1.5,
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Container(
-                          margin: const EdgeInsets.only(bottom: 10),
-                          padding: const EdgeInsets.all(12),
+                      boxShadow: current
+                          ? const [
+                              BoxShadow(
+                                color: Color(0x1F1E4FD8),
+                                blurRadius: 18,
+                                offset: Offset(0, 6),
+                              ),
+                            ]
+                          : null,
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 42,
+                          height: 42,
                           decoration: BoxDecoration(
-                            color: Color(flexTiers[i].tint),
-                            borderRadius: BorderRadius.circular(10),
-                            border: i == tier
-                                ? Border.all(color: FlexColors.selectedBorder)
-                                : null,
+                            color: locked ? const Color(0xFFF0F2F7) : tint,
+                            borderRadius: BorderRadius.circular(12),
                           ),
+                          child: Icon(
+                            locked ? Icons.lock_rounded : _levelIcons[index],
+                            size: 21,
+                            color: locked ? const Color(0xFF8A94A8) : accent,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      tier.name,
+                                      style: RexTypography.host(
+                                        12,
+                                        weight: FontWeight.w600,
+                                        color: FlexColors.label,
+                                      ),
+                                    ),
+                                  ),
+                                  if (state != _TierState.locked)
+                                    FlexPill(
+                                      current ? 'Current' : 'Done',
+                                      fg: current
+                                          ? FlexColors.navy
+                                          : FlexColors.green,
+                                      bg: current
+                                          ? FlexColors.secondaryBg
+                                          : FlexColors.greenBg,
+                                    ),
+                                ],
+                              ),
+                              const SizedBox(height: 3),
                               Text(
-                                flexTiers[i].name,
+                                range,
                                 style: RexTypography.host(
-                                  13,
-                                  weight: FontWeight.w600,
-                                  color: RexColors.textStrong,
+                                  16,
+                                  weight: FontWeight.w700,
+                                  color: locked
+                                      ? const Color(0xFF4A5468)
+                                      : RexColors.textStrong,
                                 ),
                               ),
                               const SizedBox(height: 3),
                               Text(
-                                range(flexTiers[i]),
-                                style: RexTypography.host(
-                                  13,
-                                  weight: FontWeight.w500,
-                                  color: RexColors.textStrong,
-                                ),
-                              ),
-                              const SizedBox(height: 3),
-                              Text(
-                                i == 0 && repaid > 0
-                                    ? 'Completed (${Naira.groupedWhole(repaid)})'
-                                    : i == tier
-                                    ? 'You are here'
-                                    : flexTiers[i].unlock,
+                                status,
                                 style: RexTypography.host(
                                   11,
                                   weight: FontWeight.w500,
-                                  color: FlexColors.label,
+                                  color: state == _TierState.done
+                                      ? FlexColors.green
+                                      : FlexColors.label,
                                 ),
                               ),
                             ],
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
+              ),
             ],
           ),
         ),
-        const SizedBox(height: 10),
-        FlexMenuRow(
-          key: const Key('flex-how-progression'),
-          icon: Icons.info_outline_rounded,
-          bg: const Color(0xFFFFF1DC),
-          fg: const Color(0xFFB86E00),
-          title: 'How progression works',
-          subtitle: 'What helps you grow and how offers are assessed',
-          onTap: () => _push(context, const ProgressionScreen()),
-        ),
-        const SizedBox(height: 8),
-        FlexMenuRow(
-          icon: Icons.insert_chart_rounded,
-          bg: const Color(0xFFE3EEFF),
-          fg: const Color(0xFF3D7BF7),
-          title: "You're on track!",
-          subtitle: c.settledLoans.isEmpty
-              ? 'Repay your first loan on time to unlock higher amounts.'
-              : 'Your next offer can be up to '
-                    '${Naira.groupedWhole(c.nextOfferKobo)}. Keep repaying on time.',
-          onTap: () => _push(context, const ProgressionScreen()),
-        ),
-        const FlexDemoLabel(
-          text:
-              'Demo progression · real limits come from Rex credit decisioning',
-        ),
-      ],
+      ),
     );
+  }
+}
+
+/// Timeline node: filled check (done), pulsing ring (current), lock (locked).
+class _Node extends StatefulWidget {
+  const _Node({required this.state});
+  final _TierState state;
+
+  @override
+  State<_Node> createState() => _NodeState();
+}
+
+class _NodeState extends State<_Node> with SingleTickerProviderStateMixin {
+  late final AnimationController _pulse = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1600),
+  );
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final reduce = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+    if (widget.state == _TierState.current && !reduce) {
+      if (!_pulse.isAnimating) _pulse.repeat();
+    } else {
+      _pulse.stop();
+    }
+  }
+
+  @override
+  void dispose() {
+    _pulse.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    const blue = Color(0xFF3D6FE8);
+    return switch (widget.state) {
+      _TierState.done => Container(
+        width: 24,
+        height: 24,
+        decoration: const BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFF5B8CFF), Color(0xFF1E4FD8)],
+          ),
+        ),
+        child: const Icon(Icons.check_rounded, size: 15, color: Colors.white),
+      ),
+      _TierState.current => SizedBox(
+        width: 34,
+        height: 34,
+        child: AnimatedBuilder(
+          animation: _pulse,
+          builder: (_, _) {
+            final t = _pulse.value;
+            return Stack(
+              alignment: Alignment.center,
+              children: [
+                Container(
+                  width: 22 + 12 * t,
+                  height: 22 + 12 * t,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: blue.withValues(alpha: 0.28 * (1 - t)),
+                  ),
+                ),
+                Container(
+                  width: 22,
+                  height: 22,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white,
+                    border: Border.all(color: blue, width: 2.5),
+                  ),
+                  alignment: Alignment.center,
+                  child: Container(
+                    width: 9,
+                    height: 9,
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: blue,
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+      ),
+      _TierState.locked => Container(
+        width: 24,
+        height: 24,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: Colors.white,
+          border: Border.all(color: const Color(0xFFD5E1F7), width: 2),
+        ),
+      ),
+    };
   }
 }
 
