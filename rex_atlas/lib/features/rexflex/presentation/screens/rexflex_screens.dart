@@ -674,75 +674,75 @@ class _LoanRow extends StatelessWidget {
           '${loan.status.name}. $k1 $v1. $k2 $v2',
       onTap: onTap,
       child: FlexCard(
-        padding: const EdgeInsets.fromLTRB(14, 14, 16, 14),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const FlexIconBubble(
-              icon: Icons.work_rounded,
-              bg: FlexColors.purpleBg,
-              fg: FlexColors.purple,
-              size: 40,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Row(
+            // Header: icon, name + tenor, status — all centred on one line.
+            Row(
+              children: [
+                const FlexIconBubble(
+                  icon: Icons.work_rounded,
+                  bg: FlexColors.purpleBg,
+                  fg: FlexColors.purple,
+                  size: 40,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: Text(
-                          'RexFlex Loan',
-                          style: RexTypography.host(
-                            14,
-                            weight: FontWeight.w600,
-                            color: RexColors.textStrong,
-                          ),
-                        ),
-                      ),
                       Text(
-                        Naira.grouped(loan.principalKobo),
+                        'RexFlex Loan',
                         style: RexTypography.host(
                           14,
-                          weight: FontWeight.w700,
+                          weight: FontWeight.w600,
                           color: RexColors.textStrong,
                         ),
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          '${loan.term.days}-day loan',
-                          style: RexTypography.host(
-                            11,
-                            weight: FontWeight.w500,
-                            color: FlexColors.label,
-                          ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '${loan.term.days}-day loan',
+                        style: RexTypography.host(
+                          12,
+                          weight: FontWeight.w500,
+                          color: FlexColors.label,
                         ),
                       ),
-                      FlexPill.forStatus(loan.status),
                     ],
                   ),
-                  const SizedBox(height: 12),
-                  const Divider(height: 1, color: RexColors.divider),
-                  const SizedBox(height: 10),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _Meta(label: k1, value: v1),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _Meta(label: k2, value: v2),
-                      ),
-                    ],
+                ),
+                FlexPill.forStatus(loan.status),
+              ],
+            ),
+            const SizedBox(height: 14),
+            const Divider(height: 1, color: RexColors.divider),
+            const SizedBox(height: 12),
+            // Three even columns across the full card width.
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: _Meta(
+                    label: 'Amount',
+                    value: Naira.grouped(loan.principalKobo),
                   ),
-                ],
-              ),
+                ),
+                Expanded(
+                  child: _Meta(
+                    label: k1,
+                    value: v1,
+                    align: CrossAxisAlignment.center,
+                  ),
+                ),
+                Expanded(
+                  child: _Meta(
+                    label: k2,
+                    value: v2,
+                    align: CrossAxisAlignment.end,
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -753,33 +753,47 @@ class _LoanRow extends StatelessWidget {
 
 /// Soft grey label over a bold value ("Due date / 05 Dec 2026").
 class _Meta extends StatelessWidget {
-  const _Meta({required this.label, required this.value});
+  const _Meta({
+    required this.label,
+    required this.value,
+    this.align = CrossAxisAlignment.start,
+  });
   final String label;
   final String value;
+  final CrossAxisAlignment align;
 
   @override
-  Widget build(BuildContext context) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(
-        label,
-        style: RexTypography.host(
-          12,
-          weight: FontWeight.w500,
-          color: FlexColors.label,
+  Widget build(BuildContext context) {
+    final textAlign = switch (align) {
+      CrossAxisAlignment.center => TextAlign.center,
+      CrossAxisAlignment.end => TextAlign.right,
+      _ => TextAlign.left,
+    };
+    return Column(
+      crossAxisAlignment: align,
+      children: [
+        Text(
+          label,
+          textAlign: textAlign,
+          style: RexTypography.host(
+            12,
+            weight: FontWeight.w500,
+            color: FlexColors.label,
+          ),
         ),
-      ),
-      const SizedBox(height: 2),
-      Text(
-        value,
-        style: RexTypography.host(
-          13,
-          weight: FontWeight.w600,
-          color: RexColors.textStrong,
+        const SizedBox(height: 2),
+        Text(
+          value,
+          textAlign: textAlign,
+          style: RexTypography.host(
+            13,
+            weight: FontWeight.w600,
+            color: RexColors.textStrong,
+          ),
         ),
-      ),
-    ],
-  );
+      ],
+    );
+  }
 }
 
 // ---------------------------------------------------------------------------
