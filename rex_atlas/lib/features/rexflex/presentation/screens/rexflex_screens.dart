@@ -718,7 +718,7 @@ class _LoanRow extends StatelessWidget {
             const SizedBox(height: 14),
             const Divider(height: 1, color: RexColors.divider),
             const SizedBox(height: 12),
-            // Three even columns across the full card width.
+            // Three even, left-aligned columns across the full card width.
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -729,18 +729,10 @@ class _LoanRow extends StatelessWidget {
                   ),
                 ),
                 Expanded(
-                  child: _Meta(
-                    label: k1,
-                    value: v1,
-                    align: CrossAxisAlignment.center,
-                  ),
+                  child: _Meta(label: k1, value: v1),
                 ),
                 Expanded(
-                  child: _Meta(
-                    label: k2,
-                    value: v2,
-                    align: CrossAxisAlignment.end,
-                  ),
+                  child: _Meta(label: k2, value: v2),
                 ),
               ],
             ),
@@ -753,47 +745,33 @@ class _LoanRow extends StatelessWidget {
 
 /// Soft grey label over a bold value ("Due date / 05 Dec 2026").
 class _Meta extends StatelessWidget {
-  const _Meta({
-    required this.label,
-    required this.value,
-    this.align = CrossAxisAlignment.start,
-  });
+  const _Meta({required this.label, required this.value});
   final String label;
   final String value;
-  final CrossAxisAlignment align;
 
   @override
-  Widget build(BuildContext context) {
-    final textAlign = switch (align) {
-      CrossAxisAlignment.center => TextAlign.center,
-      CrossAxisAlignment.end => TextAlign.right,
-      _ => TextAlign.left,
-    };
-    return Column(
-      crossAxisAlignment: align,
-      children: [
-        Text(
-          label,
-          textAlign: textAlign,
-          style: RexTypography.host(
-            12,
-            weight: FontWeight.w500,
-            color: FlexColors.label,
-          ),
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        label,
+        style: RexTypography.host(
+          12,
+          weight: FontWeight.w500,
+          color: FlexColors.label,
         ),
-        const SizedBox(height: 2),
-        Text(
-          value,
-          textAlign: textAlign,
-          style: RexTypography.host(
-            13,
-            weight: FontWeight.w600,
-            color: RexColors.textStrong,
-          ),
+      ),
+      const SizedBox(height: 2),
+      Text(
+        value,
+        style: RexTypography.host(
+          13,
+          weight: FontWeight.w600,
+          color: RexColors.textStrong,
         ),
-      ],
-    );
-  }
+      ),
+    ],
+  );
 }
 
 // ---------------------------------------------------------------------------
