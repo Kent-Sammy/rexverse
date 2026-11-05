@@ -1,3 +1,7 @@
+import 'dart:math' as math;
+
+import 'package:flutter/widgets.dart';
+
 /// Spacing, radii and component sizes measured from Figma frame geometry
 /// (402 x 874 frames, "RexAtlas  New work flow").
 abstract final class RexDimens {
@@ -33,6 +37,19 @@ abstract final class RexDimens {
   static const composerHeight = 48.0;
   static const composerHorizontalInset = 17.0;
   static const composerBottomInset = 26.0;
+
+  /// Space under the message bar. Thin home indicators (iPhone, Android
+  /// gesture bar: up to 34 pt) keep the Figma 26 pt inset. Taller system
+  /// bars, such as Android's three-button navigation, get the bar's height
+  /// plus 8 pt so the input never sits underneath them. An open keyboard
+  /// wins over both.
+  static double composerBottom(BuildContext context) {
+    final system = MediaQuery.paddingOf(context).bottom;
+    final keyboard = MediaQuery.viewInsetsOf(context).bottom;
+    final bar = system > 34 ? system + 8 : composerBottomInset;
+    return math.max(bar, keyboard + 12);
+  }
+
   static const composerIconButton = 27.0;
 
   // Cards

@@ -441,10 +441,7 @@ class AtlasSheetState extends State<AtlasSheet>
                   left: 24,
                   right: 24,
                   bottom:
-                      math.max(
-                        RexDimens.composerBottomInset,
-                        MediaQuery.viewInsetsOf(context).bottom + 12,
-                      ) +
+                      RexDimens.composerBottom(context) +
                       RexDimens.composerHeight +
                       12,
                   child: IgnorePointer(

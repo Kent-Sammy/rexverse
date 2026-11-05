@@ -213,4 +213,27 @@ void main() {
       },
     );
   }
+
+  // Android three-button navigation reports a tall bottom inset (48 dp);
+  // the message bar must sit fully above it on the welcome and chat views.
+  testWidgets('message bar clears the Android navigation bar', (t) async {
+    setPhone(t, const Size(402, 874));
+    t.view.padding = const FakeViewPadding(top: 24, bottom: 48);
+    t.view.viewPadding = const FakeViewPadding(top: 24, bottom: 48);
+    await t.pumpWidget(
+      RexAtlasDemoApp(
+        dependencies: AtlasDependencies.mock(latency: Duration.zero),
+        now: DateTime(2026, 11, 2, 9),
+      ),
+    );
+    await t.pump();
+    await t.tap(find.byKey(const Key('home-ask-atlas')));
+    await pumpFor(t, 600);
+    final send = find.byKey(const Key('atlas-send-button'));
+    expect(t.getRect(send.last).bottom, lessThanOrEqualTo(874 - 48));
+
+    await t.tap(find.text('Send Money'));
+    await pumpFor(t);
+    expect(t.getRect(send.last).bottom, lessThanOrEqualTo(874 - 48));
+  });
 }

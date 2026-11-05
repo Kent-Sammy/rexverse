@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 
 import '../../../../core/design_system/design_system.dart';
@@ -152,8 +150,7 @@ class _AtlasChatViewState extends State<AtlasChatView> {
   Widget build(BuildContext context) {
     final c = widget.controller;
     final msgs = c.messages;
-    final keyboard = MediaQuery.viewInsetsOf(context).bottom;
-    final bottom = math.max(RexDimens.composerBottomInset, keyboard + 12);
+    final bottom = RexDimens.composerBottom(context);
     final composerArea = 12 + RexDimens.composerHeight + bottom;
     final headerArea = widget.topInset + _chromeHeight;
     final initials = InitialsAvatar.fromName(c.account?.holderName ?? '');

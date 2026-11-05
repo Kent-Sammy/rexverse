@@ -33,10 +33,7 @@ class AtlasWelcomeView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bottom = math.max(
-      RexDimens.composerBottomInset,
-      MediaQuery.viewInsetsOf(context).bottom + 12,
-    );
+    final bottom = RexDimens.composerBottom(context);
     return _AnimatedWelcomeBackground(
       child: Column(
         children: [
