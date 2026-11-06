@@ -15,8 +15,14 @@ class LoanTerm {
     principalKobo: principalKobo,
     days: days,
     interestKobo:
-        (principalKobo * RexFlexPricing.ratePer30DaysPct * days / (100 * 30))
-            .round(),
+        // Rounded to the whole naira so customers never see kobo.
+        (principalKobo *
+                RexFlexPricing.ratePer30DaysPct *
+                days /
+                (100 * 30) /
+                100)
+            .round() *
+        100,
   );
 
   final int principalKobo;
@@ -163,14 +169,14 @@ const flexTiers = [
   FlexTier('Build Your Flex', 300000, 1000000, 'Start here', 0xFFEDF3FF),
   FlexTier(
     'Grow Your Flex',
-    500000,
-    1500000,
+    1000100,
+    5000000,
     'Unlock after 1–2 on-time loans',
     0xFFE6FBEA,
   ),
   FlexTier(
     'Max Your Flex',
-    6000000,
+    5000100,
     10000000,
     'Unlock after a stronger repayment history',
     0xFFF1EBFF,

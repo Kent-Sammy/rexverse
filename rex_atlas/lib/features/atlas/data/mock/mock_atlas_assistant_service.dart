@@ -37,19 +37,28 @@ class MockAtlasAssistantService implements AtlasAssistantService {
     }
 
     // Getting a RexFlex loan in the chat.
+    final loanDays = _loanDays(text);
+    final loanAmount = _parseAmount(_stripNumbers(_withoutDays(raw)));
     if (stage == ConversationStage.awaitingLoanConsent) {
-      final days = _loanDays(text);
       if (_has(text, ['change', 'different', 'other', 'switch'])) {
-        return ChooseLoanTermIntent(days ?? 0);
+        if (_has(text, ['amount', 'money', 'how much'])) {
+          return ChooseLoanAmountIntent(loanAmount ?? 0);
+        }
+        return ChooseLoanTermIntent(loanDays ?? 0);
       }
-      if (days != null) return ChooseLoanTermIntent(days);
-      if (_isAffirmative(text) || _has(text, ['apply', 'submit', 'accept'])) {
+      if (loanDays != null) return ChooseLoanTermIntent(loanDays);
+      if (loanAmount != null) return ChooseLoanAmountIntent(loanAmount);
+      if (_isAffirmative(text) || _has(text, ['accept', 'apply', 'submit'])) {
         return const ConfirmIntent();
       }
     }
+    if (stage == ConversationStage.awaitingLoanAmount && loanAmount != null) {
+      return ChooseLoanAmountIntent(loanAmount);
+    }
     if (stage == ConversationStage.awaitingLoanTerm) {
-      final days = _loanDays(text);
-      if (days != null) return ChooseLoanTermIntent(days);
+      if (loanDays != null) return ChooseLoanTermIntent(loanDays);
+      final bare = RegExp(r'^\s*(\d{1,3})\s*$').firstMatch(text);
+      if (bare != null) return ChooseLoanTermIntent(int.parse(bare.group(1)!));
     }
 
     if (stage == ConversationStage.awaitingPaymentConfirmation) {
@@ -72,8 +81,15 @@ class MockAtlasAssistantService implements AtlasAssistantService {
     final flex = _rexflexTopic(
       text,
       inContext: stage == ConversationStage.discussingRexFlex,
+      hasAmount: loanAmount != null,
     );
-    if (flex != null) return RexFlexIntent(flex);
+    if (flex != null) {
+      return RexFlexIntent(
+        flex,
+        amountKobo: flex == RexFlexTopic.getStarted ? loanAmount : null,
+        days: flex == RexFlexTopic.getStarted ? loanDays : null,
+      );
+    }
 
     if (_has(text, ['transaction', 'history', 'statement', 'recent'])) {
       return const ShowTransactionsIntent();
@@ -165,8 +181,19 @@ class MockAtlasAssistantService implements AtlasAssistantService {
   /// [inContext]: the previous answer was about RexFlex, so a follow-up that
   /// names a RexFlex topic ("How much does it cost?") counts even without
   /// the word "loan".
-  RexFlexTopic? _rexflexTopic(String t, {bool inContext = false}) {
+  RexFlexTopic? _rexflexTopic(
+    String t, {
+    bool inContext = false,
+    bool hasAmount = false,
+  }) {
+    // "Give me 2k" / "dash me 5k" only count as borrowing with an amount
+    // and no bank details (a transfer).
+    final asksForMoney =
+        hasAmount &&
+        !_looksLikeTransfer(t) &&
+        _has(t, ['give me', 'dash me', 'loan me', 'i need', 'credit me']);
     final about =
+        asksForMoney ||
         t.contains('rexflex') ||
         t.contains('rex flex') ||
         _has(t, ['loan', 'loans', 'borrow', 'borrowing', 'lend', 'flex']);
@@ -194,6 +221,12 @@ class MockAtlasAssistantService implements AtlasAssistantService {
       'due',
     ])) {
       return RexFlexTopic.repay;
+    }
+    // "Borrow me 2k", "lend me ₦5,000", "give me 2k for 5 days".
+    if (asksForMoney ||
+        hasAmount ||
+        _has(t, ['borrow me', 'lend me', 'loan me', 'dash me'])) {
+      return RexFlexTopic.getStarted;
     }
     if (_has(t, [
       'status',
@@ -254,17 +287,23 @@ class MockAtlasAssistantService implements AtlasAssistantService {
     return RexFlexTopic.overview;
   }
 
-  /// "14 days", "30", "two weeks", "a month" → tenor in days.
+  static final _daysPhrase = RegExp(
+    r'\b(\d{1,3})\s*(?:days?|d)\b|\b(?:a|one|1|two|2)\s+weeks?\b|\bfortnight\b|\b(?:a|one|1)\s+month\b',
+    caseSensitive: false,
+  );
+
+  /// "5 days", "a week", "two weeks", "a month" → days.
   int? _loanDays(String t) {
-    final m = RegExp(r'\b(\d{1,3})\s*(?:days?|d)?\b').firstMatch(t);
-    if (m != null) {
-      final n = int.parse(m.group(1)!);
-      if (n == 14 || n == 30) return n;
-    }
+    final m = RegExp(r'\b(\d{1,3})\s*(?:days?|d)\b').firstMatch(t);
+    if (m != null) return int.parse(m.group(1)!);
     if (_has(t, ['two weeks', '2 weeks', 'fortnight'])) return 14;
-    if (_has(t, ['a month', 'one month', '1 month', 'month'])) return 30;
+    if (_has(t, ['a week', 'one week', '1 week'])) return 7;
+    if (_has(t, ['a month', 'one month', '1 month'])) return 30;
     return null;
   }
+
+  /// The text without its "for 5 days" part, so 5 isn't read as ₦5.
+  String _withoutDays(String raw) => raw.replaceAll(_daysPhrase, ' ');
 
   bool _looksLikeTransfer(String t) =>
       _has(t, ['send', 'transfer']) || _account.hasMatch(t) || _bank(t) != null;

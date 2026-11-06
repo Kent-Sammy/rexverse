@@ -12,6 +12,8 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_svg: ^2.3.2
+  pdf: ^3.13.1
+  printing: ^5.15.1
   speech_to_text: ^7.5.0
 
 dev_dependencies:

@@ -86,8 +86,14 @@ class AtlasController extends ChangeNotifier {
   bool sheetVisible = false;
 
   // In-chat RexFlex application.
-  int? _loanOfferKobo;
+  int? _loanLimitKobo;
+  int? _loanAmountKobo;
+  int? _loanDays;
+  bool _loanApproved = false;
   LoanOfferMessage? _loanOffer;
+
+  static const _minLoanKobo = 100000; // ₦1,000
+  static const _maxLoanDays = 30;
 
   /// Opens RexFlex after Atlas closes (set by the host app).
   void Function(RexFlexDestination destination)? onOpenRexFlex;
@@ -277,10 +283,14 @@ class AtlasController extends ChangeNotifier {
           'I can send money, buy airtime, pay bills, save with RexSave or '
           'RexVault, or show your recent transactions.',
         );
-      case RexFlexIntent(:final topic):
-        await _handleRexFlex(topic);
+      case RexFlexIntent(:final topic, :final amountKobo, :final days):
+        await _handleRexFlex(topic, amountKobo: amountKobo, days: days);
+      case ChooseLoanAmountIntent(:final amountKobo):
+        _loanAmountKobo = amountKobo == 0 ? null : amountKobo;
+        await _continueLoan();
       case ChooseLoanTermIntent(:final days):
-        _chooseLoanTerm(days);
+        _loanDays = days == 0 ? null : days;
+        await _continueLoan();
       case ReplyIntent(:final text):
         _say(text);
     }
@@ -308,14 +318,18 @@ class AtlasController extends ChangeNotifier {
 
   /// RexFlex pricing: 8% per 30 days, pro-rated (₦3,000 → ₦112 / ₦240).
   int _flexInterest(int principalKobo, int days) =>
-      (principalKobo * 8 * days / 3000).round();
+      (principalKobo * 8 * days / 3000 / 100).round() * 100; // whole naira
 
   void _flexCard(Suggestion card) =>
       _add(SuggestionsMessage(id: _id(), suggestions: [card]));
 
   /// Answers RexFlex questions from the customer's real loan state and ends
   /// with the card that moves them forward (start, view or repay).
-  Future<void> _handleRexFlex(RexFlexTopic topic) async {
+  Future<void> _handleRexFlex(
+    RexFlexTopic topic, {
+    int? amountKobo,
+    int? days,
+  }) async {
     _deactivatePending();
     _stage = ConversationStage.discussingRexFlex;
     final l = loans?.snapshot() ?? const LoanSnapshot.none();
@@ -354,13 +368,13 @@ class AtlasController extends ChangeNotifier {
           _flexCard(_flexViewCard);
         } else if (_loans == null) {
           _say(
-            "Great! RexFlex lets you borrow from ${_naira(offer)} and repay "
-            'in 14 or 30 days. Tap below to check your eligibility. It only '
+            "Great! RexFlex lets you borrow up to ${_naira(offer)} for up to "
+            '30 days. Tap below to check your eligibility. It only '
             'takes a few seconds.',
           );
           _flexCard(_flexStartCard);
         } else {
-          await _startLoanInChat();
+          await _startLoanInChat(amountKobo: amountKobo, days: days);
         }
       case RexFlexTopic.eligibility:
         _say(
@@ -380,8 +394,8 @@ class AtlasController extends ChangeNotifier {
         final i14 = _flexInterest(p, 14);
         final i30 = _flexInterest(p, 30);
         _say(
-          'RexFlex interest is 8% per 30 days, charged only for the days you '
-          'choose. On ${_naira(p)}:\n'
+          'You only pay interest for the days you borrow, and you see the '
+          'exact amount before you accept. For example, on ${_naira(p)}:\n'
           '• 14 days: ${_naira(i14)} interest, repay ${_naira(p + i14)}\n'
           '• 30 days: ${_naira(i30)} interest, repay ${_naira(p + i30)}',
           quickReplies: const ['Am I eligible?', 'How do I repay?'],
@@ -417,9 +431,10 @@ class AtlasController extends ChangeNotifier {
         }
       case RexFlexTopic.overview:
         _say(
-          "RexFlex is Rex's short-term loan. Borrow from ${_naira(offer)}, "
-          'repay in 14 or 30 days at 8% interest per 30 days, and unlock up '
-          'to ₦100,000 as you repay on time.'
+          "RexFlex is Rex's short-term loan. Borrow up to ${_naira(offer)} "
+          'for up to 30 days, pay a small interest only for the days you use '
+          "it, and unlock up to ₦100,000 as you repay on time. Just say "
+          '“Borrow me 2k” to get started.'
           '${hasLoan ? ' ${statusLine()}' : ''}',
           quickReplies: _flexFollowUps,
         );
@@ -429,72 +444,147 @@ class AtlasController extends ChangeNotifier {
 
   // ------------------------------------------------- RexFlex loan in chat
 
-  List<String> _termChips(int offer) => [
-    for (final d in const [14, 30])
-      '$d days · repay ${_naira(offer + _flexInterest(offer, d))}',
-  ];
+  /// "₦2k" for round thousands, otherwise "₦2,500" (how people say it).
+  String _short(int kobo) =>
+      kobo % 100000 == 0 ? '₦${kobo ~/ 100000}k' : _naira(kobo);
 
-  /// Eligibility check → offer → term → offer card → consent → apply, all
-  /// inside the conversation (simulated lender).
-  Future<void> _startLoanInChat() async {
-    final loans = _loans!;
-    _say("Great choice! Let me check your RexFlex eligibility…");
-    final typing = _showTyping(label: 'Checking eligibility');
-    final LoanEligibility result;
-    try {
-      result = await loans.checkEligibility();
-    } finally {
-      _remove(typing);
-    }
-    if (!result.eligible) {
-      _stage = ConversationStage.idle;
-      _say(
-        "You're not eligible for RexFlex just yet. You still need:\n"
-        '${result.unmet.map((r) => '• $r').join('\n')}',
-      );
-      return;
-    }
-    _loanOfferKobo = result.offerKobo;
-    _stage = ConversationStage.awaitingLoanTerm;
-    _say(
-      "✅ You're eligible! Your RexFlex offer is "
-      '${_naira(result.offerKobo)}. How long do you need it for? Interest '
-      'is 8% per 30 days.',
-      quickReplies: _termChips(result.offerKobo),
-    );
+  /// Conversational loan: "Borrow me 2k" → how long? → approved → accept.
+  /// Missing details are asked for one at a time; anything already said
+  /// ("borrow me 2k for 5 days") is used straight away.
+  Future<void> _startLoanInChat({int? amountKobo, int? days}) async {
+    _loanLimitKobo = _loans!.snapshot().nextOfferKobo;
+    _loanAmountKobo = amountKobo;
+    _loanDays = days;
+    _loanApproved = false;
+    _loanOffer?.isActive = false;
+    _loanOffer = null;
+    await _continueLoan();
   }
 
-  void _chooseLoanTerm(int days) {
-    final offer = _loanOfferKobo;
-    if (offer == null) {
-      _say("Let's start again. Say “Get a RexFlex loan” to apply.");
+  /// ₦1,000 steps for small limits (₦1k / ₦2k / ₦3k), otherwise a
+  /// quarter, half and all of the limit, rounded to the thousand.
+  List<String> _amountChips(int limit) {
+    const k1 = 100000;
+    final values = limit <= 5 * k1
+        ? [for (var v = k1; v <= limit; v += k1) v]
+        : {limit ~/ 4 ~/ k1 * k1, limit ~/ 2 ~/ k1 * k1, limit}.toList();
+    return [
+      for (final v in values)
+        if (v >= _minLoanKobo) _naira(v),
+    ];
+  }
+
+  Future<void> _continueLoan() async {
+    final limit = _loanLimitKobo;
+    if (limit == null || _loans == null) {
       _stage = ConversationStage.idle;
+      _say("Let's start again. Say “Borrow me 2k” or “Get a RexFlex loan”.");
       return;
     }
     _loanOffer?.isActive = false;
-    if (days != 14 && days != 30) {
-      _stage = ConversationStage.awaitingLoanTerm;
+
+    // 1. How much?
+    final amount = _loanAmountKobo;
+    if (amount == null) {
+      _stage = ConversationStage.awaitingLoanAmount;
       _say(
-        'RexFlex loans run for 14 or 30 days. Which would you like?',
-        quickReplies: _termChips(offer),
+        'Sure! How much do you need? You can borrow up to ${_naira(limit)} '
+        'right now.',
+        quickReplies: _amountChips(limit),
       );
       return;
     }
+    if (amount > limit) {
+      _loanAmountKobo = null;
+      _stage = ConversationStage.awaitingLoanAmount;
+      _say(
+        'Your RexFlex limit right now is ${_naira(limit)}. Repay on time and '
+        "it grows. Want ${_naira(limit)} instead?",
+        quickReplies: [_naira(limit), 'Cancel'],
+      );
+      return;
+    }
+    if (amount < _minLoanKobo) {
+      _loanAmountKobo = null;
+      _stage = ConversationStage.awaitingLoanAmount;
+      _say(
+        'The smallest RexFlex loan is ${_naira(_minLoanKobo)}. How much do '
+        'you need?',
+        quickReplies: [_naira(_minLoanKobo), _naira(limit)],
+      );
+      return;
+    }
+
+    // 2. For how long?
+    final days = _loanDays;
+    if (days == null || days < 1 || days > _maxLoanDays) {
+      _loanDays = null;
+      _stage = ConversationStage.awaitingLoanTerm;
+      _say(
+        days == null
+            ? 'You want ${_short(amount)}? No shaking! 😎 For how long do you '
+                  'need the ${_naira(amount)}? You can take it for up to '
+                  '$_maxLoanDays days.'
+            : 'RexFlex loans run for 1 to $_maxLoanDays days. How many days '
+                  'do you need the ${_naira(amount)} for?',
+        quickReplies: const ['7 days', '14 days', '30 days'],
+      );
+      return;
+    }
+
+    // 3. Check and approve (once per conversation flow).
+    if (!_loanApproved) {
+      _say(
+        'Great. Give me a second and let me get you the money you need so '
+        'you can start flexing… 💸',
+      );
+      final typing = _showTyping(label: 'Checking eligibility');
+      final LoanEligibility result;
+      try {
+        result = await _loans!.checkEligibility();
+      } finally {
+        _remove(typing);
+      }
+      if (!result.eligible) {
+        _stage = ConversationStage.idle;
+        _say(
+          "You're not eligible for RexFlex just yet. You still need:\n"
+          '${result.unmet.map((r) => '• $r').join('\n')}',
+        );
+        return;
+      }
+      _loanApproved = true;
+      _loanLimitKobo = result.offerKobo;
+      if (amount > result.offerKobo) {
+        _loanAmountKobo = null;
+        await _continueLoan();
+        return;
+      }
+    }
+
+    // 4. The approved offer, ready to accept.
     _loanOffer = LoanOfferMessage(
       id: _id(),
-      principalKobo: offer,
+      principalKobo: amount,
       days: days,
-      interestKobo: _flexInterest(offer, days),
+      interestKobo: _flexInterest(amount, days),
       dueDate: DateTime.now().add(Duration(days: days)),
     );
-    _say("Here's your RexFlex offer:");
+    _say(
+      "🎉 Great news! You're approved for ${_naira(amount)}. Accept your loan "
+      'now.',
+    );
     _add(_loanOffer!);
     _stage = ConversationStage.awaitingLoanConsent;
     _say(
-      'By applying you accept the RexFlex Terms and Credit Policy, and '
-      'consent to us using your account data for a credit check. Shall I '
-      'submit your application?',
-      quickReplies: const ['Yes, apply', 'Change term', 'Cancel'],
+      'By accepting, you agree to the RexFlex Loan Terms and to us using your '
+      'account data for a credit check.',
+      quickReplies: const [
+        'Accept loan',
+        'Change amount',
+        'Change days',
+        'Cancel',
+      ],
     );
   }
 
@@ -504,29 +594,36 @@ class AtlasController extends ChangeNotifier {
     if (offer == null || loans == null) return;
     offer.isActive = false;
     _stage = ConversationStage.idle;
-    final typing = _showTyping(label: 'Submitting application');
+    final typing = _showTyping(label: 'Setting up your loan');
     try {
       await loans.apply(principalKobo: offer.principalKobo, days: offer.days);
     } finally {
       _remove(typing);
     }
-    _loanOffer = null;
-    _loanOfferKobo = null;
+    _resetLoanChat();
     _say(
-      "📨 Application received! We're reviewing it now. It usually takes "
-      "about a minute, and I'll let you know right here once it's approved.",
+      "Done! ✅ Your ${_naira(offer.principalKobo)} is on its way. We're "
+      "finalising your loan and I'll let you know the moment it lands in "
+      'your Rex account.',
     );
     _flexCard(_flexViewCard);
   }
 
+  void _resetLoanChat() {
+    _loanOffer = null;
+    _loanLimitKobo = null;
+    _loanAmountKobo = null;
+    _loanDays = null;
+    _loanApproved = false;
+  }
+
   void _cancelLoanInChat() {
     _loanOffer?.isActive = false;
-    _loanOffer = null;
-    _loanOfferKobo = null;
+    _resetLoanChat();
     _stage = ConversationStage.idle;
     _say(
-      "No problem, I haven't submitted anything. Your RexFlex offer is "
-      'still here whenever you need it.',
+      "No problem, I haven't taken any loan for you. Just say “Borrow me "
+      "2k” whenever you need it.",
     );
   }
 
@@ -541,9 +638,8 @@ class AtlasController extends ChangeNotifier {
         id: _id(),
         author: ChatAuthor.assistant,
         text:
-            '🎉 Great news! Your RexFlex loan of ${_naira(l.principalKobo)} '
-            'was approved and sent to your Rex account. Repay '
-            '${_naira(l.totalKobo)}$due.',
+            '🎉 Your ${_naira(l.principalKobo)} has landed in your Rex '
+            'account. Go flex! Remember to repay ${_naira(l.totalKobo)}$due.',
       ),
     );
     _flexCard(_flexViewCard);
@@ -1003,7 +1099,8 @@ class AtlasController extends ChangeNotifier {
   }
 
   void _cancel() {
-    if (_stage == ConversationStage.awaitingLoanTerm ||
+    if (_stage == ConversationStage.awaitingLoanAmount ||
+        _stage == ConversationStage.awaitingLoanTerm ||
         _stage == ConversationStage.awaitingLoanConsent) {
       _cancelLoanInChat();
       return;

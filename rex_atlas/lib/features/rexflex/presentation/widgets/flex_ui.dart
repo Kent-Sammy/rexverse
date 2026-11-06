@@ -406,7 +406,7 @@ class FlexDetailBox extends StatelessWidget {
   }
 }
 
-/// Amber note with a shield icon ("8% interest per 30 days").
+/// Amber note with a safe-lock icon.
 class FlexNote extends StatelessWidget {
   const FlexNote(this.text, {super.key});
   final String text;

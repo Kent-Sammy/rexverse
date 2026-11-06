@@ -347,9 +347,9 @@ const _suggestions = [
     colors: [Color(0xFFFFB15C), Color(0xFFE0670F)],
   ),
   _Suggestion(
-    title: 'RexFlex: borrow from ₦3k',
-    body: 'Repay in 14 or 30 days',
-    utterance: 'Tell me about RexFlex',
+    title: 'RexFlex: borrow up to ₦3k',
+    body: 'Just say “Borrow me 2k”',
+    utterance: 'Borrow me 2k',
     icon: RexSvgIcon(RexSvg.ticket, size: 24, color: Colors.white),
     colors: [Color(0xFF2AD49A), Color(0xFF0F8F6B)],
   ),

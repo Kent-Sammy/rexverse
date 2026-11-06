@@ -113,3 +113,20 @@ Atlas knows RexFlex and can take a loan entirely in the chat.
   - Atlas depends only on `LoanOverviewService` (snapshot, eligibility, apply, approvals) in its own domain layer.
   - `RexFlexLoanOverview` adapts the RexFlex controller to it.
   - The host app wires both together (`AtlasController.loans`, `onOpenRexFlex`).
+
+## Product owner feedback (round 2)
+
+- **No rate shown.** Customers never see the interest rate. Every screen, sheet, Atlas answer and the offer card show only the interest amount and the total to repay.
+  - Pricing is unchanged internally: 8% per 30 days, pro-rated, now rounded to the whole naira. ₦2,000 for 5 days → ₦27; ₦3,000 for 14 / 30 days → ₦112 / ₦240.
+- **Levels:** Build ₦3,000–₦10,000 · Grow ₦10,001–₦50,000 · Max ₦50,001–₦100,000.
+- **Loan Terms vs Loan Agreement.**
+  - The key-terms sheet is now **Loan Terms**: the Support row and the "Loan terms" row on Review Your Offer.
+  - **Loan Agreement** is a real PDF built from the loan (`buildLoanAgreementPdf`, using the `pdf` package): parties, loan summary, numbered clauses and electronic acceptance.
+  - It is previewed in-app with share / print / save (`printing` package) and stamped "DEMO DOCUMENT" on every page. The binding wording must come from Rex Legal.
+- **Conversational borrowing in Atlas.**
+  - "Borrow me 2k", "lend me ₦2,500 for 5 days", "give me 3k for a week" (an amount is required for "give me" / "dash me", and bank details make it a transfer) start the loan with whatever was said.
+  - Atlas asks only for what's missing:
+    - "How much do you need?" (₦1,000 minimum, up to the current limit);
+    - then "You want ₦2k? No shaking! 😎 For how long…?" (1–30 days).
+  - It then says "Great. Give me a second … so you can start flexing… 💸", runs the eligibility check, and shows "🎉 Great news! You're approved for ₦2,000. Accept your loan now." with the offer card and **Accept loan / Change amount / Change days / Cancel**.
+  - Accepting sends the loan for processing ("Done! ✅ Your ₦2,000 is on its way"). When it lands: "🎉 Your ₦2,000 has landed in your Rex account. Go flex!"

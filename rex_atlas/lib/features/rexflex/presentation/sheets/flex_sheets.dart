@@ -11,7 +11,7 @@ import '../widgets/flex_pin_entry.dart';
 import '../widgets/flex_ui.dart';
 
 String _days(int d) => '$d days';
-String _interestLabel() => 'Interest (${RexFlexPricing.ratePer30DaysPct}%)';
+String _interestLabel() => 'Interest';
 
 // ---------------------------------------------------------------------------
 // Eligibility: "Check Your Eligibility" → "You're Eligible!"
@@ -252,8 +252,6 @@ class _EligibilitySheetState extends State<EligibilitySheet> {
               ],
             ],
           ),
-          const SizedBox(height: 10),
-          const FlexNote('8% interest per 30 days'),
           const SizedBox(height: 24),
           FlexButton(
             key: const Key('flex-eligible-continue'),
@@ -1312,7 +1310,7 @@ class FlexInfoSheet extends StatelessWidget {
 }
 
 const flexKeyTerms = [
-  'Interest is 8% per 30 days, charged pro-rata for the tenor you choose.',
+  'Interest is charged only for the days you borrow, and the exact amount is shown before you accept.',
   'Repay in full or in parts any time before the due date from your Rex account.',
   'Each new loan needs a fresh eligibility and risk check.',
   'On-time repayment can raise your next offer, usually up to 2× your highest fully repaid loan.',

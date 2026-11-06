@@ -10,6 +10,7 @@ import '../../../../core/widgets/appear.dart';
 import '../../../../core/widgets/pressable.dart';
 import '../../application/rexflex_controller.dart';
 import '../../domain/rexflex_models.dart';
+import '../agreement/loan_agreement_screen.dart';
 import '../sheets/flex_sheets.dart';
 import '../widgets/flex_ui.dart';
 
@@ -412,10 +413,7 @@ class _ReviewOfferScreenState extends State<ReviewOfferScreen> {
               ),
               const Divider(height: 1, color: RexColors.divider),
               row(
-                cell(
-                  'Interest (${RexFlexPricing.ratePer30DaysPct}%)',
-                  Naira.groupedWhole(t.interestKobo),
-                ),
+                cell('Interest', Naira.groupedWhole(t.interestKobo)),
                 cell('Start Date', RexDates.dayMonthYear(start)),
               ),
               const Divider(height: 1, color: RexColors.divider),
@@ -429,11 +427,11 @@ class _ReviewOfferScreenState extends State<ReviewOfferScreen> {
         const SizedBox(height: 10),
         Pressable(
           key: const Key('flex-key-terms'),
-          semanticLabel: 'Key terms',
+          semanticLabel: 'Loan terms',
           onTap: () => showFlexSheet<void>(
             context,
             (_) => const FlexInfoSheet(
-              title: 'Key Terms',
+              title: 'Loan Terms',
               paragraphs: flexKeyTerms,
             ),
           ),
@@ -442,7 +440,7 @@ class _ReviewOfferScreenState extends State<ReviewOfferScreen> {
               children: [
                 Expanded(
                   child: Text(
-                    'Key terms',
+                    'Loan terms',
                     style: RexTypography.host(
                       13,
                       weight: FontWeight.w500,
@@ -890,10 +888,7 @@ class _LoanStatusScreenState extends State<LoanStatusScreen> {
                           rows: [
                             ('Loan Amount', Naira.grouped(loan.principalKobo)),
                             ('Tenor', '${loan.term.days} days'),
-                            (
-                              'Interest (${RexFlexPricing.ratePer30DaysPct}%)',
-                              Naira.grouped(loan.interestKobo),
-                            ),
+                            ('Interest', Naira.grouped(loan.interestKobo)),
                             ('Total to Repay', Naira.grouped(loan.totalKobo)),
                             ('Applied', RexDates.dateTime(loan.appliedAt)),
                             (
@@ -1267,7 +1262,7 @@ class _LoanDetailsScreenState extends State<LoanDetailsScreen> {
               bg: FlexColors.purpleBg,
               fg: FlexColors.purple,
               title: 'Loan Information',
-              subtitle: 'Reference, amount, rate, and dates',
+              subtitle: 'Reference, amount and dates',
               onTap: () => showFlexSheet<void>(
                 context,
                 (_) => FlexInfoSheet(
@@ -1275,10 +1270,6 @@ class _LoanDetailsScreenState extends State<LoanDetailsScreen> {
                   rows: [
                     ('Reference', loan.id),
                     ('Loan Amount', Naira.grouped(loan.principalKobo)),
-                    (
-                      'Interest Rate',
-                      '${RexFlexPricing.ratePer30DaysPct}% per 30 days',
-                    ),
                     ('Interest', Naira.grouped(loan.interestKobo)),
                     ('Tenor', '${loan.term.days} days'),
                     if (loan.startDate != null)
@@ -1290,17 +1281,31 @@ class _LoanDetailsScreenState extends State<LoanDetailsScreen> {
             ),
             const SizedBox(height: 8),
             FlexMenuRow(
-              icon: Icons.description_rounded,
+              key: const Key('flex-loan-terms'),
+              icon: Icons.list_alt_rounded,
               bg: const Color(0xFFE3EEFF),
               fg: const Color(0xFF3D7BF7),
-              title: 'Loan Agreement',
-              subtitle: 'View the terms you accepted',
+              title: 'Loan Terms',
+              subtitle: 'The key terms of your loan',
               onTap: () => showFlexSheet<void>(
                 context,
                 (_) => const FlexInfoSheet(
-                  title: 'Loan Agreement',
+                  title: 'Loan Terms',
                   paragraphs: flexKeyTerms,
                 ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            FlexMenuRow(
+              key: const Key('flex-loan-agreement'),
+              icon: Icons.picture_as_pdf_rounded,
+              bg: const Color(0xFFFDE8E8),
+              fg: const Color(0xFFC62828),
+              title: 'Loan Agreement',
+              subtitle: 'Your signed agreement (PDF)',
+              onTap: () => _push(
+                context,
+                LoanAgreementScreen(controller: c, loan: loan),
               ),
             ),
             const SizedBox(height: 8),

@@ -64,6 +64,26 @@ void main() {
       expect(await topic('How much can I borrow?'), RexFlexTopic.limits);
       expect(await topic('How do I repay my loan?'), RexFlexTopic.repay);
       expect(await topic('Is my loan approved?'), RexFlexTopic.status);
+
+      // "Borrow me 2k" style requests carry the amount (and days).
+      Future<RexFlexIntent?> borrow(String t) async {
+        final i = await ai.interpret(
+          AssistantRequest(utterance: t, stage: ConversationStage.idle),
+        );
+        return i is RexFlexIntent ? i : null;
+      }
+
+      final b1 = (await borrow('Borrow me 2k'))!;
+      expect(b1.topic, RexFlexTopic.getStarted);
+      expect(b1.amountKobo, 200000);
+      expect(b1.days, isNull);
+      final b2 = (await borrow('lend me ₦2,500 for 5 days'))!;
+      expect((b2.amountKobo, b2.days), (250000, 5));
+      final b3 = (await borrow('give me 3k for a week'))!;
+      expect((b3.amountKobo, b3.days), (300000, 7));
+      // "give me" without an amount, or a transfer, is not a loan.
+      expect(await borrow('give me my balance'), isNull);
+      expect(await borrow('send 2k to gtb 0004218716'), isNull);
       // Follow-ups right after a RexFlex answer stay on RexFlex…
       Future<RexFlexTopic?> follow(String t) async {
         final i = await ai.interpret(
@@ -97,50 +117,63 @@ void main() {
     });
     tearDown(() => c.dispose());
 
-    test('in-chat loan: eligibility → term → offer → apply', () async {
-      await c.send('Get a RexFlex loan');
-      final offerMsg = c.messages.whereType<TextMessage>().last;
-      expect(
-        offerMsg.text,
-        contains("You're eligible! Your RexFlex offer is ₦3,000"),
-      );
-      expect(offerMsg.quickReplies, [
-        '14 days · repay ₦3,112',
-        '30 days · repay ₦3,240',
-      ]);
+    test('borrow me 2k → how long? → 5 days → approved → accept', () async {
+      await c.send('Borrow me 2k');
+      expect(lastText(c), contains('You want ₦2k? No shaking!'));
       expect(c.stage, ConversationStage.awaitingLoanTerm);
 
-      await c.send('14 days · repay ₦3,112');
+      await c.send('5 days');
+      final texts = c.messages.whereType<TextMessage>().map((m) => m.text);
+      expect(texts.any((t) => t.contains('so you can start flexing')), isTrue);
+      expect(
+        texts.any((t) => t.contains("You're approved for ₦2,000")),
+        isTrue,
+      );
       final offer = c.messages.whereType<LoanOfferMessage>().single;
-      expect(offer.principalKobo, 300000);
-      expect(offer.interestKobo, 11200);
-      expect(offer.totalKobo, 311200);
+      expect((offer.principalKobo, offer.days), (200000, 5));
+      expect(offer.interestKobo, 2700); // pro-rated, whole naira
       expect(c.stage, ConversationStage.awaitingLoanConsent);
       expect(c.messages.whereType<TextMessage>().last.quickReplies, [
-        'Yes, apply',
-        'Change term',
+        'Accept loan',
+        'Change amount',
+        'Change days',
         'Cancel',
       ]);
 
-      await c.send('Yes, apply');
+      await c.send('Accept loan');
       await Future<void>.delayed(Duration.zero);
-      expect(loans.applied, [(300000, 14)]);
-      expect(lastText(c), contains('Application received'));
+      expect(loans.applied, [(200000, 5)]);
+      expect(lastText(c), contains('Your ₦2,000 is on its way'));
       expect(lastCard(c), [SuggestionAction.rexflexViewLoan]);
-      expect(offer.isActive, isFalse);
     });
 
-    test('in-chat loan: change term, then cancel submits nothing', () async {
-      await c.send('Get a RexFlex loan');
-      await c.send('two weeks');
-      await c.send('Change term');
-      expect(c.stage, ConversationStage.awaitingLoanTerm);
-      await c.send('a month');
-      expect(c.messages.whereType<LoanOfferMessage>().last.interestKobo, 24000);
+    test('everything in one go, and "Get a loan" asks the amount', () async {
+      await c.send('lend me 3k for 2 weeks');
+      expect(
+        c.messages.whereType<LoanOfferMessage>().single.interestKobo,
+        11200,
+      );
       await c.send('Cancel');
       expect(loans.applied, isEmpty);
-      expect(lastText(c), contains("haven't submitted anything"));
-      expect(c.stage, ConversationStage.idle);
+      expect(lastText(c), contains("haven't taken any loan"));
+
+      await c.send('Get a RexFlex loan');
+      expect(lastText(c), contains('How much do you need?'));
+      expect(c.stage, ConversationStage.awaitingLoanAmount);
+      await c.send('₦2,000');
+      expect(c.stage, ConversationStage.awaitingLoanTerm);
+    });
+
+    test('over the limit, and changing days at the offer', () async {
+      await c.send('borrow me 10k');
+      expect(lastText(c), contains('Your RexFlex limit right now is ₦3,000'));
+      await c.send('₦3,000');
+      await c.send('30 days');
+      expect(c.messages.whereType<LoanOfferMessage>().last.interestKobo, 24000);
+      await c.send('Change days');
+      expect(c.stage, ConversationStage.awaitingLoanTerm);
+      await c.send('7');
+      expect(c.messages.whereType<LoanOfferMessage>().last.days, 7);
     });
 
     test('without a loan link Atlas sends them to RexFlex', () async {
@@ -229,32 +262,35 @@ void main() {
     await t.ensureVisible(pill);
     await pumpFor(t, 300);
     await t.tap(pill);
-    await pumpFor(t, 2500);
-    expect(find.textContaining("You're eligible!"), findsOneWidget);
-
-    await t.tap(find.text('14 days · repay ₦3,112'));
-    await pumpFor(t);
-    expect(find.text('RexFlex Loan'), findsOneWidget);
-    expect(find.text('Total to repay'), findsOneWidget);
-    expect(find.text('₦3,112.00'), findsOneWidget);
-
-    await t.tap(find.text('Yes, apply'));
     await pumpFor(t, 1500);
-    expect(find.textContaining('Application received'), findsOneWidget);
+    expect(find.textContaining('How much do you need?'), findsOneWidget);
 
-    // Background review (shortened here) → approval posted in the chat,
-    // not as a separate notice while Atlas is open.
+    await t.tap(find.text('₦2,000'));
+    await pumpFor(t);
+    expect(find.textContaining('No shaking!'), findsOneWidget);
+    await t.tap(find.text('14 days'));
+    await pumpFor(t, 2500);
+    expect(find.textContaining("You're approved for ₦2,000"), findsOneWidget);
+    expect(find.text('Total to repay'), findsOneWidget);
+
+    await t.tap(find.text('Accept loan'));
+    await pumpFor(t, 1500);
+    expect(find.textContaining('is on its way'), findsOneWidget);
+
+    // Background processing (shortened here) → posted in the chat, not as
+    // a separate notice while Atlas is open.
     await pumpFor(t, 4000);
     expect(
-      find.textContaining('was approved and sent to your Rex account'),
+      find.textContaining('has landed in your Rex account'),
       findsOneWidget,
     );
-    expect(find.text('Your RexFlex loan of ₦3,000 was approved'), findsNothing);
+    expect(find.text('Your RexFlex loan of ₦2,000 was approved'), findsNothing);
 
     // "View my loan" closes Atlas and opens the loan in RexFlex.
     await t.tap(find.text('View my loan').last);
     await pumpFor(t, 1500);
     expect(find.byKey(const Key('flex-repay-loan')), findsOneWidget);
+    expect(find.text('14-day loan'), findsNothing); // on the loan page
     expect(t.takeException(), isNull);
   });
 

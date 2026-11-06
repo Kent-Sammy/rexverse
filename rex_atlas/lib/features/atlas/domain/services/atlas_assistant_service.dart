@@ -12,8 +12,9 @@ enum ConversationStage {
   awaitingPaymentConfirmation,
   awaitingAuthorization,
 
-  /// Getting a RexFlex loan in the chat: choosing 14 or 30 days, then
-  /// accepting the offer.
+  /// Getting a RexFlex loan in the chat: how much, how many days, then
+  /// accepting the approved offer.
+  awaitingLoanAmount,
   awaitingLoanTerm,
   awaitingLoanConsent,
 

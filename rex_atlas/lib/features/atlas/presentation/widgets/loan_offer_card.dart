@@ -52,7 +52,7 @@ class LoanOfferCard extends StatelessWidget {
                       children: [
                         Text('RexFlex Loan', style: RexTypography.cardName),
                         Text(
-                          '${offer.days}-day loan · 8% per 30 days',
+                          '${offer.days}-day loan',
                           style: RexTypography.cardSub,
                         ),
                       ],

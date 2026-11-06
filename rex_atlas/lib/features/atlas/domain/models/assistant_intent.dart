@@ -98,12 +98,22 @@ enum RexFlexTopic {
 }
 
 class RexFlexIntent extends AssistantIntent {
-  const RexFlexIntent(this.topic);
+  const RexFlexIntent(this.topic, {this.amountKobo, this.days});
   final RexFlexTopic topic;
+
+  /// "Borrow me 2k for 5 days" → 200000 / 5.
+  final int? amountKobo;
+  final int? days;
 }
 
-/// The customer picked a RexFlex tenor in the chat ("14 days"). `0` means
-/// "show me the options again".
+/// The customer said how much they want to borrow. `0` means "ask me again".
+class ChooseLoanAmountIntent extends AssistantIntent {
+  const ChooseLoanAmountIntent(this.amountKobo);
+  final int amountKobo;
+}
+
+/// The customer picked how many days they need the loan for ("5 days").
+/// `0` means "ask me again".
 class ChooseLoanTermIntent extends AssistantIntent {
   const ChooseLoanTermIntent(this.days);
   final int days;
