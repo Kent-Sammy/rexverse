@@ -51,6 +51,9 @@ class Receipt {
     required this.title,
     required this.amountKobo,
     required this.status,
+    this.timestamp,
+    this.shareRows = const [],
+    this.repeat,
   });
 
   final String reference;
@@ -59,6 +62,21 @@ class Receipt {
   final TransactionStatus status;
   final List<ReceiptRow> rows;
   final bool isSimulated;
+  final DateTime? timestamp;
+
+  /// Rows on the shareable receipt ("Share Receipt" frame): recipient and
+  /// sender details, type, number and date. Values may span two lines.
+  final List<ReceiptRow> shareRows;
+
+  /// How to do this transaction again from Atlas, or null if it can't be.
+  final ReceiptRepeat? repeat;
+}
+
+/// "Repeat Transfer" / "Buy Again": the button label and what Atlas is asked.
+class ReceiptRepeat {
+  const ReceiptRepeat({required this.label, required this.utterance});
+  final String label;
+  final String utterance;
 }
 
 class ReceiptRow {

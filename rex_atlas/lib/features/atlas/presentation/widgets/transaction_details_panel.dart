@@ -12,8 +12,12 @@ class TransactionDetailsPanel extends StatelessWidget {
     super.key,
     required this.rows,
     this.scale = 1,
+    this.borderless = false,
     this.onCopied,
   });
+
+  /// Drops the hairline border when the panel sits inside its own card.
+  final bool borderless;
 
   final List<ReceiptRow> rows;
 
@@ -33,7 +37,7 @@ class TransactionDetailsPanel extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border.all(color: RexColors.hairline),
+        border: borderless ? null : Border.all(color: RexColors.hairline),
         borderRadius: BorderRadius.circular(RexDimens.innerCardRadius),
       ),
       child: Column(

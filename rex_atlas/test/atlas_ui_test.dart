@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:rex_atlas/features/atlas/presentation/screens/atlas_receipt_screen.dart';
 import 'package:rex_atlas/app/app.dart';
 import 'package:rex_atlas/features/atlas/atlas.dart';
 import 'package:rex_atlas/features/atlas/presentation/bottom_sheet/atlas_sheet.dart';
@@ -75,11 +76,12 @@ void main() {
 
     await t.tap(find.text('View Receipt'));
     await pumpFor(t, 1200);
-    expect(find.text('Transaction Receipt'), findsOneWidget);
+    expect(find.byType(AtlasReceiptScreen), findsOneWidget);
+    expect(find.byKey(const Key('receipt-share')), findsOneWidget);
     expect(find.byKey(const Key('receipt-demo-banner')), findsOneWidget);
     await t.tap(find.byKey(const Key('receipt-back')));
     await pumpFor(t, 800);
-    expect(find.text('Transaction Receipt'), findsNothing);
+    expect(find.byType(AtlasReceiptScreen), findsNothing);
 
     // Close and reopen: Atlas starts on the welcome screen again...
     await t.tap(find.bySemanticsLabel('Close Rex Atlas').last);

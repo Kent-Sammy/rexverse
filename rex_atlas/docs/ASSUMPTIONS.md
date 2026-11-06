@@ -18,7 +18,7 @@ Every behaviour that is not specified in the designs is listed here, along with 
 | Send button with empty text | | focuses the input. The button is dimmed only while Atlas is responding |
 | Processing / typing state | not drawn | three-dot indicator in an assistant bubble with a status label ("Checking account details…", "Processing your transfer…") |
 | Confirmation card after success | frames 4 → 6 | the confirmation card is replaced by the result card, as in frame 6 |
-| "View Receipt" | no receipt screen | full-screen receipt reusing the Transaction Details panel, with a **DEMO RECEIPT** banner |
+| "View Receipt" | **Transaction Details** and **Share Receipt** frames (`24691:40110`) | Transaction Details page (summary card, details panel, **Repeat Transfer / Share Receipt / Report**) and the Share Receipt ticket with **Share as image / Share as PDF**. See docs/RECEIPTS.md |
 | "Make another transfer" | | restarts the transfer flow ("Which account do you want to send money to?") |
 | Transaction rows, welcome recent-transfer card | | open that transaction's receipt |
 | "See All" (welcome) | | asks Atlas "Show my recent transactions" (frame 9) |

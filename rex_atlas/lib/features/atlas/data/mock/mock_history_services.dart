@@ -100,6 +100,90 @@ abstract final class MockReceiptBuilder {
       status: r.status,
       rows: rows,
       isSimulated: r.isSimulated,
+      timestamp: r.timestamp,
+      shareRows: _shareRows(r, sender),
+      repeat: _repeat(r),
     );
+  }
+
+  /// "703****815": keeps the first and last three digits.
+  static String maskAccount(String n) =>
+      n.length < 7 ? n : '${n.substring(0, 3)}****${n.substring(n.length - 3)}';
+
+  static List<ReceiptRow> _shareRows(TransactionRecord r, SourceAccount s) {
+    final rows = <ReceiptRow>[];
+    final recipient = _recipient(r);
+    if (recipient != null) rows.add(ReceiptRow('Recipient Details', recipient));
+    rows
+      ..add(
+        ReceiptRow(
+          'Sender Details',
+          '${s.holderName.toUpperCase()}\n'
+              '${s.bankName} | ${maskAccount(s.accountNumber)}',
+        ),
+      )
+      ..add(ReceiptRow('Transaction Type', typeLabel(r.category)));
+    final token = r.details['Token'];
+    if (token != null) rows.add(ReceiptRow('Token', token, copyable: true));
+    rows
+      ..add(ReceiptRow('Transaction No.', r.reference, copyable: true))
+      ..add(ReceiptRow('Transaction Date', RexDates.receipt(r.timestamp)));
+    return rows;
+  }
+
+  static String? _recipient(TransactionRecord r) {
+    final (bank, acct) = _bankAndAccount(r.counterpartyBankLabel);
+    final line = bank == null
+        ? r.counterpartyMasked
+        : acct == null
+        ? bank
+        : '$bank | ${maskAccount(acct)}';
+    final lines = [?r.counterpartyName?.toUpperCase(), ?line];
+    if (lines.isNotEmpty) return lines.join('\n');
+    if (r.category == TransactionCategory.airtime) return r.channel;
+    if (r.category == TransactionCategory.bill) return r.channel ?? r.title;
+    return null;
+  }
+
+  /// "GTBank (0004218716)" → ("GTBank", "0004218716").
+  static (String?, String?) _bankAndAccount(String? label) {
+    if (label == null) return (null, null);
+    final m = RegExp(r'^(.*?)\s*\((\d+)\)$').firstMatch(label);
+    if (m == null) return (label, null);
+    return (m.group(1), m.group(2));
+  }
+
+  static String typeLabel(TransactionCategory c) => switch (c) {
+    TransactionCategory.transfer => 'Bank Transfer',
+    TransactionCategory.businessTransfer => 'Business Transfer',
+    TransactionCategory.airtime => 'Airtime',
+    TransactionCategory.cardPayment => 'Card Payment',
+    TransactionCategory.savings => 'Savings Deposit',
+    TransactionCategory.vault => 'RexVault Savings',
+    TransactionCategory.bill => 'Bill Payment',
+  };
+
+  static ReceiptRepeat? _repeat(TransactionRecord r) {
+    final amount = Naira.plain(r.amountKobo);
+    switch (r.category) {
+      case TransactionCategory.transfer:
+        final (bank, acct) = _bankAndAccount(r.counterpartyBankLabel);
+        return ReceiptRepeat(
+          label: 'Repeat Transfer',
+          utterance: bank != null && acct != null
+              ? 'Send $amount to $bank $acct'
+              : 'Make another transfer',
+        );
+      case TransactionCategory.airtime:
+        final phone = RegExp(r'0\d{10}').firstMatch(r.channel ?? '')?.group(0);
+        return ReceiptRepeat(
+          label: 'Buy Again',
+          utterance: phone == null
+              ? 'Buy Airtime'
+              : 'Buy $amount airtime for $phone',
+        );
+      default:
+        return null;
+    }
   }
 }

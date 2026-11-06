@@ -28,7 +28,7 @@ The UI shows demo labels whenever that flag is set.
 3. Type **`Send ₦3000 to GTB 0004218716`**. You get the review card and "Shall I go ahead?" (frame 3).
 4. Tap **Yes, continue please** (or type it). The confirmation card and fingerprint sheet appear (frames 4–5).
 5. Tap the **fingerprint**. Processing runs, then the result card shows "Transfer Successful!" and suggestions follow (frames 6–8).
-6. Tap **View Receipt** to see the demo receipt, then go back.
+6. Tap **View Receipt** to open Transaction Details. Try **Share Receipt** (share as image or PDF), **Report**, or **Repeat Transfer**, which sends the same transfer back to Atlas.
 7. Type **`Show my recent transactions`** to see the list (frame 9). Tap a row to open its receipt.
 
 ## More things to try

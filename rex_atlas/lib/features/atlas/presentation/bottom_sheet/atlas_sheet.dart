@@ -205,6 +205,11 @@ class AtlasSheetState extends State<AtlasSheet>
             builder: (_) => AtlasReceiptScreen(
               reference: reference,
               receipts: widget.controller.deps.receipts,
+              onRepeat: (utterance) {
+                if (!widget.controller.isBusy) {
+                  widget.controller.send(utterance);
+                }
+              },
             ),
           ),
         );
