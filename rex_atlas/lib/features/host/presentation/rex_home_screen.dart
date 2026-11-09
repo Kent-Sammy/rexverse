@@ -58,6 +58,8 @@ class _RexHomeScreenState extends State<RexHomeScreen> {
             clock: now == null ? null : () => now,
           ),
           onRepeat: _openAtlas,
+          onAskAtlas: _openAtlas,
+          onOpenRexFlex: _openRexFlex,
         ),
       ),
     );

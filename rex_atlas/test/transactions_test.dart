@@ -144,6 +144,24 @@ void main() {
     await t.enterText(find.byKey(const Key('txns-search')), 'zzzz');
     await t.pump();
     expect(find.byKey(const Key('txns-empty')), findsOneWidget);
+    expect(find.text('No transactions found'), findsOneWidget);
+    await t.tap(find.text('Clear filters'));
+    await t.pump();
+    expect(find.byKey(const Key('txns-empty')), findsNothing);
+    expect(inList('POS Settlement'), findsNothing); // single wallet
+    expect(inList('Wallet Top Up'), findsOneWidget);
+  });
+
+  testWidgets('RexFlex tab with no loans shows an empty state that opens '
+      'RexFlex', (t) async {
+    await openTransactions(t);
+    await t.tap(find.byKey(const Key('txns-tab-rexflex')));
+    await t.pump();
+    expect(find.text('No RexFlex transactions yet'), findsOneWidget);
+    await t.tap(find.text('Get a RexFlex loan'));
+    await pumpFor(t, 1500);
+    expect(find.byType(AllTransactionsScreen), findsNothing);
+    expect(t.takeException(), isNull);
   });
 
   testWidgets('a row opens its Transaction Details with share', (t) async {

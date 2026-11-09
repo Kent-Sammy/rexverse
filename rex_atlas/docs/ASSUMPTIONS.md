@@ -128,3 +128,9 @@ These go **beyond** the Figma frames on purpose, at the product owner's request 
 - Received / Spent shows today's totals, or the chosen date range's totals. Failed transactions are not counted.
 - Selected chips use navy with white text instead of the design's light blue, so they meet WCAG contrast.
 - Tapping a row opens Transaction Details with Share Receipt and Report. Transfers made in Atlas also offer Repeat Transfer.
+- Empty states reuse the RexFlex empty-state card and illustration:
+  - **No transactions found** (search or filters hid everything), with "Clear filters";
+  - **No RexFlex transactions yet**, with "Get a RexFlex loan";
+  - **No RexSave transactions yet**, with "Start saving" in Atlas;
+  - **No RexVault transactions yet**, with "Save in RexVault" in Atlas;
+  - **No transactions yet**, for an empty wallet.

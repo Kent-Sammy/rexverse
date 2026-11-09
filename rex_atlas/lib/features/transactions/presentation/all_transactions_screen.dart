@@ -6,19 +6,32 @@ import '../../../core/widgets/pressable.dart';
 import '../../atlas/domain/models/models.dart';
 import '../../atlas/presentation/receipt/receipt_header_bar.dart';
 import '../../atlas/presentation/screens/atlas_receipt_screen.dart';
+import '../../rexflex/presentation/widgets/flex_ui.dart';
 import '../data/transactions_feed.dart';
 import '../domain/account_transaction.dart';
 import 'transaction_filter.dart';
 
-/// "All Transactions": every account and every product in one list, with
-/// account chips, a type filter, search, and a received/spent summary.
+/// "All Transactions": every product in the Rex wallet in one list, with
+/// product tabs, a filter sheet, search, and a received/spent summary.
 class AllTransactionsScreen extends StatefulWidget {
-  const AllTransactionsScreen({super.key, required this.feed, this.onRepeat});
+  const AllTransactionsScreen({
+    super.key,
+    required this.feed,
+    this.onRepeat,
+    this.onAskAtlas,
+    this.onOpenRexFlex,
+  });
 
   final TransactionsFeed feed;
 
   /// Sends a "Repeat Transfer" request to Atlas.
   final ValueChanged<String>? onRepeat;
+
+  /// Opens Atlas with a request (e.g. "Save Money"), from empty states.
+  final ValueChanged<String>? onAskAtlas;
+
+  /// Opens RexFlex, from the RexFlex empty state.
+  final VoidCallback? onOpenRexFlex;
 
   @override
   State<AllTransactionsScreen> createState() => _AllTransactionsScreenState();
@@ -167,22 +180,10 @@ class _AllTransactionsScreenState extends State<AllTransactionsScreen> {
                     ],
                     const SizedBox(height: 8),
                     _Summary(items: items, now: widget.feed.now, filter: _f),
-                    if (items.isEmpty)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 48),
-                        child: Text(
-                          'No transactions match. Try another tab, filter '
-                          'or search.',
-                          maxLines: 3,
-                          overflow: TextOverflow.ellipsis,
-                          key: const Key('txns-empty'),
-                          textAlign: TextAlign.center,
-                          style: RexTypography.host(
-                            13,
-                            color: RexColors.textTxMeta,
-                          ),
-                        ),
-                      ),
+                    if (items.isEmpty) ...[
+                      const SizedBox(height: 16),
+                      _emptyState(),
+                    ],
                     ..._groups(items),
                   ],
                 );
@@ -192,6 +193,61 @@ class _AllTransactionsScreenState extends State<AllTransactionsScreen> {
         ],
       ),
     );
+  }
+
+  void _clearFilters() {
+    _search.clear();
+    setState(() {
+      _f = const TxnFilter();
+      _query = '';
+    });
+  }
+
+  /// What to show when the list is empty: a "no matches" card when a search
+  /// or filter hid everything, otherwise one for the selected tab.
+  Widget _emptyState() {
+    if (_query.trim().isNotEmpty || _f.isActive) {
+      return FlexEmptyState(
+        key: const Key('txns-empty'),
+        title: 'No transactions found',
+        message:
+            'Nothing matches your search or filters. Try another date, type '
+            'or amount.',
+        actionLabel: 'Clear filters',
+        onAction: _clearFilters,
+      );
+    }
+    final ask = widget.onAskAtlas;
+    return switch (_kind) {
+      TxnKind.rexsave => FlexEmptyState(
+        key: const Key('txns-empty'),
+        title: 'No RexSave transactions yet',
+        message: 'Deposits, interest and withdrawals from RexSave show here.',
+        actionLabel: ask == null ? null : 'Start saving',
+        onAction: ask == null ? null : () => ask('Save Money'),
+      ),
+      TxnKind.rexflex => FlexEmptyState(
+        key: const Key('txns-empty'),
+        title: 'No RexFlex transactions yet',
+        message: 'Loans you take and repayments you make show here.',
+        actionLabel: widget.onOpenRexFlex == null ? null : 'Get a RexFlex loan',
+        onAction: widget.onOpenRexFlex,
+      ),
+      TxnKind.rexvault => FlexEmptyState(
+        key: const Key('txns-empty'),
+        title: 'No RexVault transactions yet',
+        message:
+            'Money you lock in RexVault and the interest it earns show '
+            'here.',
+        actionLabel: ask == null ? null : 'Save in RexVault',
+        onAction: ask == null ? null : () => ask('Save in RexVault'),
+      ),
+      _ => const FlexEmptyState(
+        key: Key('txns-empty'),
+        title: 'No transactions yet',
+        message: 'Money in and out of your Rex wallet shows here.',
+      ),
+    };
   }
 
   List<Widget> _groups(List<AccountTransaction> items) {
