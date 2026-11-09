@@ -109,6 +109,7 @@ Transactions, the transaction filter, Transaction Details, Share Receipt, the Re
 | Tabs, chips, links | 13 / SemiBold (unselected chips Medium) | product tabs, filter chips, active-filter chips, "Clear all filters" |
 | Meta, labels, status | 12 / Medium | "Transfer • 8:12 AM", Received/Spent, receipt labels, status |
 | Caption | 11 / Medium | summary footer, slider ticks, demo notes |
+| Empty state | title 14 Bold · message 11 Medium · button 12 SemiBold | transactions and RexFlex empty states |
 
 Small grey text uses Medium (500) rather than Regular, so it meets WCAG AA contrast at small sizes. Home keeps the Figma home scale (10–14), because its cards are designed smaller.
 

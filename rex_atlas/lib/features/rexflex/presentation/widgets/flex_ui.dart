@@ -1050,13 +1050,13 @@ class FlexEmptyState extends StatelessWidget {
         ),
         child: Column(
           children: [
-            _FloatingIllustration(height: compact ? 72 : 108),
+            _FloatingIllustration(height: compact ? 64 : 88),
             SizedBox(height: compact ? 10 : 14),
             Text(
               title,
               textAlign: TextAlign.center,
               style: RexTypography.host(
-                compact ? 14 : 16,
+                compact ? 13 : 14,
                 weight: FontWeight.w700,
                 color: RexColors.textStrong,
               ),
@@ -1066,20 +1066,20 @@ class FlexEmptyState extends StatelessWidget {
               message,
               textAlign: TextAlign.center,
               style: RexTypography.host(
-                12,
+                11,
                 weight: FontWeight.w500,
                 color: FlexColors.label,
               ),
             ),
             if (actionLabel != null && onAction != null) ...[
-              const SizedBox(height: 16),
+              const SizedBox(height: 14),
               Pressable(
                 semanticLabel: actionLabel!,
                 onTap: onAction,
                 child: Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 18,
-                    vertical: 10,
+                    horizontal: 16,
+                    vertical: 8,
                   ),
                   decoration: BoxDecoration(
                     color: FlexColors.navy,
@@ -1088,7 +1088,7 @@ class FlexEmptyState extends StatelessWidget {
                   child: Text(
                     actionLabel!,
                     style: RexTypography.host(
-                      13,
+                      12,
                       weight: FontWeight.w600,
                       color: Colors.white,
                     ),
