@@ -96,10 +96,14 @@ Downloaded from the frame with the Figma tools (3× where available):
 
 | File | Use |
 |---|---|
-| `images/home/rexy_december_bg.jpg` | Rexy December banner background (1080 wide) |
-| `images/home/capital_market.png` | Capital market banner art (1080 wide) |
+| `images/home/banner_rexy_december.png` | Banner 1, full design export (1041 × 390) |
+| `images/home/banner_dangote_invest.png` | Banner 2, full design export (1041 × 375) |
+| `images/home/banner_dangote_share.png` | Banner 3, full design export (1041 × 375) |
 | `images/home/rex_coin.png` | Rex coin in the header and RexPlay banner |
 | `images/home/rexshop_bag.png` | RexShop slide |
 | `icons/gamepad.svg` | RexPlay strip |
 
-The second and third banners (capital market, RexPlay) are built in code, pending the banner frame 25373:79117.
+The banners are the designer's full exports (frame 25373:79117), used as-is, so the whole banner is the tap target:
+- Rexy December starts the Rexy December plan in Atlas.
+- Invest Here shows a "not in this prototype" notice.
+- Share Here opens the share sheet.

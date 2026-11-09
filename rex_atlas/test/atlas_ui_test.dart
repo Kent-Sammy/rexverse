@@ -62,15 +62,16 @@ void main() {
     expect(find.byKey(const Key('home-rexplay')), findsOneWidget);
     expect(find.byKey(const Key('home-coins')), findsOneWidget);
     expect(find.byKey(const Key('home-borrow')), findsOneWidget);
-    expect(
-      find.textContaining('Get 5% upfront!', findRichText: true),
-      findsWidgets,
-    );
+    expect(find.byKey(const Key('home-banner-0')), findsOneWidget);
 
     // Swipe the promo carousel to the next banner.
     await t.drag(find.byKey(const Key('home-promos')), const Offset(-300, 0));
     await pumpFor(t, 800);
-    expect(find.text('Capital Market Investments'), findsOneWidget);
+    expect(find.byKey(const Key('home-banner-1')), findsOneWidget);
+    expect(
+      find.bySemanticsLabel(RegExp('Dangote Refinery IPO is now live')),
+      findsWidgets,
+    );
 
     // Do more with Rex starts on RexShop and swipes to the savings plan.
     await t.scrollUntilVisible(
@@ -82,6 +83,25 @@ void main() {
     await t.drag(find.byKey(const Key('home-do-more')), const Offset(-300, 0));
     await pumpFor(t, 800);
     expect(find.text('Detty December'), findsOneWidget);
+    expect(t.takeException(), isNull);
+  });
+
+  testWidgets('Rexy December banner starts the savings plan in Atlas', (
+    t,
+  ) async {
+    setPhone(t, const Size(402, 874));
+    await t.pumpWidget(
+      RexAtlasDemoApp(
+        dependencies: AtlasDependencies.mock(latency: Duration.zero),
+        now: DateTime(2026, 11, 2, 9),
+      ),
+    );
+    await t.pump();
+    await t.tap(find.byKey(const Key('home-banner-0')));
+    await pumpFor(t, 2000);
+    expect(find.byType(AtlasSheet), findsOneWidget);
+    expect(find.text('I want to save with Rexy December'), findsOneWidget);
+    expect(find.textContaining('Rexy December'), findsWidgets);
     expect(t.takeException(), isNull);
   });
 

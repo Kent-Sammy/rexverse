@@ -8,8 +8,12 @@ import '../../atlas/presentation/widgets/atlas_brand.dart';
 
 /// Artwork for the home dashboard (Figma node 25371:78681).
 abstract final class HomeAssets {
-  static const rexyDecember = 'assets/images/home/rexy_december_bg.jpg';
-  static const capitalMarket = 'assets/images/home/capital_market.png';
+  static const bannerRexyDecember =
+      'assets/images/home/banner_rexy_december.png';
+  static const bannerDangoteInvest =
+      'assets/images/home/banner_dangote_invest.png';
+  static const bannerDangoteShare =
+      'assets/images/home/banner_dangote_share.png';
   static const coin = 'assets/images/home/rex_coin.png';
   static const bag = 'assets/images/home/rexshop_bag.png';
 }
@@ -225,19 +229,37 @@ mixin _AutoAdvance<T extends StatefulWidget> on State<T> {
 // ---------------------------------------------------------------------------
 
 class _Promo {
-  const _Promo({required this.peek, required this.builder});
+  const _Promo({
+    required this.image,
+    required this.label,
+    required this.peek,
+    required this.onTap,
+  });
 
-  /// Colour of this slide's edge when it peeks out behind the front card.
+  /// The full banner as designed (text and button are part of the image).
+  final String image;
+
+  /// What a screen reader announces for the banner.
+  final String label;
+
+  /// Colour of this banner's edge when it peeks out behind the front card.
   final Gradient peek;
-  final Widget Function(BuildContext context) builder;
+  final VoidCallback onTap;
 }
 
-/// Swipeable promo banners stacked like cards, with page dots.
+/// Swipeable banners stacked like cards, with page dots. Each banner is the
+/// designer's export used as-is; tapping anywhere on it runs its action.
 class PromoCarousel extends StatefulWidget {
-  const PromoCarousel({super.key, required this.onAction});
+  const PromoCarousel({
+    super.key,
+    required this.onRexyDecember,
+    required this.onInvest,
+    required this.onShare,
+  });
 
-  /// Called with the promo's name when its button is tapped.
-  final ValueChanged<String> onAction;
+  final VoidCallback onRexyDecember;
+  final VoidCallback onInvest;
+  final VoidCallback onShare;
 
   @override
   State<PromoCarousel> createState() => _PromoCarouselState();
@@ -247,343 +269,114 @@ class _PromoCarouselState extends State<PromoCarousel>
     with _AutoAdvance<PromoCarousel> {
   int _index = 0;
 
+  /// The exports are 1041 × 375 (about 3× a 347 × 125 banner).
+  static const _aspect = 1041 / 375;
+
   @override
   int get pageCount => _promos.length;
 
-  static const _height = 132.0;
-
   late final List<_Promo> _promos = [
     _Promo(
+      image: HomeAssets.bannerRexyDecember,
+      label:
+          'Rexy December. Save from ₦10,000 and get 5% upfront. Lock for 2 '
+          'months and receive 5% of your deposit upfront. Start Saving Now',
       peek: const LinearGradient(
         colors: [Color(0xFFFFE7B8), Color(0xFFF7C66A)],
       ),
-      builder: (_) =>
-          _RexyDecember(onTap: () => widget.onAction('Rexy December savings')),
+      onTap: widget.onRexyDecember,
     ),
     _Promo(
+      image: HomeAssets.bannerDangoteInvest,
+      label:
+          'Dangote Refinery IPO is now live. Invest for yourself, and your '
+          'children. Invest Here',
       peek: const LinearGradient(
         colors: [Color(0xFF0B6BE8), Color(0xFF0A2A6B)],
       ),
-      builder: (_) => _CapitalMarket(
-        onTap: () => widget.onAction('Capital Market Investments'),
-      ),
+      onTap: widget.onInvest,
     ),
     _Promo(
+      image: HomeAssets.bannerDangoteShare,
+      label:
+          'Dangote Refinery IPO is now live. Tell your loved ones, so they do '
+          'not miss out on the opportunity. Share Here',
       peek: const LinearGradient(
-        colors: [Color(0xFFA100FF), Color(0xFF3B1C9E)],
+        colors: [Color(0xFFA100FF), Color(0xFF6A00D9)],
       ),
-      builder: (_) => _RexPlayPromo(onTap: () => widget.onAction('RexPlay')),
+      onTap: widget.onShare,
     ),
   ];
 
   @override
   Widget build(BuildContext context) {
-    final next = _promos[(_index + 1) % _promos.length];
-    final after = _promos[(_index + 2) % _promos.length];
-    Widget peek(Gradient g, double inset, double drop) => Positioned(
-      left: inset,
-      right: inset,
-      top: drop,
-      height: _height,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 450),
-        curve: Curves.easeInOutCubic,
-        decoration: BoxDecoration(
-          gradient: g,
-          borderRadius: BorderRadius.circular(12),
-        ),
-      ),
-    );
-
-    return Column(
-      children: [
-        SizedBox(
-          height: _height + 16,
-          child: Stack(
-            children: [
-              peek(after.peek, 22, 16),
-              peek(next.peek, 8, 8),
-              SizedBox(
-                height: _height,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: autoAdvance(
-                    PageView.builder(
-                      key: const Key('home-promos'),
-                      controller: pages,
-                      onPageChanged: (i) => setState(() => _index = pageOf(i)),
-                      itemBuilder: (context, i) =>
-                          _promos[pageOf(i)].builder(context),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 10),
-        PageDots(count: _promos.length, index: _index),
-      ],
-    );
-  }
-}
-
-class _PromoButton extends StatelessWidget {
-  const _PromoButton({
-    required this.label,
-    required this.onTap,
-    required this.background,
-    required this.foreground,
-  });
-  final String label;
-  final VoidCallback onTap;
-  final Color background;
-  final Color foreground;
-
-  @override
-  Widget build(BuildContext context) => Pressable(
-    semanticLabel: label,
-    onTap: onTap,
-    child: Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: background,
-        borderRadius: BorderRadius.circular(13),
-      ),
-      child: Text(
-        label,
-        style: RexTypography.host(
-          10,
-          weight: FontWeight.w600,
-          color: foreground,
-        ),
-      ),
-    ),
-  );
-}
-
-class _RexyDecember extends StatelessWidget {
-  const _RexyDecember({required this.onTap});
-  final VoidCallback onTap;
-
-  static const _brown = Color(0xFF7A3D00);
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        Image.asset(
-          HomeAssets.rexyDecember,
-          fit: BoxFit.cover,
-          alignment: Alignment.centerRight,
-          excludeFromSemantics: true,
-        ),
-        // Keeps the text side light enough to read.
-        const DecoratedBox(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Color(0xE6FFF6E6), Color(0x00FFF6E6)],
-              stops: [0.35, 0.6],
+    return LayoutBuilder(
+      builder: (context, c) {
+        final height = c.maxWidth / _aspect;
+        final next = _promos[(_index + 1) % _promos.length];
+        final after = _promos[(_index + 2) % _promos.length];
+        Widget peek(Gradient g, double inset, double drop) => Positioned(
+          left: inset,
+          right: inset,
+          top: drop,
+          height: height,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 450),
+            curve: Curves.easeInOutCubic,
+            decoration: BoxDecoration(
+              gradient: g,
+              borderRadius: BorderRadius.circular(12),
             ),
           ),
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 14, 140, 12),
-          child: _FitColumn(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE08A00),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  '● REXY DECEMBER',
-                  style: RexTypography.host(
-                    10,
-                    weight: FontWeight.w600,
-                    color: Colors.black,
-                  ).copyWith(fontSize: 7.5),
-                ),
-              ),
-              const SizedBox(height: 5),
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                alignment: Alignment.centerLeft,
-                child: Text.rich(
-                  TextSpan(
-                    children: [
-                      const TextSpan(text: 'Save from ₦10,000.\n'),
-                      TextSpan(
-                        text: 'Get 5% upfront!',
-                        style: RexTypography.host(
-                          15,
-                          weight: FontWeight.w700,
-                          color: _brown,
+        );
+
+        return Column(
+          children: [
+            SizedBox(
+              height: height + 16,
+              child: Stack(
+                children: [
+                  peek(after.peek, 22, 16),
+                  peek(next.peek, 8, 8),
+                  SizedBox(
+                    height: height,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: autoAdvance(
+                        PageView.builder(
+                          key: const Key('home-promos'),
+                          controller: pages,
+                          onPageChanged: (i) =>
+                              setState(() => _index = pageOf(i)),
+                          itemBuilder: (context, i) {
+                            final p = _promos[pageOf(i)];
+                            return Pressable(
+                              key: Key('home-banner-${pageOf(i)}'),
+                              semanticLabel: p.label,
+                              onTap: p.onTap,
+                              pressedScale: 0.98,
+                              child: Image.asset(
+                                p.image,
+                                fit: BoxFit.cover,
+                                width: double.infinity,
+                                height: height,
+                                filterQuality: FilterQuality.medium,
+                                excludeFromSemantics: true,
+                              ),
+                            );
+                          },
                         ),
                       ),
-                    ],
+                    ),
                   ),
-                  style: RexTypography.host(
-                    15,
-                    weight: FontWeight.w700,
-                    color: const Color(0xFF14142B),
-                  ).copyWith(height: 1.15, letterSpacing: -0.4),
-                ),
+                ],
               ),
-              const SizedBox(height: 3),
-              Text(
-                'Lock for 2 months and receive 5% of deposit upfront.',
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: RexTypography.host(
-                  10,
-                  color: const Color(0xFF3F3F46),
-                ).copyWith(height: 1.3),
-              ),
-              const SizedBox(height: 8),
-              _PromoButton(
-                label: 'Start Saving Now',
-                onTap: onTap,
-                background: _brown,
-                foreground: Colors.white,
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _CapitalMarket extends StatelessWidget {
-  const _CapitalMarket({required this.onTap});
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF0A2A6B), Color(0xFF0B57C9)],
-        ),
-      ),
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          Positioned(
-            right: -6,
-            bottom: 4,
-            width: 210,
-            child: Image.asset(
-              HomeAssets.capitalMarket,
-              fit: BoxFit.contain,
-              excludeFromSemantics: true,
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 150, 12),
-            child: _FitColumn(
-              children: [
-                Text(
-                  'Capital Market Investments',
-                  style: RexTypography.host(
-                    14,
-                    weight: FontWeight.w700,
-                    color: Colors.white,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Subscribe to live IPOs and rights issues from your Rex '
-                  'account.',
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                  style: RexTypography.host(
-                    10,
-                    color: Colors.white,
-                  ).copyWith(height: 1.3),
-                ),
-                const SizedBox(height: 8),
-                _PromoButton(
-                  label: 'Explore Offers',
-                  onTap: onTap,
-                  background: Colors.white,
-                  foreground: RexColors.navy,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _RexPlayPromo extends StatelessWidget {
-  const _RexPlayPromo({required this.onTap});
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF3B1C9E), Color(0xFF8A00E6)],
-        ),
-      ),
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          Positioned(
-            right: 18,
-            top: 16,
-            bottom: 16,
-            child: Image.asset(
-              HomeAssets.coin,
-              fit: BoxFit.contain,
-              excludeFromSemantics: true,
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 130, 12),
-            child: _FitColumn(
-              children: [
-                Text(
-                  'RexPlay',
-                  style: RexTypography.host(
-                    14,
-                    weight: FontWeight.w700,
-                    color: Colors.white,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Play quick money games, learn as you go and earn Rex coins.',
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                  style: RexTypography.host(
-                    10,
-                    color: Colors.white,
-                  ).copyWith(height: 1.3),
-                ),
-                const SizedBox(height: 8),
-                _PromoButton(
-                  label: 'Play Now',
-                  onTap: onTap,
-                  background: Colors.white,
-                  foreground: const Color(0xFF3B1C9E),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+            const SizedBox(height: 10),
+            PageDots(count: _promos.length, index: _index),
+          ],
+        );
+      },
     );
   }
 }

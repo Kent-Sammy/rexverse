@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../../../app/demo_device_frame.dart';
 import '../../../core/design_system/design_system.dart';
@@ -40,6 +41,15 @@ class _RexHomeScreenState extends State<RexHomeScreen> {
   );
 
   void _openRexFlex() => openRexFlex(context, widget.rexflex);
+
+  /// "Share Here" on the IPO banner: opens the phone's share sheet.
+  Future<void> _shareIpo() => SharePlus.instance.share(
+    ShareParams(
+      text:
+          'Dangote Refinery IPO is now live on Rex. '
+          "Don't miss out on the opportunity!",
+    ),
+  );
 
   void _notInPrototype(String what) {
     ScaffoldMessenger.of(context)
@@ -101,7 +111,12 @@ class _RexHomeScreenState extends State<RexHomeScreen> {
                             onOther: _notInPrototype,
                           ),
                           const SizedBox(height: 10),
-                          PromoCarousel(onAction: _notInPrototype),
+                          PromoCarousel(
+                            onRexyDecember: () =>
+                                _openAtlas('I want to save with Rexy December'),
+                            onInvest: () => _notInPrototype('RexInvest'),
+                            onShare: _shareIpo,
+                          ),
                           const SizedBox(height: 12),
                           DoMoreWithRex(onAction: _notInPrototype),
                         ],
