@@ -56,18 +56,21 @@ class TransactionsFeed implements ReceiptService {
   // -------------------------------------------------------------- sources
 
   AccountTransaction _fromAtlas(TransactionRecord r) {
-    final (kind, account) = switch (r.category) {
-      TransactionCategory.cardPayment => (TxnKind.card, TxnAccount.pos),
-      TransactionCategory.transfer => (TxnKind.transfer, TxnAccount.personal),
-      TransactionCategory.businessTransfer => (
-        TxnKind.transfer,
-        TxnAccount.business,
-      ),
-      TransactionCategory.airtime => (TxnKind.airtime, TxnAccount.personal),
-      TransactionCategory.savings => (TxnKind.rexsave, TxnAccount.personal),
-      TransactionCategory.vault => (TxnKind.rexvault, TxnAccount.personal),
-      TransactionCategory.bill => (TxnKind.bill, TxnAccount.personal),
+    final kind = switch (r.category) {
+      TransactionCategory.cardPayment => TxnKind.card,
+      TransactionCategory.transfer => TxnKind.transfer,
+      TransactionCategory.businessTransfer => TxnKind.transfer,
+      TransactionCategory.airtime => TxnKind.airtime,
+      TransactionCategory.savings => TxnKind.rexsave,
+      TransactionCategory.vault => TxnKind.rexvault,
+      TransactionCategory.bill => TxnKind.bill,
     };
+    final bill = kind != TxnKind.bill
+        ? null
+        : r.channel == 'Cable TV'
+        ? BillType.cable
+        : BillType.utility;
+    final card = kind == TxnKind.card ? CardType.physical : null;
     final title =
         r.category == TransactionCategory.transfer &&
             !r.title.startsWith('Transfer')
@@ -76,18 +79,36 @@ class TransactionsFeed implements ReceiptService {
     return AccountTransaction(
       reference: r.reference,
       title: title,
-      channel: account == TxnAccount.pos ? (r.channel ?? 'POS') : account.label,
-      account: account,
+      channel: _channelFor(kind, bill: bill, card: card),
       kind: kind,
       direction: TxnDirection.debit,
       amountKobo: r.amountKobo,
       at: r.timestamp,
       status: r.status,
       counterparty: r.counterpartyName?.toUpperCase(),
+      bill: bill,
+      card: card,
       fromAtlasHistory: true,
       isSimulated: r.isSimulated,
     );
   }
+
+  static String _channelFor(TxnKind k, {BillType? bill, CardType? card}) =>
+      switch (k) {
+        TxnKind.transfer => 'Transfer',
+        TxnKind.airtime => 'Airtime',
+        TxnKind.data => 'Data',
+        TxnKind.bill => switch (bill) {
+          BillType.cable => 'Cables',
+          BillType.education => 'Education',
+          _ => 'Utility',
+        },
+        TxnKind.card =>
+          card == CardType.virtual ? 'Virtual card' : 'Physical card',
+        TxnKind.rexsave => 'RexSave',
+        TxnKind.rexvault => 'RexVault',
+        TxnKind.rexflex => 'RexFlex',
+      };
 
   AccountTransaction _fromFlex(FlexLoan loan, LoanTxn t) => AccountTransaction(
     reference: t.reference,
@@ -96,8 +117,7 @@ class TransactionsFeed implements ReceiptService {
       LoanTxnKind.partialRepayment => 'RexFlex Repayment',
       LoanTxnKind.fullRepayment => 'RexFlex Repayment (Full)',
     },
-    channel: 'Personal',
-    account: TxnAccount.personal,
+    channel: 'RexFlex',
     kind: TxnKind.rexflex,
     direction: t.isCredit ? TxnDirection.credit : TxnDirection.debit,
     amountKobo: t.amountKobo,
@@ -107,7 +127,8 @@ class TransactionsFeed implements ReceiptService {
     counterpartyLine: 'Loan ID ${loan.id}',
   );
 
-  /// Demo activity relative to [now], so the page always looks current.
+  /// Demo wallet activity relative to [now], so the page always looks
+  /// current.
   static List<AccountTransaction> _demoActivity(DateTime now) {
     final today = DateTime(now.year, now.month, now.day);
     DateTime at(int daysAgo, int h, int m) {
@@ -122,7 +143,6 @@ class TransactionsFeed implements ReceiptService {
       String ref,
       String title,
       String channel,
-      TxnAccount account,
       TxnKind kind,
       TxnDirection dir,
       int naira,
@@ -131,11 +151,12 @@ class TransactionsFeed implements ReceiptService {
       String? who,
       String? whoLine,
       String? description,
+      BillType? bill,
+      CardType? card,
     }) => AccountTransaction(
       reference: ref,
       title: title,
       channel: channel,
-      account: account,
       kind: kind,
       direction: dir,
       amountKobo: naira * 100,
@@ -144,19 +165,17 @@ class TransactionsFeed implements ReceiptService {
       counterparty: who,
       counterpartyLine: whoLine,
       description: description,
+      bill: bill,
+      card: card,
     );
 
     const cr = TxnDirection.credit, dr = TxnDirection.debit;
-    const personal = TxnAccount.personal,
-        business = TxnAccount.business,
-        pos = TxnAccount.pos;
     return [
       // Today
       t(
         'DEMO-TX-1001',
         'Transfer from Chidinma Okafor',
-        'Personal',
-        personal,
+        'Transfer',
         TxnKind.transfer,
         cr,
         150000,
@@ -166,20 +185,18 @@ class TransactionsFeed implements ReceiptService {
       ),
       t(
         'DEMO-TX-1002',
-        'POS Settlement',
-        'POS 01',
-        pos,
-        TxnKind.card,
+        'Wallet Top Up',
+        'Top up',
+        TxnKind.transfer,
         cr,
         82600,
         at(0, 7, 40),
-        description: 'Daily POS settlement',
+        description: 'Top up from linked bank card',
       ),
       t(
         'DEMO-TX-1003',
         'RexSave Interest',
-        'Personal',
-        personal,
+        'RexSave',
         TxnKind.rexsave,
         cr,
         1250,
@@ -189,19 +206,18 @@ class TransactionsFeed implements ReceiptService {
       t(
         'DEMO-TX-1004',
         'Card Payment',
-        'POS 02',
-        pos,
+        'Physical card',
         TxnKind.card,
         dr,
         12500,
         at(0, 9, 3),
-        description: 'Card payment at POS 02',
+        description: 'Card payment at a store',
+        card: CardType.physical,
       ),
       t(
         'DEMO-TX-1005',
         'Data Purchase',
-        'Personal',
-        personal,
+        'Data',
         TxnKind.data,
         dr,
         3000,
@@ -212,8 +228,7 @@ class TransactionsFeed implements ReceiptService {
       t(
         'DEMO-TX-0901',
         'Transfer from Bello Aisha',
-        'Rex Ventures',
-        business,
+        'Transfer',
         TxnKind.transfer,
         cr,
         250000,
@@ -223,9 +238,8 @@ class TransactionsFeed implements ReceiptService {
       ),
       t(
         'DEMO-TX-0902',
-        'Business Transfer',
-        'Rex Ventures',
-        business,
+        'Transfer to Adeyemi Supplies',
+        'Transfer',
         TxnKind.transfer,
         dr,
         45000,
@@ -236,8 +250,7 @@ class TransactionsFeed implements ReceiptService {
       t(
         'DEMO-TX-0903',
         'RexVault Deposit',
-        'Personal',
-        personal,
+        'RexVault',
         TxnKind.rexvault,
         dr,
         50000,
@@ -247,8 +260,7 @@ class TransactionsFeed implements ReceiptService {
       t(
         'DEMO-TX-0904',
         'Transfer to Musa Bello',
-        'Personal',
-        personal,
+        'Transfer',
         TxnKind.transfer,
         dr,
         7500,
@@ -257,23 +269,33 @@ class TransactionsFeed implements ReceiptService {
         who: 'MUSA BELLO',
         whoLine: 'Opay | 813****552',
       ),
+      t(
+        'DEMO-TX-0905',
+        'Online Card Payment',
+        'Virtual card',
+        TxnKind.card,
+        dr,
+        4200,
+        at(1, 20, 40),
+        description: 'App subscription',
+        card: CardType.virtual,
+      ),
       // Earlier this week
       t(
         'DEMO-TX-0801',
         'Electricity Token',
-        'Personal',
-        personal,
+        'Utility',
         TxnKind.bill,
         dr,
         10000,
         at(2, 19, 10),
         description: 'Prepaid meter 4510****882',
+        bill: BillType.utility,
       ),
       t(
         'DEMO-TX-0802',
         'RexVault Interest',
-        'Personal',
-        personal,
+        'RexVault',
         TxnKind.rexvault,
         cr,
         3400,
@@ -283,8 +305,7 @@ class TransactionsFeed implements ReceiptService {
       t(
         'DEMO-TX-0803',
         'RexSave Deposit',
-        'Personal',
-        personal,
+        'RexSave',
         TxnKind.rexsave,
         dr,
         20000,
@@ -294,8 +315,7 @@ class TransactionsFeed implements ReceiptService {
       t(
         'DEMO-TX-0701',
         'Airtime Purchase',
-        'Personal',
-        personal,
+        'Airtime',
         TxnKind.airtime,
         dr,
         2000,
@@ -305,8 +325,7 @@ class TransactionsFeed implements ReceiptService {
       t(
         'DEMO-TX-0702',
         'Data Purchase',
-        'Personal',
-        personal,
+        'Data',
         TxnKind.data,
         dr,
         1500,
@@ -316,36 +335,57 @@ class TransactionsFeed implements ReceiptService {
       ),
       t(
         'DEMO-TX-0703',
-        'POS Settlement',
-        'POS 03',
-        pos,
-        TxnKind.card,
+        'Transfer from Emeka Obi',
+        'Transfer',
+        TxnKind.transfer,
         cr,
         64300,
         at(3, 7, 30),
-        description: 'Daily POS settlement',
+        who: 'EMEKA OBI',
+        whoLine: 'GTBank | 014****231',
       ),
       t(
         'DEMO-TX-0601',
         'Cable TV Subscription',
-        'Personal',
-        personal,
+        'Cables',
         TxnKind.bill,
         dr,
         15000,
         at(4, 20, 15),
         description: 'Monthly TV plan',
+        bill: BillType.cable,
+      ),
+      t(
+        'DEMO-TX-0603',
+        'School Fees Payment',
+        'Education',
+        TxnKind.bill,
+        dr,
+        120000,
+        at(4, 10, 30),
+        description: 'First term fees',
+        bill: BillType.education,
+      ),
+      t(
+        'DEMO-TX-0604',
+        'Online Card Payment',
+        'Virtual card',
+        TxnKind.card,
+        dr,
+        8500,
+        at(4, 21, 5),
+        description: 'Online purchase',
+        card: CardType.virtual,
       ),
       t(
         'DEMO-TX-0602',
         'RexSave Withdrawal',
-        'Personal',
-        personal,
+        'RexSave',
         TxnKind.rexsave,
         cr,
         20000,
         at(5, 13, 40),
-        description: 'From RexSave to main account',
+        description: 'From RexSave to your wallet',
       ),
     ];
   }
@@ -386,7 +426,6 @@ class TransactionsFeed implements ReceiptService {
         ReceiptRow('Amount', Naira.grouped(t.amountKobo)),
         ReceiptRow('Transaction Type', t.isCredit ? 'Credit' : 'Debit'),
         ReceiptRow('Category', t.kind.typeLabel),
-        ReceiptRow('Account', t.channel),
         if (t.description != null) ReceiptRow('Description', t.description!),
         ReceiptRow('Transaction Date', RexDates.receipt(t.at)),
       ],

@@ -112,16 +112,19 @@ These go **beyond** the Figma frames on purpose, at the product owner's request 
 
 ## All Transactions
 
+- Rex is a single wallet. There is no account switcher and no business or POS accounts.
 - Opens from "Transactions >" on the Home balance card.
-- The list combines three sources:
+- The list combines three sources (all entries are simulated):
   - payments made in Atlas (transfers, airtime, RexSave, RexVault, bills);
   - RexFlex loans and repayments;
-  - demo account activity dated relative to today, so the page always looks current (money received, POS settlements, RexSave and RexVault deposits and interest, data, cable TV, a pending transfer and a failed, reversed data purchase).
-- All entries are simulated.
-- Filters:
-  - All / Personal / Business / POS filter by account;
-  - the filter button next to search picks a type (Transfers, Card & POS, Airtime & Data, Bills, RexSave, RexVault, RexFlex);
-  - search matches the name, account, type or amount.
-- Received / Spent shows today's totals for the current filters. Failed transactions are not counted.
-- Tapping a row opens Transaction Details, with Share Receipt and Report. Transfers made in Atlas also offer Repeat Transfer.
-- The account switcher ("All Accounts") shows a "main Rex app" notice.
+  - demo wallet activity dated relative to today (money received, top ups, physical and virtual card payments, RexSave and RexVault deposits and interest, data, cables, utility, education, a pending transfer and a failed, reversed data purchase).
+- Tabs: All · RexSave · RexFlex · RexVault.
+- The filter button opens the "Transaction filter" sheet from the design, without the Source row:
+  - Date Filter (start and end date);
+  - Quick Filter (Top Up, Transfer, Card Debit, Virtual or Physical Card Debit);
+  - Bill Payments (Airtime, Data, Cables, Utility, Education);
+  - Amount Range (₦0–₦1M, where ₦1M means "and above").
+- Active filters show as chips you can tap to clear.
+- Received / Spent shows today's totals, or the chosen date range's totals. Failed transactions are not counted.
+- Selected chips use navy with white text instead of the design's light blue, so they meet WCAG contrast.
+- Tapping a row opens Transaction Details with Share Receipt and Report. Transfers made in Atlas also offer Repeat Transfer.

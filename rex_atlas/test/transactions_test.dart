@@ -3,7 +3,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:rex_atlas/app/app.dart';
 import 'package:rex_atlas/features/atlas/atlas.dart';
 import 'package:rex_atlas/features/atlas/presentation/screens/atlas_receipt_screen.dart';
+import 'package:rex_atlas/features/transactions/domain/account_transaction.dart';
 import 'package:rex_atlas/features/transactions/presentation/all_transactions_screen.dart';
+import 'package:rex_atlas/features/transactions/presentation/transaction_filter.dart';
 
 Future<void> pumpFor(WidgetTester t, [int ms = 1500]) async {
   for (var i = 0; i < ms ~/ 100; i++) {
@@ -52,33 +54,85 @@ void main() {
     expect(find.text('Today, Nov 9'), findsNWidgets(2)); // summary + header
     expect(find.text('Received'), findsOneWidget);
     expect(find.text('Spent'), findsOneWidget);
-    // Today: ₦150,000 + ₦82,600 + ₦1,250 in.
+    // Today: ₦150,000 + ₦82,600 top up + ₦1,250 interest in.
     expect(find.text('₦233,850'), findsOneWidget);
 
+    expect(find.textContaining('business'), findsNothing);
+    expect(find.text('Your Rex wallet'), findsOneWidget);
     await scrollTo(t, inList('RexVault Deposit'));
     await scrollTo(t, inList('RexSave Withdrawal'));
     expect(t.takeException(), isNull);
   });
 
-  testWidgets('account chips and the type filter narrow the list', (t) async {
+  testWidgets('product tabs and the filter sheet narrow the list', (t) async {
     await openTransactions(t);
-    await t.tap(find.byKey(const Key('txns-chip-pos')));
+    expect(find.byKey(const Key('txns-tab-all')), findsOneWidget);
+    await t.tap(find.byKey(const Key('txns-tab-rexvault')));
     await t.pump();
-    expect(inList('POS Settlement'), findsWidgets);
-    expect(inList('RexSave Interest'), findsNothing);
-    expect(find.text('POS terminals'), findsOneWidget);
-
-    await t.tap(find.byKey(const Key('txns-chip-all')));
-    await t.tap(find.byKey(const Key('txns-filter')));
-    await t.pumpAndSettle();
-    await t.tap(find.byKey(const Key('txns-type-rexvault')));
-    await t.pumpAndSettle();
     expect(inList('RexVault Deposit'), findsOneWidget);
     expect(inList('RexVault Interest'), findsOneWidget);
     expect(inList('POS Settlement'), findsNothing);
+
+    await t.tap(find.byKey(const Key('txns-tab-rexsave')));
+    await t.pump();
+    expect(inList('RexSave Interest'), findsOneWidget);
+    expect(inList('RexVault Deposit'), findsNothing);
+
+    // Quick filter: physical card debits only.
+    await t.tap(find.byKey(const Key('txns-tab-all')));
+    await t.tap(find.byKey(const Key('txns-filter')));
+    await t.pumpAndSettle();
+    expect(find.text('Transaction filter'), findsOneWidget);
+    expect(find.text('Personal'), findsNothing); // single wallet: no Source
+    await t.tap(find.byKey(const Key('txns-quick-virtualCard')));
+    await t.tap(find.byKey(const Key('txns-apply')));
+    await t.pumpAndSettle();
+    expect(inList('Online Card Payment'), findsWidgets);
+    expect(inList('Card Payment'), findsNothing);
+    expect(inList('RexSave Interest'), findsNothing);
     await t.tap(find.byKey(const Key('txns-clear-type')));
     await t.pump();
-    expect(inList('POS Settlement'), findsWidgets);
+
+    // Bill payments: education.
+    await t.tap(find.byKey(const Key('txns-filter')));
+    await t.pumpAndSettle();
+    await t.ensureVisible(find.byKey(const Key('txns-quick-education')));
+    await t.tap(find.byKey(const Key('txns-quick-education')));
+    await t.ensureVisible(find.byKey(const Key('txns-apply')));
+    await t.tap(find.byKey(const Key('txns-apply')));
+    await t.pumpAndSettle();
+    expect(inList('School Fees Payment'), findsOneWidget);
+    expect(inList('Electricity Token'), findsNothing);
+    await t.tap(find.byKey(const Key('txns-clear-type')));
+    await t.pump();
+    expect(inList('RexSave Interest'), findsOneWidget);
+  });
+
+  test('amount range and quick filters match the right rows', () {
+    final big = AccountTransaction(
+      reference: 'a',
+      title: 'Big',
+      channel: 'Transfer',
+      kind: TxnKind.transfer,
+      direction: TxnDirection.credit,
+      amountKobo: 50000000, // ₦500,000
+      at: DateTime(2026, 11, 9),
+    );
+    expect(const TxnFilter(maxNaira: 450000).matches(big), isFalse);
+    expect(
+      const TxnFilter(minNaira: 40000, maxNaira: 450000).amountLabel,
+      '₦40k - ₦450k',
+    );
+    expect(const TxnFilter(quick: QuickFilter.topUp).matches(big), isTrue);
+    expect(const TxnFilter(quick: QuickFilter.cardDebit).matches(big), isFalse);
+    expect(TxnFilter(from: DateTime(2026, 11, 10)).matches(big), isFalse);
+    expect(
+      TxnFilter(
+        from: DateTime(2026, 11, 9),
+        to: DateTime(2026, 11, 9),
+      ).matches(big),
+      isTrue,
+    );
   });
 
   testWidgets('search finds by name, and no match shows a message', (t) async {
@@ -116,6 +170,11 @@ void main() {
 
   testWidgets('no overflow with system text at 2x', (t) async {
     await openTransactions(t, textScale: 2);
+    await t.tap(find.byKey(const Key('txns-filter')));
+    await t.pumpAndSettle();
+    expect(t.takeException(), isNull);
+    await t.tap(find.byKey(const Key('txns-filter-close')));
+    await t.pumpAndSettle();
     await scrollTo(t, inList('RexSave Withdrawal'));
     expect(t.takeException(), isNull);
   });

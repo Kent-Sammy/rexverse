@@ -8,6 +8,7 @@ import '../../atlas/presentation/receipt/receipt_header_bar.dart';
 import '../../atlas/presentation/screens/atlas_receipt_screen.dart';
 import '../data/transactions_feed.dart';
 import '../domain/account_transaction.dart';
+import 'transaction_filter.dart';
 
 /// "All Transactions": every account and every product in one list, with
 /// account chips, a type filter, search, and a received/spent summary.
@@ -23,12 +24,10 @@ class AllTransactionsScreen extends StatefulWidget {
   State<AllTransactionsScreen> createState() => _AllTransactionsScreenState();
 }
 
-enum _AccountFilter { all, personal, business, pos }
-
 class _AllTransactionsScreenState extends State<AllTransactionsScreen> {
   late Future<List<AccountTransaction>> _load = widget.feed.load();
-  _AccountFilter _account = _AccountFilter.all;
   TxnKind? _kind;
+  TxnFilter _f = const TxnFilter();
   String _query = '';
   final _search = TextEditingController();
 
@@ -42,11 +41,8 @@ class _AllTransactionsScreenState extends State<AllTransactionsScreen> {
     final q = _query.trim().toLowerCase();
     return [
       for (final t in all)
-        if ((_account == _AccountFilter.all ||
-                t.account.index == _account.index - 1) &&
-            (_kind == null ||
-                t.kind == _kind ||
-                (_kind == TxnKind.airtime && t.kind == TxnKind.data)) &&
+        if ((_kind == null || t.kind == _kind) &&
+            _f.matches(t) &&
             (q.isEmpty ||
                 t.title.toLowerCase().contains(q) ||
                 t.channel.toLowerCase().contains(q) ||
@@ -69,21 +65,14 @@ class _AllTransactionsScreenState extends State<AllTransactionsScreen> {
     );
   }
 
-  Future<void> _pickType() async {
-    final picked = await showModalBottomSheet<_KindChoice>(
-      context: context,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (_) => _TypeSheet(selected: _kind),
+  Future<void> _pickFilters() async {
+    final picked = await TransactionFilterSheet.show(
+      context,
+      initial: _f,
+      now: widget.feed.now,
     );
-    if (picked != null) setState(() => _kind = picked.kind);
+    if (picked != null) setState(() => _f = picked);
   }
-
-  void _notice(String text) => ScaffoldMessenger.of(context)
-    ..hideCurrentSnackBar()
-    ..showSnackBar(SnackBar(content: Text(text)));
 
   @override
   Widget build(BuildContext context) {
@@ -127,46 +116,60 @@ class _AllTransactionsScreenState extends State<AllTransactionsScreen> {
                     24 + MediaQuery.paddingOf(context).bottom,
                   ),
                   children: [
-                    _AccountsCard(
-                      onTap: () => _notice(
-                        'Switching accounts is part of the main Rex app.',
-                      ),
-                    ),
-                    const SizedBox(height: 8),
                     _SearchRow(
                       controller: _search,
-                      filtered: _kind != null,
+                      filtered: _f.isActive,
                       onChanged: (v) => setState(() => _query = v),
-                      onFilter: _pickType,
+                      onFilter: _pickFilters,
                     ),
                     const SizedBox(height: 8),
-                    _AccountChips(
-                      selected: _account,
-                      onSelect: (a) => setState(() => _account = a),
+                    _ProductTabs(
+                      selected: _kind,
+                      onSelect: (k) => setState(() => _kind = k),
                     ),
-                    if (_kind != null) ...[
+                    if (_f.isActive) ...[
                       const SizedBox(height: 8),
-                      _ActiveType(
-                        kind: _kind!,
-                        onClear: () => setState(() => _kind = null),
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: [
+                          if (_f.hasDates)
+                            _ActiveChip(
+                              key: const Key('txns-clear-dates'),
+                              label: _f.dateLabel,
+                              onClear: () => setState(
+                                () => _f = _f.copyWith(clearDates: true),
+                              ),
+                            ),
+                          if (_f.quick != QuickFilter.all)
+                            _ActiveChip(
+                              key: const Key('txns-clear-type'),
+                              label: _f.quick.label,
+                              onClear: () => setState(
+                                () => _f = _f.copyWith(quick: QuickFilter.all),
+                              ),
+                            ),
+                          if (_f.hasAmount)
+                            _ActiveChip(
+                              key: const Key('txns-clear-amount'),
+                              label: _f.amountLabel,
+                              onClear: () => setState(
+                                () => _f = _f.copyWith(
+                                  minNaira: 0,
+                                  maxNaira: TxnFilter.maxAmount,
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
                     ],
                     const SizedBox(height: 8),
-                    _Summary(
-                      items: items,
-                      now: widget.feed.now,
-                      scope: switch (_account) {
-                        _AccountFilter.all => 'Across all accounts',
-                        _AccountFilter.personal => 'Personal account',
-                        _AccountFilter.business => 'Business accounts',
-                        _AccountFilter.pos => 'POS terminals',
-                      },
-                    ),
+                    _Summary(items: items, now: widget.feed.now, filter: _f),
                     if (items.isEmpty)
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 48),
                         child: Text(
-                          'No transactions match. Try another account, type '
+                          'No transactions match. Try another tab, filter '
                           'or search.',
                           key: const Key('txns-empty'),
                           textAlign: TextAlign.center,
@@ -254,57 +257,6 @@ String _time(DateTime t) {
 BoxDecoration _card() =>
     BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12));
 
-class _AccountsCard extends StatelessWidget {
-  const _AccountsCard({required this.onTap});
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) => Pressable(
-    semanticLabel: 'All Accounts: Personal, 2 business accounts, 4 POS',
-    onTap: onTap,
-    child: Container(
-      padding: const EdgeInsets.all(12),
-      decoration: _card(),
-      child: Row(
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            alignment: Alignment.center,
-            decoration: const BoxDecoration(
-              color: Color(0xFFE7EEFF),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.account_balance_rounded,
-              size: 20,
-              color: Color(0xFF1456F4),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'All Accounts',
-                  style: RexTypography.host(14, weight: FontWeight.w600),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  'Personal, 2 business accounts, 4 POS',
-                  style: RexTypography.host(12, color: const Color(0xFF3A4D7A)),
-                ),
-              ],
-            ),
-          ),
-          const Icon(Icons.chevron_right_rounded, color: Color(0xFF5177FD)),
-        ],
-      ),
-    ),
-  );
-}
-
 class _SearchRow extends StatelessWidget {
   const _SearchRow({
     required this.controller,
@@ -359,8 +311,8 @@ class _SearchRow extends StatelessWidget {
       Pressable(
         key: const Key('txns-filter'),
         semanticLabel: filtered
-            ? 'Filter by type, filter on'
-            : 'Filter by type',
+            ? 'Filter by account or type, filter on'
+            : 'Filter by account or type',
         onTap: onFilter,
         child: Container(
           width: 44,
@@ -391,99 +343,106 @@ class _SearchRow extends StatelessWidget {
   );
 }
 
-class _AccountChips extends StatelessWidget {
-  const _AccountChips({required this.selected, required this.onSelect});
-  final _AccountFilter selected;
-  final ValueChanged<_AccountFilter> onSelect;
+/// All · RexSave · RexFlex · RexVault.
+class _ProductTabs extends StatelessWidget {
+  const _ProductTabs({required this.selected, required this.onSelect});
+  final TxnKind? selected;
+  final ValueChanged<TxnKind?> onSelect;
+
+  static const _tabs = <TxnKind?>[
+    null,
+    TxnKind.rexsave,
+    TxnKind.rexflex,
+    TxnKind.rexvault,
+  ];
 
   @override
   Widget build(BuildContext context) {
-    const labels = ['All', 'Personal', 'Business', 'POS'];
     return Row(
       children: [
-        for (final f in _AccountFilter.values) ...[
-          if (f.index > 0) const SizedBox(width: 6),
-          Expanded(
-            child: Pressable(
-              key: Key('txns-chip-${labels[f.index].toLowerCase()}'),
-              semanticLabel:
-                  '${labels[f.index]} accounts'
-                  '${f == selected ? ', selected' : ''}',
-              onTap: () => onSelect(f),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 180),
-                height: 42,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: f == selected ? const Color(0xFF00308F) : Colors.white,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    labels[f.index],
-                    style: RexTypography.host(
-                      13,
-                      weight: FontWeight.w600,
-                      color: f == selected ? Colors.white : RexColors.navy,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
+        for (var i = 0; i < _tabs.length; i++) ...[
+          if (i > 0) const SizedBox(width: 6),
+          Expanded(child: _tab(_tabs[i])),
         ],
       ],
     );
   }
+
+  Widget _tab(TxnKind? k) {
+    final label = k?.filterLabel ?? 'All';
+    final on = k == selected;
+    return Pressable(
+      key: Key('txns-tab-${k?.name ?? 'all'}'),
+      semanticLabel: '$label transactions${on ? ', selected' : ''}',
+      onTap: () => onSelect(k),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        height: 42,
+        alignment: Alignment.center,
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+        decoration: BoxDecoration(
+          color: on ? const Color(0xFF00308F) : Colors.white,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            label,
+            style: RexTypography.host(
+              13,
+              weight: FontWeight.w600,
+              color: on ? Colors.white : RexColors.navy,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
-class _ActiveType extends StatelessWidget {
-  const _ActiveType({required this.kind, required this.onClear});
-  final TxnKind kind;
+class _ActiveChip extends StatelessWidget {
+  const _ActiveChip({super.key, required this.label, required this.onClear});
+  final String label;
   final VoidCallback onClear;
 
   @override
-  Widget build(BuildContext context) => Align(
-    alignment: Alignment.centerLeft,
-    child: Pressable(
-      key: const Key('txns-clear-type'),
-      semanticLabel: 'Showing ${_kindLabel(kind)} only. Clear filter',
-      onTap: onClear,
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(12, 7, 8, 7),
-        decoration: BoxDecoration(
-          color: RexColors.softBlue,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              _kindLabel(kind),
-              style: RexTypography.host(
-                12,
-                weight: FontWeight.w600,
-                color: RexColors.navy,
-              ),
+  Widget build(BuildContext context) => Pressable(
+    semanticLabel: 'Showing $label only. Clear filter',
+    onTap: onClear,
+    child: Container(
+      padding: const EdgeInsets.fromLTRB(12, 7, 8, 7),
+      decoration: BoxDecoration(
+        color: RexColors.softBlue,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label,
+            style: RexTypography.host(
+              12,
+              weight: FontWeight.w600,
+              color: RexColors.navy,
             ),
-            const SizedBox(width: 6),
-            const Icon(Icons.close_rounded, size: 16, color: RexColors.navy),
-          ],
-        ),
+          ),
+          const SizedBox(width: 6),
+          const Icon(Icons.close_rounded, size: 16, color: RexColors.navy),
+        ],
       ),
     ),
   );
 }
 
-String _kindLabel(TxnKind k) =>
-    k == TxnKind.airtime ? 'Airtime & Data' : k.filterLabel;
-
 class _Summary extends StatelessWidget {
-  const _Summary({required this.items, required this.now, required this.scope});
+  const _Summary({
+    required this.items,
+    required this.now,
+    required this.filter,
+  });
   final List<AccountTransaction> items;
   final DateTime now;
-  final String scope;
+  final TxnFilter filter;
 
   @override
   Widget build(BuildContext context) {
@@ -491,7 +450,8 @@ class _Summary extends StatelessWidget {
     var inK = 0, outK = 0;
     for (final t in items) {
       if (t.status == TransactionStatus.failed) continue;
-      if (t.at.isBefore(today)) continue;
+      // With a date filter, total the chosen range; otherwise today.
+      if (!filter.hasDates && t.at.isBefore(today)) continue;
       if (t.isCredit) {
         inK += t.amountKobo;
       } else {
@@ -570,7 +530,7 @@ class _Summary extends StatelessWidget {
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               Text(
-                scope,
+                'Your Rex wallet',
                 style: RexTypography.host(11, color: RexColors.textTxMeta),
               ),
               const Padding(
@@ -578,7 +538,7 @@ class _Summary extends StatelessWidget {
                 child: Icon(Icons.circle, size: 5, color: Color(0xFFC5CCDA)),
               ),
               Text(
-                'Today, ${_monthDay(now)}',
+                filter.hasDates ? filter.dateLabel : 'Today, ${_monthDay(now)}',
                 style: RexTypography.host(11, color: RexColors.textTxMeta),
               ),
             ],
@@ -739,90 +699,3 @@ class _Row extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-
-class _KindChoice {
-  const _KindChoice(this.kind);
-  final TxnKind? kind;
-}
-
-class _TypeSheet extends StatelessWidget {
-  const _TypeSheet({required this.selected});
-  final TxnKind? selected;
-
-  static const _options = <TxnKind?>[
-    null,
-    TxnKind.transfer,
-    TxnKind.card,
-    TxnKind.airtime,
-    TxnKind.bill,
-    TxnKind.rexsave,
-    TxnKind.rexvault,
-    TxnKind.rexflex,
-  ];
-
-  @override
-  Widget build(BuildContext context) => SafeArea(
-    top: false,
-    child: SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Center(
-            child: Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: RexColors.sheetHandle,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Filter by type',
-            style: RexTypography.host(18, weight: FontWeight.w700),
-          ),
-          const SizedBox(height: 12),
-          for (final k in _options)
-            Pressable(
-              key: Key('txns-type-${k?.name ?? 'all'}'),
-              semanticLabel:
-                  '${k == null ? 'All types' : _kindLabel(k)}'
-                  '${k == selected ? ', selected' : ''}',
-              onTap: () => Navigator.of(context).pop(_KindChoice(k)),
-              child: Container(
-                margin: const EdgeInsets.only(bottom: 8),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 13,
-                ),
-                decoration: BoxDecoration(
-                  color: k == selected
-                      ? RexColors.softBlue
-                      : const Color(0xFFF7F8FB),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        k == null ? 'All types' : _kindLabel(k),
-                        style: RexTypography.host(14, weight: FontWeight.w500),
-                      ),
-                    ),
-                    if (k == selected)
-                      const Icon(
-                        Icons.check_rounded,
-                        size: 20,
-                        color: RexColors.accentBlue,
-                      ),
-                  ],
-                ),
-              ),
-            ),
-        ],
-      ),
-    ),
-  );
-}
