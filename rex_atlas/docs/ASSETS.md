@@ -89,3 +89,17 @@ The design owner exported the RexFlex illustrations and icons. They were uploade
 | `icons/flex_money_repaid.svg` | `money.svg` |
 | `icons/flex_money_total.svg` | `money-1.svg` |
 | `icons/flex_safe_lock.svg` | `mingcute_safe-lock-fill.svg` |
+
+## Home dashboard (Figma 25371:78681)
+
+Downloaded from the frame with the Figma tools (3× where available):
+
+| File | Use |
+|---|---|
+| `images/home/rexy_december_bg.jpg` | Rexy December banner background (1080 wide) |
+| `images/home/capital_market.png` | Capital market banner art (1080 wide) |
+| `images/home/rex_coin.png` | Rex coin in the header and RexPlay banner |
+| `images/home/rexshop_bag.png` | RexShop slide |
+| `icons/gamepad.svg` | RexPlay strip |
+
+The second and third banners (capital market, RexPlay) are built in code, pending the banner frame 25373:79117.

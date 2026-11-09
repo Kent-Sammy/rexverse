@@ -317,9 +317,9 @@ void main() {
     );
     await pumpSeconds(t, 7);
 
-    // Back home; the RexFlex tile now opens the dashboard directly.
+    // Back home; the balance card's Borrow button opens the dashboard.
     await tapKey(t, 'flex-back');
-    await t.tap(find.byKey(const Key('home-rexflex-tile')));
+    await t.tap(find.byKey(const Key('home-borrow')));
     await pumpFor(t, 600);
     expect(find.text('Outstanding Loan Amount'), findsOneWidget);
     expect(find.text('Earn your flex'), findsNothing);

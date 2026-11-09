@@ -29,6 +29,7 @@ flutter:
     - assets/icons/
     - assets/images/
     - assets/images/banks/
+    - assets/images/home/
     - assets/images/rexflex/
     - assets/sounds/
 

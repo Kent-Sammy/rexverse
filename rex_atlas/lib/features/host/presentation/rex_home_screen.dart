@@ -3,12 +3,12 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../app/demo_device_frame.dart';
 import '../../../core/design_system/design_system.dart';
-import '../../../core/widgets/glow_outline.dart';
 import '../../../core/widgets/initials_avatar.dart';
 import '../../../core/widgets/pressable.dart';
 import '../../atlas/atlas.dart';
 import '../../atlas/presentation/widgets/atlas_brand.dart';
 import '../../rexflex/rexflex.dart';
+import 'home_promos.dart';
 
 /// Stand-in for the existing Rex home screen (Figma frame 1, 25217:40957).
 ///
@@ -64,12 +64,16 @@ class _RexHomeScreenState extends State<RexHomeScreen> {
         children: [
           Column(
             children: [
-              // Figma: status bar ends at 41, header starts at 56 (inset 62 - 6).
-              SizedBox(height: top > 18 ? top - 6 : 12),
+              // Figma: status bar ends at 41; the RexPlay strip sits right
+              // under it, then the header (inset 62 - 21).
+              SizedBox(height: top >= 50 ? top - 21 : top),
+              RexPlayStrip(onTap: () => _notInPrototype('RexPlay')),
+              const SizedBox(height: 11),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: _Header(
                   onAsk: _openAtlas,
+                  onCoins: () => _notInPrototype('Rex coins'),
                   onBell: () => _notInPrototype('Notifications'),
                 ),
               ),
@@ -85,7 +89,10 @@ class _RexHomeScreenState extends State<RexHomeScreen> {
                           _BottomNav.heightOf(context) + 12,
                         ),
                         children: [
-                          _BalanceCard(onAction: _notInPrototype),
+                          _BalanceCard(
+                            onAction: _notInPrototype,
+                            onBorrow: _openRexFlex,
+                          ),
                           const SizedBox(height: 10),
                           _ServicesGrid(
                             onAtlas: _openAtlas,
@@ -94,26 +101,9 @@ class _RexHomeScreenState extends State<RexHomeScreen> {
                             onOther: _notInPrototype,
                           ),
                           const SizedBox(height: 10),
-                          _PromoBanner(
-                            onTap: () =>
-                                _notInPrototype('Capital Market Investments'),
-                          ),
-                          const SizedBox(height: 10),
-                          _SectionCard(
-                            title: 'Suggested Savings Plan',
-                            onMore: () => _notInPrototype('Savings plans'),
-                            child: _SavingsPlan(
-                              onTap: () => _notInPrototype('Savings goals'),
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          _SectionCard(
-                            title: 'Learn Finance',
-                            onMore: () => _notInPrototype('Learn Finance'),
-                            child: _LearnItem(
-                              onTap: () => _notInPrototype('Learn Finance'),
-                            ),
-                          ),
+                          PromoCarousel(onAction: _notInPrototype),
+                          const SizedBox(height: 12),
+                          DoMoreWithRex(onAction: _notInPrototype),
                         ],
                       ),
                     ),
@@ -140,8 +130,13 @@ class _RexHomeScreenState extends State<RexHomeScreen> {
 }
 
 class _Header extends StatelessWidget {
-  const _Header({required this.onAsk, required this.onBell});
+  const _Header({
+    required this.onAsk,
+    required this.onCoins,
+    required this.onBell,
+  });
   final VoidCallback onAsk;
+  final VoidCallback onCoins;
   final VoidCallback onBell;
 
   @override
@@ -156,30 +151,32 @@ class _Header extends StatelessWidget {
               semanticLabel: 'Ask Rex Atlas',
               onTap: onAsk,
               focusRadius: 20,
-              // Animated glow outline to draw attention to Atlas.
-              child: GlowOutline(
-                radius: 20,
-                child: Container(
-                  height: 40,
-                  padding: const EdgeInsets.only(left: 10),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Row(
-                    children: [
-                      const AtlasMarkBadge(size: 21.7, dark: true),
-                      const SizedBox(width: 8),
-                      Text(
+              child: Container(
+                height: 40,
+                padding: const EdgeInsets.only(left: 10),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  children: [
+                    const AtlasMarkBadge(size: 21.7, dark: true),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
                         'Ask RexAtlas.....',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: RexTypography.host(14, color: RexColors.navy),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ),
           ),
+          const SizedBox(width: 4),
+          CoinPill(coins: 0, onTap: onCoins),
           const SizedBox(width: 4),
           Pressable(
             semanticLabel: 'Notifications',
@@ -222,8 +219,9 @@ class _Header extends StatelessWidget {
 }
 
 class _BalanceCard extends StatelessWidget {
-  const _BalanceCard({required this.onAction});
+  const _BalanceCard({required this.onAction, required this.onBorrow});
   final ValueChanged<String> onAction;
+  final VoidCallback onBorrow;
 
   @override
   Widget build(BuildContext context) {
@@ -298,13 +296,21 @@ class _BalanceCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    _cardButton('Transfer', () => onAction('Transfer')),
-                    const SizedBox(width: 8),
-                    _cardButton('Add Money', () => onAction('Add Money')),
-                  ],
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 40),
+                  child: Row(
+                    children: [
+                      _cardButton('Transfer', () => onAction('Transfer')),
+                      const SizedBox(width: 8),
+                      _cardButton('Add Money', () => onAction('Add Money')),
+                      const SizedBox(width: 8),
+                      _cardButton(
+                        'Borrow',
+                        onBorrow,
+                        key: const Key('home-borrow'),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -353,23 +359,25 @@ class _BalanceCard extends StatelessWidget {
     );
   }
 
-  Widget _cardButton(String label, VoidCallback onTap) => Pressable(
-    semanticLabel: label,
-    onTap: onTap,
-    child: Container(
-      width: 136,
-      height: 32,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Text(
-        label,
-        style: RexTypography.host(
-          10,
-          weight: FontWeight.w600,
-          color: RexColors.navy,
+  Widget _cardButton(String label, VoidCallback onTap, {Key? key}) => Expanded(
+    child: Pressable(
+      key: key,
+      semanticLabel: label,
+      onTap: onTap,
+      child: Container(
+        height: 32,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: Text(
+          label,
+          style: RexTypography.host(
+            10,
+            weight: FontWeight.w600,
+            color: RexColors.navy,
+          ),
         ),
       ),
     ),
@@ -502,311 +510,6 @@ class _ServicesGrid extends StatelessWidget {
             ],
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _PromoBanner extends StatelessWidget {
-  const _PromoBanner({required this.onTap});
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return ConstrainedBox(
-      constraints: const BoxConstraints(minHeight: 95),
-      child: IntrinsicHeight(
-        child: Row(
-          children: [
-            Container(
-              width: 8,
-              decoration: const BoxDecoration(
-                color: RexColors.bannerBlue,
-                borderRadius: BorderRadius.horizontal(
-                  right: Radius.circular(8),
-                ),
-              ),
-            ),
-            const SizedBox(width: 7),
-            Expanded(
-              child: Container(
-                clipBehavior: Clip.antiAlias,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  gradient: const LinearGradient(
-                    colors: [RexColors.bannerBlue, Color(0xFF3570B8)],
-                  ),
-                ),
-                child: Stack(
-                  children: [
-                    // Figma "Coin Stack" (148 wide, flush right/bottom).
-                    Positioned(
-                      right: 0,
-                      bottom: 0,
-                      width: 148,
-                      height: 95,
-                      child: Image.asset(
-                        AtlasAssets.coinStack,
-                        fit: BoxFit.contain,
-                        alignment: Alignment.bottomRight,
-                        excludeFromSemantics: true,
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(15, 15, 148, 15),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Capital Market Investments',
-                            style: RexTypography.host(
-                              12,
-                              weight: FontWeight.w600,
-                              color: Colors.white,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            'Subscribe to live IPOs and exercise rights issues...',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: RexTypography.host(8, color: Colors.white),
-                          ),
-                          const SizedBox(height: 10),
-                          Pressable(
-                            semanticLabel: 'Explore Offers',
-                            onTap: onTap,
-                            child: Container(
-                              height: 26,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 6,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: Text(
-                                'Explore Offers',
-                                style: RexTypography.host(
-                                  10,
-                                  weight: FontWeight.w600,
-                                  color: RexColors.navy,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _SectionCard extends StatelessWidget {
-  const _SectionCard({
-    required this.title,
-    required this.onMore,
-    required this.child,
-  });
-  final String title;
-  final VoidCallback onMore;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  title,
-                  style: RexTypography.host(12, weight: FontWeight.w600),
-                ),
-              ),
-              Pressable(
-                semanticLabel: 'See more $title',
-                onTap: onMore,
-                child: Row(
-                  children: [
-                    Text(
-                      'See More',
-                      style: RexTypography.host(
-                        10,
-                        weight: FontWeight.w600,
-                        color: RexColors.navy,
-                      ),
-                    ),
-                    const RexSvgIcon(
-                      RexSvg.chevron,
-                      size: 14,
-                      color: RexColors.navy,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          child,
-        ],
-      ),
-    );
-  }
-}
-
-class _SavingsPlan extends StatelessWidget {
-  const _SavingsPlan({required this.onTap});
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      constraints: const BoxConstraints(minHeight: 74),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-      decoration: BoxDecoration(
-        border: Border.all(color: RexColors.hairline),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Detty December',
-                  style: RexTypography.host(11, weight: FontWeight.w600),
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  'Save small-small now, ball in December.',
-                  style: RexTypography.host(9, color: RexColors.textSecondary),
-                ),
-                const SizedBox(height: 8),
-                Pressable(
-                  semanticLabel: 'Start Goal',
-                  onTap: onTap,
-                  child: Row(
-                    children: [
-                      Text(
-                        'Start Goal',
-                        style: RexTypography.host(
-                          10,
-                          weight: FontWeight.w600,
-                          color: RexColors.primary,
-                        ),
-                      ),
-                      const RexSvgIcon(
-                        RexSvg.chevron,
-                        size: 12,
-                        color: RexColors.primary,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          // Figma "🎉" illustration (77 × 59), exported by the design owner.
-          Image.asset(
-            AtlasAssets.partyPopper,
-            excludeFromSemantics: true,
-            width: 78,
-            height: 59,
-          ),
-          const SizedBox(width: 6),
-        ],
-      ),
-    );
-  }
-}
-
-class _LearnItem extends StatelessWidget {
-  const _LearnItem({required this.onTap});
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Pressable(
-      semanticLabel: 'How to beat lifestyle inflation in your 20s',
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          border: Border.all(color: RexColors.hairline),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 75,
-              height: 69,
-              decoration: BoxDecoration(
-                color: const Color(0xFFE3F5EC),
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: const Icon(
-                Icons.menu_book_rounded,
-                color: RexColors.iconGreen,
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 5,
-                      vertical: 1,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFDDF7E8),
-                      borderRadius: BorderRadius.circular(3),
-                    ),
-                    child: Text(
-                      'MINDSET',
-                      style: RexTypography.host(
-                        7,
-                        weight: FontWeight.w600,
-                        color: RexColors.iconGreen,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    'How to beat lifestyle inflation in your 20s',
-                    style: RexTypography.host(11, weight: FontWeight.w600),
-                  ),
-                  const SizedBox(height: 3),
-                  Text(
-                    '6 mins Read',
-                    style: RexTypography.host(
-                      9,
-                      color: RexColors.textSecondary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

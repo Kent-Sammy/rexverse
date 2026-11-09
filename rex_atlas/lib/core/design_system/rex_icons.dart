@@ -36,6 +36,7 @@ enum RexSvg {
   navInvest('nav_invest'),
   navBorrow('nav_borrow'),
   navMore('nav_more'),
+  gamepad('gamepad'), // RexPlay strip on home
   eye('eye'), // balance visibility ("Show")
   chevron('chevron'), // Iconly/Light/Arrow - Down 2 (">" chevrons)
   // RexFlex exports (keep their own colours):
