@@ -100,6 +100,8 @@ class _AllTransactionsScreenState extends State<AllTransactionsScreen> {
                       onTap: () => setState(() => _load = widget.feed.load()),
                       child: Text(
                         "We couldn't load your transactions. Tap to try again.",
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
                         style: RexTypography.sheetBody,
                         textAlign: TextAlign.center,
                       ),
@@ -171,6 +173,8 @@ class _AllTransactionsScreenState extends State<AllTransactionsScreen> {
                         child: Text(
                           'No transactions match. Try another tab, filter '
                           'or search.',
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
                           key: const Key('txns-empty'),
                           textAlign: TextAlign.center,
                           style: RexTypography.host(
@@ -205,7 +209,9 @@ class _AllTransactionsScreenState extends State<AllTransactionsScreen> {
               header: true,
               child: Text(
                 _dayLabel(day!, now),
-                style: RexTypography.host(14, weight: FontWeight.w600),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: RexTypography.host(15, weight: FontWeight.w600),
               ),
             ),
           ),
@@ -388,6 +394,8 @@ class _ProductTabs extends StatelessWidget {
           fit: BoxFit.scaleDown,
           child: Text(
             label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: RexTypography.host(
               13,
               weight: FontWeight.w600,
@@ -418,12 +426,16 @@ class _ActiveChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            label,
-            style: RexTypography.host(
-              12,
-              weight: FontWeight.w600,
-              color: RexColors.navy,
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: RexTypography.host(
+                13,
+                weight: FontWeight.w600,
+                color: RexColors.navy,
+              ),
             ),
           ),
           const SizedBox(width: 6),
@@ -489,12 +501,18 @@ class _Summary extends StatelessWidget {
                   child: Text(
                     Naira.groupedWhole(kobo),
                     key: Key(received ? 'txns-received' : 'txns-spent'),
-                    style: RexTypography.host(15, weight: FontWeight.w600),
+                    style: RexTypography.host(16, weight: FontWeight.w700),
                   ),
                 ),
                 Text(
                   received ? 'Received' : 'Spent',
-                  style: RexTypography.host(12, color: const Color(0xFF3A4D7A)),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: RexTypography.host(
+                    12,
+                    weight: FontWeight.w500,
+                    color: const Color(0xFF3A4D7A),
+                  ),
                 ),
               ],
             ),
@@ -531,7 +549,13 @@ class _Summary extends StatelessWidget {
             children: [
               Text(
                 'Your Rex wallet',
-                style: RexTypography.host(11, color: RexColors.textTxMeta),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: RexTypography.host(
+                  11,
+                  weight: FontWeight.w500,
+                  color: RexColors.textTxMeta,
+                ),
               ),
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 8),
@@ -539,7 +563,13 @@ class _Summary extends StatelessWidget {
               ),
               Text(
                 filter.hasDates ? filter.dateLabel : 'Today, ${_monthDay(now)}',
-                style: RexTypography.host(11, color: RexColors.textTxMeta),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: RexTypography.host(
+                  11,
+                  weight: FontWeight.w500,
+                  color: RexColors.textTxMeta,
+                ),
               ),
             ],
           ),
@@ -654,14 +684,18 @@ class _Row extends StatelessWidget {
                     t.title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: RexTypography.host(14, weight: FontWeight.w500),
+                    style: RexTypography.host(14, weight: FontWeight.w600),
                   ),
                   const SizedBox(height: 3),
                   Text(
                     '${t.channel}  •  ${_time(t.at)}',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: RexTypography.host(12, color: RexColors.textTxMeta),
+                    style: RexTypography.host(
+                      12,
+                      weight: FontWeight.w500,
+                      color: RexColors.textTxMeta,
+                    ),
                   ),
                 ],
               ),
@@ -674,7 +708,7 @@ class _Row extends StatelessWidget {
                   amount,
                   style: RexTypography.host(
                     14,
-                    weight: FontWeight.w600,
+                    weight: FontWeight.w700,
                     color: t.isCredit
                         ? RexColors.success
                         : RexColors.textStrong,
@@ -683,6 +717,8 @@ class _Row extends StatelessWidget {
                 const SizedBox(height: 3),
                 Text(
                   statusText,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: RexTypography.host(
                     12,
                     weight: FontWeight.w500,

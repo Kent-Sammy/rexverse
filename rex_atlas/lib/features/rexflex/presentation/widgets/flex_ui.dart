@@ -210,7 +210,7 @@ class FlexButton extends StatelessWidget {
                   label,
                   textAlign: TextAlign.center,
                   style: RexTypography.host(
-                    14,
+                    15,
                     weight: FontWeight.w600,
                     color: fg,
                   ),

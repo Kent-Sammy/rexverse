@@ -56,6 +56,8 @@ class AtlasReceiptScreen extends StatelessWidget {
                       padding: const EdgeInsets.all(32),
                       child: Text(
                         "We couldn't load this receipt. Please try again later.",
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
                         style: RexTypography.sheetBody,
                         textAlign: TextAlign.center,
                       ),
@@ -150,6 +152,8 @@ class _ReceiptBody extends StatelessWidget {
                 children: [
                   Text(
                     statusCaption,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: RexTypography.host(
                       13,
                       weight: FontWeight.w500,
@@ -177,6 +181,8 @@ class _ReceiptBody extends StatelessWidget {
                       const SizedBox(width: 5),
                       Text(
                         statusText,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: RexTypography.host(
                           13,
                           weight: FontWeight.w500,
@@ -279,6 +285,8 @@ class _ReceiptBody extends StatelessWidget {
                   child: Text(
                     'Demo receipt: simulated data from the Rex Atlas '
                     'prototype. Not a real bank record.',
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
                     style: RexTypography.caption.copyWith(
                       color: const Color(0xFF8A5300),
                     ),

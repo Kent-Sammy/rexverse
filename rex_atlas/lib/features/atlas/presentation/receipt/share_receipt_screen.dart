@@ -140,8 +140,11 @@ class ReceiptTicket extends StatelessWidget {
                         const SizedBox(height: 6),
                         Text(
                           'Transaction Receipt',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: RexTypography.host(
                             12,
+                            weight: FontWeight.w500,
                             color: RexColors.textDetailLabel,
                           ),
                         ),
@@ -179,10 +182,12 @@ class ReceiptTicket extends StatelessWidget {
                 Text(
                   'DEMO RECEIPT · simulated by the Rex Atlas prototype. '
                   'Not a real bank record or proof of payment.',
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
                   key: const Key('share-receipt-demo-note'),
                   textAlign: TextAlign.center,
                   style: RexTypography.host(
-                    10.5,
+                    11,
                     weight: FontWeight.w500,
                     color: const Color(0xFF8A5300),
                   ),
@@ -210,6 +215,8 @@ class _StatusLabel extends StatelessWidget {
         const SizedBox(width: 4),
         Text(
           text,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
           style: RexTypography.host(12, weight: FontWeight.w500, color: color),
         ),
       ],
@@ -230,7 +237,13 @@ class _TicketRow extends StatelessWidget {
           width: 118,
           child: Text(
             row.label,
-            style: RexTypography.host(12, color: RexColors.textDetailLabel),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: RexTypography.host(
+              12,
+              weight: FontWeight.w500,
+              color: RexColors.textDetailLabel,
+            ),
           ),
         ),
         Expanded(
@@ -239,6 +252,8 @@ class _TicketRow extends StatelessWidget {
               Flexible(
                 child: Text(
                   row.value,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                   style: RexTypography.host(
                     12,
                     weight: FontWeight.w500,

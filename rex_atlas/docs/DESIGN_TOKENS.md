@@ -89,3 +89,30 @@ so the title scales down to fit rather than overflowing.
 | Result card | 17 side inset, buttons 29.2 high with 8 gap, details panel inset 28 |
 | Suggestion tile | 56 high, 72 left indent, icon disc 36 |
 | History row | 33 icon, 62 row pitch |
+
+## Type scale for app screens
+
+Transactions, the transaction filter, Transaction Details, Share Receipt, the Report sheet and RexFlex all use this scale (Inter):
+
+| Role | Size / weight | Where |
+|---|---|---|
+| Page title | 17 / Bold | header bars (All Transactions, Transaction Details, Share Receipt, RexFlex) |
+| Large amount | 22 / Bold | Transaction Details, RexFlex headers |
+| Sheet title | 18 / Bold | Transaction filter, Report, success sheets |
+| Section heading | 15 / SemiBold | day groups, filter sections, RexFlex sections |
+| Summary amount | 16 / Bold | Received / Spent |
+| Row title | 14 / SemiBold | transaction rows, menu rows |
+| Row amount | 14 / Bold | transaction rows |
+| Body, inputs, options | 14 / Regular–Medium | search, date fields, report reasons |
+| Primary button | 15 / SemiBold | Apply Filter, Submit report, all RexFlex buttons |
+| Supporting text | 13 / Regular | sheet subtitles, empty states |
+| Tabs, chips, links | 13 / SemiBold (unselected chips Medium) | product tabs, filter chips, active-filter chips, "Clear all filters" |
+| Meta, labels, status | 12 / Medium | "Transfer • 8:12 AM", Received/Spent, receipt labels, status |
+| Caption | 11 / Medium | summary footer, slider ticks, demo notes |
+
+Small grey text uses Medium (500) rather than Regular, so it meets WCAG AA contrast at small sizes. Home keeps the Figma home scale (10–14), because its cards are designed smaller.
+
+Long text is cut off with an ellipsis:
+- titles, labels, chips and buttons stay on one line;
+- receipt values get up to two lines (name plus bank line);
+- notices get up to three.

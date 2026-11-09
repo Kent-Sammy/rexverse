@@ -480,6 +480,8 @@ class _DoMoreWithRexState extends State<DoMoreWithRex>
               Expanded(
                 child: Text(
                   'Do more with Rex',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: RexTypography.host(13, weight: FontWeight.w600),
                 ),
               ),
@@ -490,6 +492,8 @@ class _DoMoreWithRexState extends State<DoMoreWithRex>
                   children: [
                     Text(
                       'See More',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: RexTypography.host(
                         11,
                         weight: FontWeight.w600,
@@ -536,6 +540,8 @@ class _DoMoreWithRexState extends State<DoMoreWithRex>
                                 children: [
                                   Text(
                                     s.title,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
                                     style: RexTypography.host(
                                       14,
                                       weight: FontWeight.w600,
@@ -547,7 +553,8 @@ class _DoMoreWithRexState extends State<DoMoreWithRex>
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
                                     style: RexTypography.host(
-                                      10,
+                                      11,
+                                      weight: FontWeight.w500,
                                       color: RexColors.textTxMeta,
                                     ),
                                   ),
@@ -556,6 +563,8 @@ class _DoMoreWithRexState extends State<DoMoreWithRex>
                                     children: [
                                       Text(
                                         s.cta,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
                                         style: RexTypography.host(
                                           11,
                                           weight: FontWeight.w600,

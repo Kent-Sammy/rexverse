@@ -43,7 +43,12 @@ class TransactionDetailsPanel extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('Transaction Details', style: s(RexTypography.detailTitle)),
+          Text(
+            'Transaction Details',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: s(RexTypography.detailTitle),
+          ),
           SizedBox(height: 11 * scale),
           const _DashedLine(),
           SizedBox(height: 11 * scale),
@@ -56,6 +61,8 @@ class TransactionDetailsPanel extends StatelessWidget {
                   width: 104 * scale,
                   child: Text(
                     rows[i].label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: s(RexTypography.detailLabel),
                   ),
                 ),
@@ -65,6 +72,8 @@ class TransactionDetailsPanel extends StatelessWidget {
                       Flexible(
                         child: Text(
                           rows[i].value,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                           style: s(RexTypography.detailValue),
                         ),
                       ),

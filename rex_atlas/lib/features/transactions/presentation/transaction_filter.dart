@@ -184,7 +184,9 @@ class _TransactionFilterSheetState extends State<TransactionFilterSheet> {
           header: true,
           child: Text(
             title,
-            style: RexTypography.host(14, weight: FontWeight.w600),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: RexTypography.host(15, weight: FontWeight.w600),
           ),
         ),
         const SizedBox(height: 12),
@@ -209,10 +211,12 @@ class _TransactionFilterSheetState extends State<TransactionFilterSheet> {
         ),
         child: Text(
           q.label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
           textAlign: TextAlign.center,
           style: RexTypography.host(
-            14,
-            weight: on ? FontWeight.w600 : FontWeight.w400,
+            13,
+            weight: on ? FontWeight.w600 : FontWeight.w500,
             color: on ? Colors.white : RexColors.textStrong,
           ),
         ),
@@ -274,6 +278,8 @@ class _TransactionFilterSheetState extends State<TransactionFilterSheet> {
     ),
     child: Text(
       text,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
       style: RexTypography.host(
         11,
         weight: FontWeight.w500,
@@ -303,8 +309,10 @@ class _TransactionFilterSheetState extends State<TransactionFilterSheet> {
                     children: [
                       Text(
                         'Transaction filter',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: RexTypography.host(
-                          19,
+                          18,
                           weight: FontWeight.w700,
                           color: RexColors.navy,
                         ),
@@ -312,6 +320,8 @@ class _TransactionFilterSheetState extends State<TransactionFilterSheet> {
                       const SizedBox(height: 6),
                       Text(
                         'Filter all your transactions on Rex',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: RexTypography.host(
                           13,
                           color: RexColors.textTxMeta,
@@ -369,10 +379,12 @@ class _TransactionFilterSheetState extends State<TransactionFilterSheet> {
                 children: [
                   Text(
                     _f.amountLabel,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     key: const Key('txns-amount-label'),
                     style: RexTypography.host(
                       15,
-                      weight: FontWeight.w500,
+                      weight: FontWeight.w600,
                       color: const Color(0xFF274981),
                     ),
                   ),
@@ -426,8 +438,10 @@ class _TransactionFilterSheetState extends State<TransactionFilterSheet> {
                 ),
                 child: Text(
                   'Apply Filter',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: RexTypography.host(
-                    16,
+                    15,
                     weight: FontWeight.w600,
                     color: Colors.white,
                   ),
@@ -445,8 +459,10 @@ class _TransactionFilterSheetState extends State<TransactionFilterSheet> {
                     padding: const EdgeInsets.all(10),
                     child: Text(
                       'Clear all filters',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: RexTypography.host(
-                        14,
+                        13,
                         weight: FontWeight.w600,
                         color: RexColors.navy,
                       ),

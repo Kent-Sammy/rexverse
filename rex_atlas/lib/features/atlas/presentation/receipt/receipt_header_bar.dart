@@ -49,7 +49,7 @@ class ReceiptHeaderBar extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: RexTypography.host(
                     17,
-                    weight: FontWeight.w600,
+                    weight: FontWeight.w700,
                     color: RexColors.textStrong,
                   ),
                 ),

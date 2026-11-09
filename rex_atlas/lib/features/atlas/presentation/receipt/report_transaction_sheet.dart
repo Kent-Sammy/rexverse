@@ -62,11 +62,15 @@ class _ReportBodyState extends State<_ReportBody> {
             const SizedBox(height: 18),
             Text(
               'Report this transaction',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: RexTypography.host(18, weight: FontWeight.w700),
             ),
             const SizedBox(height: 4),
             Text(
               'Tell us what went wrong and we’ll look into it.',
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
               style: RexTypography.host(13, color: RexColors.textBody),
             ),
             const SizedBox(height: 14),
@@ -96,6 +100,8 @@ class _ReportBodyState extends State<_ReportBody> {
                       Expanded(
                         child: Text(
                           r,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: RexTypography.host(
                             14,
                             weight: FontWeight.w500,
@@ -133,6 +139,8 @@ class _ReportBodyState extends State<_ReportBody> {
                 ),
                 child: Text(
                   'Submit report',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: RexTypography.host(
                     15,
                     weight: FontWeight.w600,
