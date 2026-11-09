@@ -9,6 +9,8 @@ import '../../../core/widgets/pressable.dart';
 import '../../atlas/atlas.dart';
 import '../../atlas/presentation/widgets/atlas_brand.dart';
 import '../../rexflex/rexflex.dart';
+import '../../transactions/data/transactions_feed.dart';
+import '../../transactions/presentation/all_transactions_screen.dart';
 import 'home_promos.dart';
 
 /// Stand-in for the existing Rex home screen (Figma frame 1, 25217:40957).
@@ -41,6 +43,25 @@ class _RexHomeScreenState extends State<RexHomeScreen> {
   );
 
   void _openRexFlex() => openRexFlex(context, widget.rexflex);
+
+  void _openTransactions() {
+    final deps = widget.atlas.deps;
+    final now = widget.now;
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => AllTransactionsScreen(
+          feed: TransactionsFeed(
+            history: deps.history,
+            receipts: deps.receipts,
+            rexflex: widget.rexflex,
+            accounts: deps.accounts,
+            clock: now == null ? null : () => now,
+          ),
+          onRepeat: _openAtlas,
+        ),
+      ),
+    );
+  }
 
   /// "Share Here" on the IPO banner: opens the phone's share sheet.
   Future<void> _shareIpo() => SharePlus.instance.share(
@@ -102,6 +123,7 @@ class _RexHomeScreenState extends State<RexHomeScreen> {
                           _BalanceCard(
                             onAction: _notInPrototype,
                             onBorrow: _openRexFlex,
+                            onTransactions: _openTransactions,
                           ),
                           const SizedBox(height: 10),
                           _ServicesGrid(
@@ -235,9 +257,14 @@ class _Header extends StatelessWidget {
 }
 
 class _BalanceCard extends StatelessWidget {
-  const _BalanceCard({required this.onAction, required this.onBorrow});
+  const _BalanceCard({
+    required this.onAction,
+    required this.onBorrow,
+    required this.onTransactions,
+  });
   final ValueChanged<String> onAction;
   final VoidCallback onBorrow;
+  final VoidCallback onTransactions;
 
   @override
   Widget build(BuildContext context) {
@@ -360,11 +387,23 @@ class _BalanceCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  Text('Transactions', style: RexTypography.host(10)),
-                  const RexSvgIcon(
-                    RexSvg.chevron,
-                    size: 14,
-                    color: RexColors.textStrong,
+                  Pressable(
+                    key: const Key('home-transactions'),
+                    semanticLabel: 'All transactions',
+                    onTap: onTransactions,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      child: Row(
+                        children: [
+                          Text('Transactions', style: RexTypography.host(10)),
+                          const RexSvgIcon(
+                            RexSvg.chevron,
+                            size: 14,
+                            color: RexColors.textStrong,
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ],
               ),

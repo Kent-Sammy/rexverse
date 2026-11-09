@@ -109,3 +109,19 @@ These go **beyond** the Figma frames on purpose, at the product owner's request 
 - RexAtlas is a raised round button in the centre and opens Atlas.
 - Borrow is no longer a tab. RexFlex opens from its tile on Home.
 - Inactive labels use `navInactive` (#5F76A1), a little darker than the design, so they meet WCAG contrast.
+
+## All Transactions
+
+- Opens from "Transactions >" on the Home balance card.
+- The list combines three sources:
+  - payments made in Atlas (transfers, airtime, RexSave, RexVault, bills);
+  - RexFlex loans and repayments;
+  - demo account activity dated relative to today, so the page always looks current (money received, POS settlements, RexSave and RexVault deposits and interest, data, cable TV, a pending transfer and a failed, reversed data purchase).
+- All entries are simulated.
+- Filters:
+  - All / Personal / Business / POS filter by account;
+  - the filter button next to search picks a type (Transfers, Card & POS, Airtime & Data, Bills, RexSave, RexVault, RexFlex);
+  - search matches the name, account, type or amount.
+- Received / Spent shows today's totals for the current filters. Failed transactions are not counted.
+- Tapping a row opens Transaction Details, with Share Receipt and Report. Transfers made in Atlas also offer Repeat Transfer.
+- The account switcher ("All Accounts") shows a "main Rex app" notice.

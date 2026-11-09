@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../app/demo_device_frame.dart';
 import '../../../../core/design_system/design_system.dart';
 import '../../../../core/widgets/pressable.dart';
 
@@ -14,7 +15,7 @@ class ReceiptHeaderBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final top = MediaQuery.paddingOf(context).top;
-    return Padding(
+    final bar = Padding(
       padding: EdgeInsets.fromLTRB(8, top + 8, 8, 12),
       child: SizedBox(
         height: 44,
@@ -57,6 +58,13 @@ class ReceiptHeaderBar extends StatelessWidget {
           ],
         ),
       ),
+    );
+    if (!DemoDeviceFrame.showsStatusBar(context)) return bar;
+    return Stack(
+      children: [
+        bar,
+        const Positioned(left: 0, right: 0, top: 0, child: DemoStatusBar()),
+      ],
     );
   }
 }
