@@ -116,6 +116,7 @@ class _RexHomeScreenState extends State<RexHomeScreen> {
                                 _openAtlas('I want to save with Rexy December'),
                             onInvest: () => _notInPrototype('RexInvest'),
                             onShare: _shareIpo,
+                            onPlay: () => _notInPrototype('RexPlay'),
                           ),
                           const SizedBox(height: 12),
                           DoMoreWithRex(onAction: _notInPrototype),

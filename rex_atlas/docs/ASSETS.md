@@ -99,6 +99,7 @@ Downloaded from the frame with the Figma tools (3× where available):
 | `images/home/banner_rexy_december.png` | Banner 1, full design export (1041 × 390) |
 | `images/home/banner_dangote_invest.png` | Banner 2, full design export (1041 × 375) |
 | `images/home/banner_dangote_share.png` | Banner 3, full design export (1041 × 375) |
+| `images/home/banner_rexplay.png` | Banner 4, full design export (1041 × 375) |
 | `images/home/rex_coin.png` | Rex coin in the header and RexPlay banner |
 | `images/home/rexshop_bag.png` | RexShop slide |
 | `icons/gamepad.svg` | RexPlay strip |
@@ -107,3 +108,4 @@ The banners are the designer's full exports (frame 25373:79117), used as-is, so 
 - Rexy December starts the Rexy December plan in Atlas.
 - Invest Here shows a "not in this prototype" notice.
 - Share Here opens the share sheet.
+- Play Now shows a "not in this prototype" notice, like the RexPlay strip.

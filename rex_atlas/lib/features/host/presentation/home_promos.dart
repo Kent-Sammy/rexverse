@@ -14,6 +14,7 @@ abstract final class HomeAssets {
       'assets/images/home/banner_dangote_invest.png';
   static const bannerDangoteShare =
       'assets/images/home/banner_dangote_share.png';
+  static const bannerRexPlay = 'assets/images/home/banner_rexplay.png';
   static const coin = 'assets/images/home/rex_coin.png';
   static const bag = 'assets/images/home/rexshop_bag.png';
 }
@@ -255,11 +256,13 @@ class PromoCarousel extends StatefulWidget {
     required this.onRexyDecember,
     required this.onInvest,
     required this.onShare,
+    required this.onPlay,
   });
 
   final VoidCallback onRexyDecember;
   final VoidCallback onInvest;
   final VoidCallback onShare;
+  final VoidCallback onPlay;
 
   @override
   State<PromoCarousel> createState() => _PromoCarouselState();
@@ -305,6 +308,16 @@ class _PromoCarouselState extends State<PromoCarousel>
         colors: [Color(0xFFA100FF), Color(0xFF6A00D9)],
       ),
       onTap: widget.onShare,
+    ),
+    _Promo(
+      image: HomeAssets.bannerRexPlay,
+      label:
+          'RexPlay. Play more. Know more. Challenge yourself with fun quizzes '
+          'across different topics. Play Now',
+      peek: const LinearGradient(
+        colors: [Color(0xFF14A83C), Color(0xFF07702A)],
+      ),
+      onTap: widget.onPlay,
     ),
   ];
 
