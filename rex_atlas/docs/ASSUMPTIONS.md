@@ -102,3 +102,10 @@ These go **beyond** the Figma frames on purpose, at the product owner's request 
 - Auto-advance stops when the OS "reduce motion" setting is on. The card height grows with the system text size.
 - The pills keep the same actions and utterances as the old tiles. Fixed Deposit still starts the RexVault flow.
 - Phones shorter than 800 pt get a 64 pt avatar and a 22 pt greeting. Taller phones get a 92 pt avatar. The greeting sits on one line when it fits.
+
+## Bottom navigation (feedback round 3)
+
+- Tabs: Home · RexSave · RexAtlas · RexInvest · More, from the shared design.
+- RexAtlas is a raised round button in the centre and opens Atlas.
+- Borrow is no longer a tab. RexFlex opens from its tile on Home.
+- Inactive labels use `navInactive` (#5F76A1), a little darker than the design, so they meet WCAG contrast.

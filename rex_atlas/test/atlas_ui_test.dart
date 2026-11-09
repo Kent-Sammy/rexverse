@@ -25,6 +25,29 @@ void setPhone(WidgetTester t, Size size) {
 }
 
 void main() {
+  testWidgets('bottom nav: RexAtlas button in the centre opens Atlas', (
+    t,
+  ) async {
+    setPhone(t, const Size(402, 874));
+    await t.pumpWidget(
+      RexAtlasDemoApp(
+        dependencies: AtlasDependencies.mock(latency: Duration.zero),
+        now: DateTime(2026, 11, 2, 9),
+      ),
+    );
+    await t.pump();
+    for (final key in ['home', 'rexsave', 'rexatlas', 'rexinvest', 'more']) {
+      expect(find.byKey(Key('nav-$key')), findsOneWidget);
+    }
+    expect(find.text('Borrow'), findsNothing);
+    // Tap the raised button itself (above the bar).
+    final ring = t.getRect(find.byKey(const Key('nav-rexatlas')));
+    await t.tapAt(Offset(ring.center.dx, ring.top - 4));
+    await pumpFor(t, 600);
+    expect(find.byType(AtlasSheet), findsOneWidget);
+    expect(t.takeException(), isNull);
+  });
+
   testWidgets('end-to-end designed transfer through the UI', (t) async {
     setPhone(t, const Size(402, 874));
     await t.pumpWidget(

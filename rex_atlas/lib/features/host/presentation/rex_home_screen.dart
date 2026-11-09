@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../app/demo_device_frame.dart';
 import '../../../core/design_system/design_system.dart';
@@ -73,44 +74,60 @@ class _RexHomeScreenState extends State<RexHomeScreen> {
                 ),
               ),
               Expanded(
-                child: ListView(
-                  padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
+                child: Stack(
                   children: [
-                    _BalanceCard(onAction: _notInPrototype),
-                    const SizedBox(height: 10),
-                    _ServicesGrid(
-                      onAtlas: _openAtlas,
-                      onRexFlex: _openRexFlex,
-                      onAsk: _openAtlas,
-                      onOther: _notInPrototype,
-                    ),
-                    const SizedBox(height: 10),
-                    _PromoBanner(
-                      onTap: () =>
-                          _notInPrototype('Capital Market Investments'),
-                    ),
-                    const SizedBox(height: 10),
-                    _SectionCard(
-                      title: 'Suggested Savings Plan',
-                      onMore: () => _notInPrototype('Savings plans'),
-                      child: _SavingsPlan(
-                        onTap: () => _notInPrototype('Savings goals'),
+                    Positioned.fill(
+                      child: ListView(
+                        padding: EdgeInsets.fromLTRB(
+                          20,
+                          10,
+                          20,
+                          _BottomNav.heightOf(context) + 12,
+                        ),
+                        children: [
+                          _BalanceCard(onAction: _notInPrototype),
+                          const SizedBox(height: 10),
+                          _ServicesGrid(
+                            onAtlas: _openAtlas,
+                            onRexFlex: _openRexFlex,
+                            onAsk: _openAtlas,
+                            onOther: _notInPrototype,
+                          ),
+                          const SizedBox(height: 10),
+                          _PromoBanner(
+                            onTap: () =>
+                                _notInPrototype('Capital Market Investments'),
+                          ),
+                          const SizedBox(height: 10),
+                          _SectionCard(
+                            title: 'Suggested Savings Plan',
+                            onMore: () => _notInPrototype('Savings plans'),
+                            child: _SavingsPlan(
+                              onTap: () => _notInPrototype('Savings goals'),
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          _SectionCard(
+                            title: 'Learn Finance',
+                            onMore: () => _notInPrototype('Learn Finance'),
+                            child: _LearnItem(
+                              onTap: () => _notInPrototype('Learn Finance'),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 10),
-                    _SectionCard(
-                      title: 'Learn Finance',
-                      onMore: () => _notInPrototype('Learn Finance'),
-                      child: _LearnItem(
-                        onTap: () => _notInPrototype('Learn Finance'),
+                    Positioned(
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      child: _BottomNav(
+                        onAtlas: _openAtlas,
+                        onTap: _notInPrototype,
                       ),
                     ),
                   ],
                 ),
-              ),
-              _BottomNav(
-                onTap: (label) =>
-                    label == 'Borrow' ? _openRexFlex() : _notInPrototype(label),
               ),
             ],
           ),
@@ -796,60 +813,170 @@ class _LearnItem extends StatelessWidget {
 }
 
 class _BottomNav extends StatelessWidget {
-  const _BottomNav({required this.onTap});
+  const _BottomNav({required this.onAtlas, required this.onTap});
+  final VoidCallback onAtlas;
   final ValueChanged<String> onTap;
+
+  /// How far the RexAtlas button rises above the bar.
+  static const _rise = 18.0;
+  static const _ring = 56.0;
+
+  /// Icon, gap and label; grows with the system text size.
+  static double _barContent(BuildContext context) =>
+      24 + 7 + MediaQuery.textScalerOf(context).scale(12.5) * 1.3 + 2;
+
+  static double _bottomPad(BuildContext context) {
+    final bottom = MediaQuery.paddingOf(context).bottom;
+    // Thin home indicators (≤ 34) keep the Figma spacing; taller system
+    // bars (Android three-button nav) push the labels above them.
+    return bottom > 34
+        ? bottom + 6
+        : bottom > 0
+        ? bottom - 24
+        : 10;
+  }
+
+  /// Total height including the raised button, for padding the content.
+  static double heightOf(BuildContext context) =>
+      _rise + 11 + _barContent(context) + _bottomPad(context);
 
   @override
   Widget build(BuildContext context) {
-    final bottom = MediaQuery.paddingOf(context).bottom;
     // Icons are the Figma exports (active navy, inactive #D2D8E5); labels use
     // the darker navInactive so the text meets WCAG contrast.
-    Widget item(RexSvg icon, String label, {bool active = false}) {
-      final color = active ? RexColors.navy : RexColors.navInactive;
-      return Expanded(
-        child: Pressable(
-          semanticLabel: label,
-          onTap: active ? () {} : () => onTap(label),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              RexSvgIcon(icon, size: 24),
-              const SizedBox(height: 7),
-              Text(
-                label,
-                style: RexTypography.host(
-                  13,
-                  weight: FontWeight.w600,
-                  color: color,
+    Widget label(String text, {bool active = false}) => FittedBox(
+      fit: BoxFit.scaleDown,
+      child: Text(
+        text,
+        maxLines: 1,
+        style: RexTypography.host(
+          12.5,
+          weight: FontWeight.w600,
+          color: active ? RexColors.navy : RexColors.navInactive,
+        ),
+      ),
+    );
+
+    Widget item(RexSvg icon, String text, {bool active = false}) => Expanded(
+      child: Pressable(
+        key: Key('nav-${text.toLowerCase()}'),
+        semanticLabel: text,
+        onTap: active ? () {} : () => onTap(text),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            RexSvgIcon(icon, size: 24),
+            const SizedBox(height: 7),
+            label(text, active: active),
+          ],
+        ),
+      ),
+    );
+
+    final atlas = Expanded(
+      child: Pressable(
+        key: const Key('nav-rexatlas'),
+        semanticLabel: 'Open RexAtlas',
+        onTap: onAtlas,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Space the raised button occupies inside the bar.
+            const SizedBox(height: _ring - _rise - 11 + 4),
+            label('RexAtlas'),
+          ],
+        ),
+      ),
+    );
+
+    return SizedBox(
+      height: heightOf(context),
+      child: Stack(
+        clipBehavior: Clip.none,
+        alignment: Alignment.topCenter,
+        children: [
+          // White bar with a soft shadow cast upwards.
+          Positioned.fill(
+            top: _rise,
+            child: Container(
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Color(0x14002766),
+                    blurRadius: 24,
+                    offset: Offset(0, -4),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Positioned.fill(
+            top: _rise,
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(8, 11, 8, _bottomPad(context)),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  item(RexSvg.navHome, 'Home', active: true),
+                  item(RexSvg.navSave, 'RexSave'),
+                  atlas,
+                  item(RexSvg.navInvest, 'RexInvest'),
+                  item(RexSvg.navMore, 'More'),
+                ],
+              ),
+            ),
+          ),
+          // Raised RexAtlas button: white ring, light-blue halo, navy mark.
+          Positioned(
+            top: 0,
+            child: ExcludeSemantics(
+              child: Pressable(
+                semanticLabel: 'Open RexAtlas',
+                onTap: onAtlas,
+                child: Container(
+                  width: _ring,
+                  height: _ring,
+                  alignment: Alignment.center,
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Color(0x1F002766),
+                        blurRadius: 18,
+                        offset: Offset(0, -2),
+                      ),
+                    ],
+                  ),
+                  child: Container(
+                    width: 44,
+                    height: 44,
+                    alignment: Alignment.center,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFDCE7FF),
+                      shape: BoxShape.circle,
+                    ),
+                    child: // Plain navy disc: the export's gradient outline is clipped off.
+                    ClipOval(
+                      child: SizedBox(
+                        width: 27,
+                        height: 27,
+                        child: OverflowBox(
+                          maxWidth: 31,
+                          maxHeight: 31,
+                          child: SvgPicture.asset(
+                            AtlasAssets.badgeDark,
+                            width: 31,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
               ),
-            ],
+            ),
           ),
-        ),
-      );
-    }
-
-    return Container(
-      color: Colors.white,
-      padding: EdgeInsets.fromLTRB(
-        29,
-        11,
-        29,
-        // Thin home indicators (≤ 34) keep the Figma spacing; taller system
-        // bars (Android three-button nav) push the labels above them.
-        bottom > 34
-            ? bottom + 6
-            : bottom > 0
-            ? bottom - 24
-            : 10,
-      ),
-      child: Row(
-        children: [
-          item(RexSvg.navHome, 'Home', active: true),
-          item(RexSvg.navSave, 'Save'),
-          item(RexSvg.navInvest, 'Invest'),
-          item(RexSvg.navBorrow, 'Borrow'),
-          item(RexSvg.navMore, 'More'),
         ],
       ),
     );
