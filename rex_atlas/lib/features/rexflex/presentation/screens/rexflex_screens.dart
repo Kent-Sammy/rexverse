@@ -1281,22 +1281,6 @@ class _LoanDetailsScreenState extends State<LoanDetailsScreen> {
             ),
             const SizedBox(height: 8),
             FlexMenuRow(
-              key: const Key('flex-loan-terms'),
-              icon: Icons.list_alt_rounded,
-              bg: const Color(0xFFE3EEFF),
-              fg: const Color(0xFF3D7BF7),
-              title: 'Loan Terms',
-              subtitle: 'The key terms of your loan',
-              onTap: () => showFlexSheet<void>(
-                context,
-                (_) => const FlexInfoSheet(
-                  title: 'Loan Terms',
-                  paragraphs: flexKeyTerms,
-                ),
-              ),
-            ),
-            const SizedBox(height: 8),
-            FlexMenuRow(
               key: const Key('flex-loan-agreement'),
               icon: Icons.picture_as_pdf_rounded,
               bg: const Color(0xFFFDE8E8),

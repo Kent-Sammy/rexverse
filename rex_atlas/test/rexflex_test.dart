@@ -249,6 +249,17 @@ void main() {
     await enterPin(t, '1234');
     await pumpFor(t, 2800);
     expect(find.text('Repayment Successful!'), findsOneWidget);
+
+    // Share Receipt opens the shared ticket with image / PDF options.
+    await tapKey(t, 'flex-share-receipt');
+    expect(find.text('Share Receipt'), findsWidgets);
+    expect(find.text('Paid To'), findsOneWidget);
+    expect(find.text('Loan Repayment'), findsOneWidget);
+    expect(find.byKey(const Key('share-as-pdf')), findsOneWidget);
+    expect(find.byKey(const Key('share-receipt-demo-note')), findsOneWidget);
+    await t.tap(find.byKey(const Key('share-receipt-back')));
+    await pumpFor(t, 600);
+
     await tapKey(t, 'flex-view-loan-details');
     expect(find.text('Well done!'), findsOneWidget);
 

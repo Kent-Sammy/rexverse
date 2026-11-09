@@ -34,7 +34,7 @@ Built from the Figma section "rexflex" (node `25300:45094`, 30 frames).
 5. **Repay.**
    - Choose Full or Partial. For Partial, enter an amount or tap ₦500–₦2,500.
    - Then: review, PIN (Confirm Payment), Processing, and Payment/Repayment Successful.
-   - Download Receipt opens a receipt marked **DEMO**.
+   - Share Receipt opens the shared Share Receipt screen (ticket receipt, Share as image / Share as PDF, marked **DEMO**). See docs/RECEIPTS.md.
 6. **Settled loan.**
    - The "Well done!" sheet offers See My Flex Journey or Take Another Loan.
    - "Take Another Loan" (here and on the dashboard) pops up "Check Your Eligibility" over the current screen. It does not go back to the intro.
@@ -77,7 +77,7 @@ Built from the Figma section "rexflex" (node `25300:45094`, 30 frames).
 
 - The partial "Payment Successful!" subtitle in Figma says the loan is fully repaid. The app says the loan remains active.
 - "You has been disbursed" is corrected to "Your loan has been disbursed".
-- Secondary buttons (Download Receipt, Take Another Loan) use navy text on light blue instead of white on light blue, to meet WCAG contrast.
+- Secondary buttons (Share Receipt, Take Another Loan) use navy text on light blue instead of white on light blue, to meet WCAG contrast.
 - Small grey text uses medium weight, as elsewhere in the app, for contrast.
 - The RexFlex screens are pushed full-screen with a back arrow. The Figma bottom navigation is not repeated on them.
 
@@ -130,3 +130,12 @@ Atlas knows RexFlex and can take a loan entirely in the chat.
     - then "You want ₦2k? No shaking! 😎 For how long…?" (1–30 days).
   - It then says "Great. Give me a second … so you can start flexing… 💸", runs the eligibility check, and shows "🎉 Great news! You're approved for ₦2,000. Accept your loan now." with the offer card and **Accept loan / Change amount / Change days / Cancel**.
   - Accepting sends the loan for processing ("Done! ✅ Your ₦2,000 is on its way"). When it lands: "🎉 Your ₦2,000 has landed in your Rex account. Go flex!"
+
+## Feedback round 3
+
+- Loan details: only **Loan Agreement** stays in Support; the Loan Terms row is gone. (Review Your Offer still shows the short Loan Terms sheet before you accept.)
+- The agreement PDF is redesigned:
+  - page 1: branded header, navy loan summary card, parties and loan details;
+  - page 2: numbered terms and signature blocks;
+  - a light DEMO watermark on every page.
+- Repayment success: "Download Receipt" became **Share Receipt** and opens the same Share Receipt screen as Atlas receipts.

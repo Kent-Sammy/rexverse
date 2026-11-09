@@ -7,6 +7,8 @@ import '../../../../core/widgets/appear.dart';
 import '../../../../core/widgets/pressable.dart';
 import '../../application/rexflex_controller.dart';
 import '../../domain/rexflex_models.dart';
+import '../../../atlas/presentation/receipt/share_receipt_screen.dart';
+import '../receipt/flex_receipt.dart';
 import '../widgets/flex_pin_entry.dart';
 import '../widgets/flex_ui.dart';
 
@@ -1074,6 +1076,22 @@ class _RepaymentSheetState extends State<RepaymentSheet> {
     ),
   );
 
+  Future<void> _openReceipt(RepaymentResult r) async {
+    final account = await widget.controller.loadAccount();
+    if (!mounted) return;
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => ShareReceiptScreen(
+          receipt: flexRepaymentReceipt(
+            loan: loan,
+            result: r,
+            account: account,
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _success() {
     final r = _result!;
     return FlexSheet(
@@ -1114,13 +1132,10 @@ class _RepaymentSheetState extends State<RepaymentSheet> {
           ),
           const SizedBox(height: 10),
           FlexButton(
-            key: const Key('flex-download-receipt'),
-            label: 'Download Receipt',
+            key: const Key('flex-share-receipt'),
+            label: 'Share Receipt',
             secondary: true,
-            onTap: () => showFlexSheet<void>(
-              context,
-              (_) => FlexReceiptSheet(loan: loan, result: r),
-            ),
+            onTap: () => _openReceipt(r),
           ),
           const FlexDemoLabel(),
         ],
@@ -1130,7 +1145,7 @@ class _RepaymentSheetState extends State<RepaymentSheet> {
 }
 
 // ---------------------------------------------------------------------------
-// Well done, receipt and information sheets
+// Well done and information sheets
 // ---------------------------------------------------------------------------
 
 enum WellDoneAction { journey, anotherLoan }
@@ -1215,52 +1230,6 @@ class WellDoneSheet extends StatelessWidget {
 
 /// Simulated receipt. Clearly marked as demo data so it can't be mistaken
 /// for proof of a real payment.
-class FlexReceiptSheet extends StatelessWidget {
-  const FlexReceiptSheet({super.key, required this.loan, required this.result});
-  final FlexLoan loan;
-  final RepaymentResult result;
-
-  @override
-  Widget build(BuildContext context) => FlexSheet(
-    title: 'Payment Receipt',
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Container(
-          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-          decoration: BoxDecoration(
-            color: FlexColors.noteBg,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Text(
-            'DEMO RECEIPT · simulated payment, not a real transaction',
-            textAlign: TextAlign.center,
-            style: RexTypography.host(
-              11,
-              weight: FontWeight.w700,
-              color: FlexColors.noteText,
-            ),
-          ),
-        ),
-        const SizedBox(height: 12),
-        FlexDetailBox(
-          title: 'RexFlex Loan Repayment',
-          rows: [
-            ('Amount Paid', Naira.grouped(result.paidKobo)),
-            ('Outstanding Balance', Naira.grouped(result.outstandingKobo)),
-            ('Loan ID', loan.id),
-            ('Reference', result.reference),
-            ('Date', RexDates.dateTime(result.at)),
-            ('Status', result.settled ? 'Loan settled' : 'Loan active'),
-          ],
-        ),
-        const SizedBox(height: 16),
-        FlexButton(label: 'Done', onTap: () => Navigator.of(context).pop()),
-      ],
-    ),
-  );
-}
-
 /// Simple titled list of label/value rows or paragraphs.
 class FlexInfoSheet extends StatelessWidget {
   const FlexInfoSheet({
