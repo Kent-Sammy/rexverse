@@ -71,6 +71,7 @@ void main() {
     expect(find.text('Recent Transactions'), findsOneWidget);
     await pumpFor(t, 800);
     expect(find.byKey(const Key('home-recent-txn')), findsOneWidget);
+    expect(find.text('Transfer - JIDE KOSOKO ALIU'), findsOneWidget);
     expect(find.byKey(const Key('home-banner-0')), findsOneWidget);
 
     // Swipe the promo carousel to the next banner.

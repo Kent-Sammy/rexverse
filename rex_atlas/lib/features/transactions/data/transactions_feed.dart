@@ -170,8 +170,22 @@ class TransactionsFeed implements ReceiptService {
     );
 
     const cr = TxnDirection.credit, dr = TxnDirection.debit;
+    // The latest one, shown on Home's Recent Transactions card (as in the
+    // design): always the newest entry of the day.
+    final jideAt = today.add(const Duration(hours: 9, minutes: 25));
     return [
       // Today
+      t(
+        'DEMO-TX-1006',
+        'Transfer to Jide Kosoko Aliu',
+        'Transfer',
+        TxnKind.transfer,
+        dr,
+        5000,
+        jideAt.isAfter(now) ? now.subtract(const Duration(minutes: 2)) : jideAt,
+        who: 'JIDE KOSOKO ALIU',
+        whoLine: 'GTBank | 012****345',
+      ),
       t(
         'DEMO-TX-1001',
         'Transfer from Chidinma Okafor',

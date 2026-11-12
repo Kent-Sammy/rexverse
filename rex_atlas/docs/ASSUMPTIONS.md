@@ -141,5 +141,5 @@ These go **beyond** the Figma frames on purpose, at the product owner's request 
   - it shows your latest wallet transaction, live from the same feed as All Transactions, so a payment you just made appears there;
   - "See All" opens All Transactions;
   - tapping the row opens its Transaction Details.
-- The design shows a fixed example (Transfer - JIDE KOSOKO ALIU). The app shows the real latest one instead.
+- The demo's latest transaction is a ₦5,000 transfer to JIDE KOSOKO ALIU, as in the design. Once you make a payment in Atlas, that payment shows instead.
 - The RexAtlas tile is now **RexGO** (RexAtlas has the centre button in the bottom bar). RexGO isn't in this prototype, so it shows a "main Rex app" notice.
