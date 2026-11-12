@@ -38,6 +38,7 @@ enum RexSvg {
   navMore('nav_more'),
   gamepad('gamepad'), // RexPlay strip on home
   txnTransfer('txn_transfer'), // Recent Transactions row on home
+  globe('globe'), // RexGO tile (Iconly Bold style)
   eye('eye'), // balance visibility ("Show")
   chevron('chevron'), // Iconly/Light/Arrow - Down 2 (">" chevrons)
   // RexFlex exports (keep their own colours):

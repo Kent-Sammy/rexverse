@@ -514,7 +514,7 @@ class _ServicesGrid extends StatelessWidget {
               tile(
                 'RexGO',
                 RexColors.tileBlue,
-                const AtlasMark(width: 24, height: 19),
+                const RexSvgIcon(RexSvg.globe, size: 24),
                 onTap: () => onOther('RexGO'),
                 key: const Key('home-rexgo-tile'),
               ),
