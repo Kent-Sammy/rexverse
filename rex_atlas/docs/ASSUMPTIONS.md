@@ -143,5 +143,5 @@ These go **beyond** the Figma frames on purpose, at the product owner's request 
   - tapping the row opens its Transaction Details.
 - The demo's latest transaction is a ₦5,000 transfer to JIDE KOSOKO ALIU, as in the design. Once you make a payment in Atlas, that payment shows instead.
 - The RexAtlas tile is now **RexGO** (RexAtlas has the centre button in the bottom bar).
-  - Its icon is a globe drawn in the Iconly Bold style of the other tiles (`assets/icons/globe.svg`). Swap in the official Iconly export if you have one.
+  - Its icon is the designer's Iconly Bold "Send" export (`assets/icons/rexgo.svg`).
   - RexGO isn't in this prototype, so it shows a "main Rex app" notice.
