@@ -289,6 +289,50 @@ class _AllTransactionsScreenState extends State<AllTransactionsScreen> {
   }
 }
 
+/// Icon, icon colour and disc colour for a transaction type.
+(IconData, Color, Color) txnKindStyle(TxnKind k) => switch (k) {
+  TxnKind.card => (
+    Icons.credit_card_rounded,
+    const Color(0xFF0E9F2E),
+    const Color(0xFFE1F8E6),
+  ),
+  TxnKind.transfer => (
+    Icons.swap_horiz_rounded,
+    const Color(0xFF3D6BFF),
+    const Color(0xFFE7EEFF),
+  ),
+  TxnKind.airtime => (
+    Icons.phone_in_talk_rounded,
+    const Color(0xFF0097A7),
+    const Color(0xFFE0F7FA),
+  ),
+  TxnKind.data => (
+    Icons.wifi_rounded,
+    const Color(0xFF5177FD),
+    const Color(0xFFEFF3FF),
+  ),
+  TxnKind.bill => (
+    Icons.bolt_rounded,
+    const Color(0xFFE07B00),
+    const Color(0xFFFFF0D9),
+  ),
+  TxnKind.rexsave => (
+    Icons.savings_rounded,
+    const Color(0xFFE07B00),
+    const Color(0xFFFFF4E5),
+  ),
+  TxnKind.rexvault => (
+    Icons.lock_rounded,
+    const Color(0xFF0097A7),
+    const Color(0xFFE2FCFF),
+  ),
+  TxnKind.rexflex => (
+    Icons.confirmation_number_rounded,
+    const Color(0xFF0E9F2E),
+    const Color(0xFFEBF3EB),
+  ),
+};
+
 const _months = [
   'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', //
   'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
@@ -660,52 +704,9 @@ class _Row extends StatelessWidget {
   final AccountTransaction t;
   final VoidCallback onTap;
 
-  static (IconData, Color, Color) _style(TxnKind k) => switch (k) {
-    TxnKind.card => (
-      Icons.credit_card_rounded,
-      const Color(0xFF0E9F2E),
-      const Color(0xFFE1F8E6),
-    ),
-    TxnKind.transfer => (
-      Icons.swap_horiz_rounded,
-      const Color(0xFF3D6BFF),
-      const Color(0xFFE7EEFF),
-    ),
-    TxnKind.airtime => (
-      Icons.phone_in_talk_rounded,
-      const Color(0xFF0097A7),
-      const Color(0xFFE0F7FA),
-    ),
-    TxnKind.data => (
-      Icons.wifi_rounded,
-      const Color(0xFF5177FD),
-      const Color(0xFFEFF3FF),
-    ),
-    TxnKind.bill => (
-      Icons.bolt_rounded,
-      const Color(0xFFE07B00),
-      const Color(0xFFFFF0D9),
-    ),
-    TxnKind.rexsave => (
-      Icons.savings_rounded,
-      const Color(0xFFE07B00),
-      const Color(0xFFFFF4E5),
-    ),
-    TxnKind.rexvault => (
-      Icons.lock_rounded,
-      const Color(0xFF0097A7),
-      const Color(0xFFE2FCFF),
-    ),
-    TxnKind.rexflex => (
-      Icons.confirmation_number_rounded,
-      const Color(0xFF0E9F2E),
-      const Color(0xFFEBF3EB),
-    ),
-  };
-
   @override
   Widget build(BuildContext context) {
-    final (icon, fg, bg) = _style(t.kind);
+    final (icon, fg, bg) = txnKindStyle(t.kind);
     final (statusText, statusColor) = switch (t.status) {
       TransactionStatus.successful => ('Successful', RexColors.success),
       TransactionStatus.pending => ('Pending', RexColors.warning),

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:rex_atlas/app/app.dart';
 import 'package:rex_atlas/features/atlas/atlas.dart';
+import 'package:rex_atlas/features/atlas/presentation/bottom_sheet/atlas_sheet.dart';
 import 'package:rex_atlas/features/atlas/device/device_services.dart';
 
 class FakeSpeech implements SpeechInputService {
@@ -74,8 +75,11 @@ void main() {
   testWidgets('welcome sheet no longer shows recent transactions', (t) async {
     await openAtlas(t, AtlasDependencies.mock(latency: Duration.zero));
     expect(find.text('How can I help you today?'), findsOneWidget);
-    expect(find.text('Recent Transactions'), findsNothing);
-    expect(find.text('Tunde Adeyemi'), findsNothing);
+    // Home now has its own Recent Transactions card; the sheet must not.
+    Finder inSheet(String text) =>
+        find.descendant(of: find.byType(AtlasSheet), matching: find.text(text));
+    expect(inSheet('Recent Transactions'), findsNothing);
+    expect(inSheet('Tunde Adeyemi'), findsNothing);
   });
 
   testWidgets('voice input fills the text box for review (not auto-sent)', (

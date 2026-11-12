@@ -134,3 +134,12 @@ These go **beyond** the Figma frames on purpose, at the product owner's request 
   - **No RexSave transactions yet**, with "Start saving" in Atlas;
   - **No RexVault transactions yet**, with "Save in RexVault" in Atlas;
   - **No transactions yet**, for an empty wallet.
+
+## Home dashboard (Figma 25461:79708)
+
+- **Recent Transactions** card under the balance card:
+  - it shows your latest wallet transaction, live from the same feed as All Transactions, so a payment you just made appears there;
+  - "See All" opens All Transactions;
+  - tapping the row opens its Transaction Details.
+- The design shows a fixed example (Transfer - JIDE KOSOKO ALIU). The app shows the real latest one instead.
+- The RexAtlas tile is now **RexGO** (RexAtlas has the centre button in the bottom bar). RexGO isn't in this prototype, so it shows a "main Rex app" notice.

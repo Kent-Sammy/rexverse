@@ -51,6 +51,10 @@ void main() {
   testWidgets('home dashboard: RexPlay strip, coins, promos, Do more', (
     t,
   ) async {
+    // Reduce motion: the carousels stay put, so swipes are predictable.
+    t.platformDispatcher.accessibilityFeaturesTestValue =
+        const FakeAccessibilityFeatures(disableAnimations: true);
+    addTearDown(t.platformDispatcher.clearAccessibilityFeaturesTestValue);
     setPhone(t, const Size(402, 874));
     await t.pumpWidget(
       RexAtlasDemoApp(
@@ -62,6 +66,11 @@ void main() {
     expect(find.byKey(const Key('home-rexplay')), findsOneWidget);
     expect(find.byKey(const Key('home-coins')), findsOneWidget);
     expect(find.byKey(const Key('home-borrow')), findsOneWidget);
+    expect(find.byKey(const Key('home-rexgo-tile')), findsOneWidget);
+    expect(find.text('RexGO'), findsOneWidget);
+    expect(find.text('Recent Transactions'), findsOneWidget);
+    await pumpFor(t, 800);
+    expect(find.byKey(const Key('home-recent-txn')), findsOneWidget);
     expect(find.byKey(const Key('home-banner-0')), findsOneWidget);
 
     // Swipe the promo carousel to the next banner.
@@ -79,9 +88,13 @@ void main() {
       200,
       scrollable: find.byType(Scrollable).first,
     );
+    // Clear the floating bottom bar before swiping.
+    await t.drag(find.byType(Scrollable).first, const Offset(0, -400));
+    await pumpFor(t, 400);
     expect(find.text('RexShop'), findsOneWidget);
     await t.drag(find.byKey(const Key('home-do-more')), const Offset(-300, 0));
     await pumpFor(t, 800);
+    // The cards also slide on their own, so any next slide counts.
     expect(find.text('Detty December'), findsOneWidget);
     expect(t.takeException(), isNull);
   });
@@ -167,7 +180,9 @@ void main() {
     await t.tap(find.bySemanticsLabel('Close Rex Atlas').last);
     await pumpFor(t, 600);
     expect(find.byType(AtlasSheet), findsNothing);
-    await t.tap(find.byKey(const Key('home-atlas-tile')));
+    // The transfer just made is now the Recent Transaction on Home.
+    expect(find.text('Transfer - ODELEYE OLAYINKA ANTHONY'), findsOneWidget);
+    await t.tap(find.byKey(const Key('nav-rexatlas')));
     await pumpFor(t, 600);
     expect(find.text('How can I help you today?'), findsOneWidget);
     expect(find.text('Transfer Successful!'), findsNothing);

@@ -11,7 +11,10 @@ import '../../atlas/presentation/widgets/atlas_brand.dart';
 import '../../rexflex/rexflex.dart';
 import '../../transactions/data/transactions_feed.dart';
 import '../../transactions/presentation/all_transactions_screen.dart';
+import '../../atlas/presentation/screens/atlas_receipt_screen.dart';
+import '../../transactions/domain/account_transaction.dart';
 import 'home_promos.dart';
+import 'recent_transactions_card.dart';
 
 /// Stand-in for the existing Rex home screen (Figma frame 1, 25217:40957).
 ///
@@ -35,34 +38,55 @@ class RexHomeScreen extends StatefulWidget {
 }
 
 class _RexHomeScreenState extends State<RexHomeScreen> {
+  /// Bumped when the user comes back to Home, so Recent Transactions shows
+  /// anything they just did.
+  int _txnsVersion = 0;
+
+  void _refreshRecent() {
+    if (mounted) setState(() => _txnsVersion++);
+  }
+
   void _openAtlas([String? startWith]) => showRexAtlas(
     context,
     controller: widget.atlas,
     now: widget.now,
     initialMessage: startWith,
+  ).then((_) => _refreshRecent());
+
+  void _openRexFlex() =>
+      openRexFlex(context, widget.rexflex).then((_) => _refreshRecent());
+
+  /// One feed for the Home card and the All Transactions page.
+  late final TransactionsFeed _feed = TransactionsFeed(
+    history: widget.atlas.deps.history,
+    receipts: widget.atlas.deps.receipts,
+    rexflex: widget.rexflex,
+    accounts: widget.atlas.deps.accounts,
+    clock: widget.now == null ? null : () => widget.now!,
   );
 
-  void _openRexFlex() => openRexFlex(context, widget.rexflex);
+  Future<void> _openReceipt(AccountTransaction t) => Navigator.of(context).push(
+    MaterialPageRoute<void>(
+      builder: (_) => AtlasReceiptScreen(
+        reference: t.reference,
+        receipts: _feed,
+        onRepeat: _openAtlas,
+      ),
+    ),
+  );
 
-  void _openTransactions() {
-    final deps = widget.atlas.deps;
-    final now = widget.now;
-    Navigator.of(context).push(
+  Future<void> _openTransactions() async {
+    await Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => AllTransactionsScreen(
-          feed: TransactionsFeed(
-            history: deps.history,
-            receipts: deps.receipts,
-            rexflex: widget.rexflex,
-            accounts: deps.accounts,
-            clock: now == null ? null : () => now,
-          ),
+          feed: _feed,
           onRepeat: _openAtlas,
           onAskAtlas: _openAtlas,
           onOpenRexFlex: _openRexFlex,
         ),
       ),
     );
+    _refreshRecent();
   }
 
   /// "Share Here" on the IPO banner: opens the phone's share sheet.
@@ -125,7 +149,13 @@ class _RexHomeScreenState extends State<RexHomeScreen> {
                           _BalanceCard(
                             onAction: _notInPrototype,
                             onBorrow: _openRexFlex,
-                            onTransactions: _openTransactions,
+                          ),
+                          const SizedBox(height: 10),
+                          RecentTransactionsCard(
+                            feed: _feed,
+                            onSeeAll: _openTransactions,
+                            onOpen: _openReceipt,
+                            refresh: _txnsVersion,
                           ),
                           const SizedBox(height: 10),
                           _ServicesGrid(
@@ -259,156 +289,80 @@ class _Header extends StatelessWidget {
 }
 
 class _BalanceCard extends StatelessWidget {
-  const _BalanceCard({
-    required this.onAction,
-    required this.onBorrow,
-    required this.onTransactions,
-  });
+  const _BalanceCard({required this.onAction, required this.onBorrow});
   final ValueChanged<String> onAction;
   final VoidCallback onBorrow;
-  final VoidCallback onTransactions;
 
   @override
   Widget build(BuildContext context) {
     final white = RexTypography.host(10, color: Colors.white);
     return Container(
+      constraints: const BoxConstraints(minHeight: 156),
       decoration: BoxDecoration(
-        color: Colors.white,
         borderRadius: BorderRadius.circular(12),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFF0B3A8C),
+            RexColors.hostCardBlue,
+            Color(0xFF0E3F94),
+          ],
+        ),
       ),
+      padding: const EdgeInsets.fromLTRB(0, 18, 0, 14),
       child: Column(
         children: [
-          Container(
-            constraints: const BoxConstraints(minHeight: 156),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              gradient: const LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  Color(0xFF0B3A8C),
-                  RexColors.hostCardBlue,
-                  Color(0xFF0E3F94),
-                ],
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Flexible(
+                child: Text(
+                  '11028281921 | Ololade Mr. Money',
+                  style: white,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
-            ),
-            padding: const EdgeInsets.only(top: 20),
-            child: Column(
+              const SizedBox(width: 4),
+              const Icon(Icons.copy_rounded, size: 12, color: Colors.white),
+            ],
+          ),
+          const SizedBox(height: 14),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Flexible(
-                      child: Text(
-                        '11028281921 | Ololade Mr. Money',
-                        style: white,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    const Icon(
-                      Icons.copy_rounded,
-                      size: 12,
-                      color: Colors.white,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 14),
-                FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        '₦500,563,670.00',
-                        style: RexTypography.host(
-                          22,
-                          weight: FontWeight.w600,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      const RexSvgIcon(RexSvg.eye, size: 17),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 6),
                 Text(
-                  'Book Balance :  ₦500,563,670.00',
-                  style: white.copyWith(
-                    color: Colors.white.withValues(alpha: 0.85),
+                  '₦500,563,670.00',
+                  style: RexTypography.host(
+                    22,
+                    weight: FontWeight.w600,
+                    color: Colors.white,
                   ),
                 ),
-                const SizedBox(height: 16),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 40),
-                  child: Row(
-                    children: [
-                      _cardButton('Transfer', () => onAction('Transfer')),
-                      const SizedBox(width: 8),
-                      _cardButton('Add Money', () => onAction('Add Money')),
-                      const SizedBox(width: 8),
-                      _cardButton(
-                        'Borrow',
-                        onBorrow,
-                        key: const Key('home-borrow'),
-                      ),
-                    ],
-                  ),
-                ),
+                const SizedBox(width: 8),
+                const RexSvgIcon(RexSvg.eye, size: 17),
               ],
             ),
           ),
-          SizedBox(
-            height: 38,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 11),
-              child: Row(
-                children: [
-                  const RexSvgIcon(RexSvg.checkCircleOutlined, size: 16),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Text.rich(
-                      TextSpan(
-                        children: [
-                          const TextSpan(
-                            text: 'Transfer to JIDE KOSOKO ALIU - ',
-                          ),
-                          TextSpan(
-                            text: '₦5000.00',
-                            style: RexTypography.host(
-                              10,
-                              weight: FontWeight.w700,
-                            ),
-                          ),
-                        ],
-                      ),
-                      style: RexTypography.host(10),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  Pressable(
-                    key: const Key('home-transactions'),
-                    semanticLabel: 'All transactions',
-                    onTap: onTransactions,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      child: Row(
-                        children: [
-                          Text('Transactions', style: RexTypography.host(10)),
-                          const RexSvgIcon(
-                            RexSvg.chevron,
-                            size: 14,
-                            color: RexColors.textStrong,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+          const SizedBox(height: 6),
+          Text(
+            'Book Balance :  ₦500,563,670.00',
+            style: white.copyWith(color: Colors.white.withValues(alpha: 0.85)),
+          ),
+          const SizedBox(height: 16),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 40),
+            child: Row(
+              children: [
+                _cardButton('Transfer', () => onAction('Transfer')),
+                const SizedBox(width: 8),
+                _cardButton('Add Money', () => onAction('Add Money')),
+                const SizedBox(width: 8),
+                _cardButton('Borrow', onBorrow, key: const Key('home-borrow')),
+              ],
             ),
           ),
         ],
@@ -558,11 +512,11 @@ class _ServicesGrid extends StatelessWidget {
               ),
               gap,
               tile(
-                'RexAtlas',
+                'RexGO',
                 RexColors.tileBlue,
                 const AtlasMark(width: 24, height: 19),
-                onTap: onAtlas,
-                key: const Key('home-atlas-tile'),
+                onTap: () => onOther('RexGO'),
+                key: const Key('home-rexgo-tile'),
               ),
             ],
           ),
