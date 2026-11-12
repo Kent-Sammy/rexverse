@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:share_plus/share_plus.dart';
@@ -543,11 +545,8 @@ class _BottomNav extends StatelessWidget {
     final bottom = MediaQuery.paddingOf(context).bottom;
     // Thin home indicators (≤ 34) keep the Figma spacing; taller system
     // bars (Android three-button nav) push the labels above them.
-    return bottom > 34
-        ? bottom + 6
-        : bottom > 0
-        ? bottom - 24
-        : 10;
+    // Never less than 10, so thin Android gesture bars (1–33 pt) also work.
+    return bottom > 34 ? bottom + 6 : math.max(10.0, bottom - 24);
   }
 
   /// Total height including the raised button, for padding the content.

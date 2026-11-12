@@ -145,3 +145,10 @@ These go **beyond** the Figma frames on purpose, at the product owner's request 
 - The RexAtlas tile is now **RexGO** (RexAtlas has the centre button in the bottom bar).
   - Its icon is the designer's Iconly Bold "Send" export (`assets/icons/rexgo.svg`).
   - RexGO isn't in this prototype, so it shows a "main Rex app" notice.
+
+## Atlas welcome sheet sizing
+
+- The welcome sheet never scrolls. It measures its content and opens to exactly that height (up to the full screen), so the spacing between avatar, greeting, suggestion card, quick actions and message bar is identical on every phone.
+- The compact layout (smaller avatar and greeting) is used only when the full layout can't fit a full-height sheet. On the very smallest screens (e.g. iPhone SE 2016) the content scales down slightly instead of scrolling.
+- Checked on 10 phone sizes by `test/welcome_fit_test.dart`.
+- On the 402 × 874 design phone the sheet is 586 pt tall (Figma frame: 608), because it now matches its content exactly.

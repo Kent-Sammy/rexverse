@@ -105,10 +105,40 @@ class AtlasSheetState extends State<AtlasSheet>
 
   // ------------------------------------------------------------- geometry
 
+  /// Height the welcome content asked for (it never scrolls), once known.
+  double? _welcomeNeed;
+
+  /// Welcome height: exactly what the content needs, so spacing is the same
+  /// on every phone, up to the full height. Before the first measurement it
+  /// uses the Figma proportion (608 of 874).
   double _collapsed(Size s, double top) => math.min(
-    s.height * RexDimens.collapsedSheetHeight / RexDimens.designHeight,
+    _welcomeNeed ??
+        s.height * RexDimens.collapsedSheetHeight / RexDimens.designHeight,
     _expanded(s, top),
   );
+
+  void _onWelcomeNeed(double need) {
+    if (!mounted ||
+        (_welcomeNeed != null && (need - _welcomeNeed!).abs() < 1)) {
+      return;
+    }
+    _welcomeNeed = need;
+    final s = _lastSize;
+    if (s == null || _mode != AtlasSheetMode.collapsed || _closing) {
+      return;
+    }
+    final target = _collapsed(s, _lastTop);
+    if (_height.isAnimating) {
+      // Still opening: carry on smoothly to the new resting height.
+      _height.animateWith(
+        SpringSimulation(_spring, _height.value, target, _height.velocity),
+      );
+    } else {
+      _height.value = target;
+    }
+    setState(() {});
+  }
+
   double _expanded(Size s, double top) => s.height - math.max(top, 24);
   double _heightFor(AtlasSheetMode m, Size s, double top) => switch (m) {
     AtlasSheetMode.collapsed => _collapsed(s, top),
@@ -367,6 +397,7 @@ class AtlasSheetState extends State<AtlasSheet>
                 child: AtlasWelcomeView(
                   controller: c,
                   now: widget.now,
+                  onNeedHeight: _onWelcomeNeed,
                   onAttach: _onAttach,
                   onNotice: showNotice,
                   onComposerFocus: () {

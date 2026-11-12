@@ -13,13 +13,19 @@ import '../widgets/atlas_composer.dart';
 import '../widgets/atlas_header.dart';
 
 /// Frame 2: the collapsed Atlas sheet shown when Atlas opens.
-class AtlasWelcomeView extends StatelessWidget {
+///
+/// The content never scrolls: it reports the height it needs through
+/// [onNeedHeight] so the sheet can grow to fit it on every phone (keeping the
+/// same spacing everywhere). If even a full-height sheet is too short, the
+/// content scales down slightly instead of scrolling.
+class AtlasWelcomeView extends StatefulWidget {
   const AtlasWelcomeView({
     super.key,
     required this.controller,
     required this.onAttach,
     required this.onNotice,
     required this.onComposerFocus,
+    this.onNeedHeight,
     this.now,
   });
 
@@ -31,8 +37,57 @@ class AtlasWelcomeView extends StatelessWidget {
   /// Injectable clock for tests/screenshots.
   final DateTime? now;
 
+  /// The total sheet height this view needs to show everything unscaled.
+  final ValueChanged<double>? onNeedHeight;
+
+  /// Space above the content: handle (13 + 4) and the gap below it, as in
+  /// Figma.
+  static const contentTop = 46.0;
+
+  @override
+  State<AtlasWelcomeView> createState() => _AtlasWelcomeViewState();
+}
+
+class _AtlasWelcomeViewState extends State<AtlasWelcomeView> {
+  final _contentKey = GlobalKey();
+  final _areaKey = GlobalKey();
+  double? _reported;
+
+  /// Smaller avatar and greeting, used only when the full layout can't fit
+  /// even a full-height sheet.
+  bool _compact = false;
+
+  /// After layout: sheet height needed = everything outside the content
+  /// area + the content's natural height.
+  void _measure(Duration _) {
+    if (!mounted || widget.onNeedHeight == null) return;
+    final self = context.findRenderObject() as RenderBox?;
+    final area = _areaKey.currentContext?.findRenderObject() as RenderBox?;
+    final content =
+        _contentKey.currentContext?.findRenderObject() as RenderBox?;
+    if (self == null || area == null || content == null) return;
+    if (!self.hasSize || !area.hasSize || !content.hasSize) return;
+    final need =
+        self.size.height -
+        area.size.height +
+        AtlasWelcomeView.contentTop +
+        content.size.height;
+    final mq = MediaQuery.of(context);
+    final maxSheet = mq.size.height - math.max(mq.padding.top, 24);
+    if (!_compact && need > maxSheet + 0.5) {
+      setState(() => _compact = true); // re-measured on the next frame
+      return;
+    }
+    if (_reported == null || (need - _reported!).abs() > 0.5) {
+      _reported = need;
+      widget.onNeedHeight!(need);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    WidgetsBinding.instance.addPostFrameCallback(_measure);
+    final controller = widget.controller;
     final bottom = RexDimens.composerBottom(context);
     return _AnimatedWelcomeBackground(
       child: Column(
@@ -41,15 +96,28 @@ class AtlasWelcomeView extends StatelessWidget {
             child: Stack(
               children: [
                 // Content starts below the handle (13 + 4 + 29 = 46, as in
-                // Figma) and scrolls under it, so the avatar glow is never
-                // cut off by a clip edge.
+                // Figma). It is never scrollable: the sheet grows to fit it,
+                // and on very short screens it scales down instead.
                 Positioned.fill(
-                  child: SingleChildScrollView(
-                    physics: const ClampingScrollPhysics(),
-                    padding: const EdgeInsets.only(top: 46),
-                    child: _WelcomeContent(
-                      controller: controller,
-                      now: now ?? DateTime.now(),
+                  key: _areaKey,
+                  child: LayoutBuilder(
+                    builder: (context, c) => Padding(
+                      padding: const EdgeInsets.only(
+                        top: AtlasWelcomeView.contentTop,
+                      ),
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.topCenter,
+                        child: SizedBox(
+                          width: c.maxWidth,
+                          child: _WelcomeContent(
+                            key: _contentKey,
+                            controller: controller,
+                            now: widget.now ?? DateTime.now(),
+                            compact: _compact,
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -76,10 +144,10 @@ class AtlasWelcomeView extends StatelessWidget {
               tone: ComposerTone.onDark,
               enabled: !controller.isBusy,
               onSend: controller.send,
-              onAttach: onAttach,
+              onAttach: widget.onAttach,
               speech: controller.deps.speech,
-              onNotice: onNotice,
-              onFocus: onComposerFocus,
+              onNotice: widget.onNotice,
+              onFocus: widget.onComposerFocus,
             ),
           ),
         ],
@@ -89,16 +157,21 @@ class AtlasWelcomeView extends StatelessWidget {
 }
 
 class _WelcomeContent extends StatelessWidget {
-  const _WelcomeContent({required this.controller, required this.now});
+  const _WelcomeContent({
+    super.key,
+    required this.controller,
+    required this.now,
+    this.compact = false,
+  });
 
   final AtlasController controller;
   final DateTime now;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
     final name = controller.account?.firstName ?? '';
-    // Short phones get a smaller avatar so both rows of actions stay visible.
-    final compact = MediaQuery.sizeOf(context).height < 800;
+    // Only very short phones get the smaller avatar and greeting.
     final greeting = compact
         ? RexTypography.welcomeGreeting.copyWith(fontSize: 22)
         : RexTypography.welcomeGreeting;
@@ -116,11 +189,21 @@ class _WelcomeContent extends StatelessWidget {
             spacing: 7,
             children: [
               Text(RexDates.greeting(now), style: greeting),
-              Text('$name!', style: greeting),
-              // Figma uses an emoji image ("Emoji", 22.7pt); the system emoji
-              // font renders the same glyph.
-              const ExcludeSemantics(
-                child: Text('👋', style: TextStyle(fontSize: 21, height: 1.2)),
+              // Name and wave stay together when the greeting wraps.
+              Text.rich(
+                TextSpan(
+                  children: [
+                    TextSpan(text: '$name! '),
+                    // Figma uses an emoji image ("Emoji", 22.7pt); the system
+                    // emoji font renders the same glyph. Not read aloud.
+                    const TextSpan(
+                      text: '👋',
+                      style: TextStyle(fontSize: 21, height: 1.2),
+                      semanticsLabel: '',
+                    ),
+                  ],
+                ),
+                style: greeting,
               ),
             ],
           ),
